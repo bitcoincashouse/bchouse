@@ -17,7 +17,7 @@ import {
 } from '../../utils'
 import { ExitContract } from '../exit/campaign-exit'
 import { MainContract } from '../main/campaign-main'
-import donationCampaignContract from './campaign-donation.json'
+import donationCampaignContract from './contract.json'
 
 type ContractParams = {
   mainContract: MainContract

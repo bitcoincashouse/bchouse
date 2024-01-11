@@ -18,7 +18,7 @@ import {
   getMintingToken,
 } from '../../utils'
 import { MainContract } from '../main/campaign-main'
-import exitCampaignContract from './campaign-exit.json'
+import exitCampaignContract from './contract.json'
 
 type ContractParams = {
   expires: number

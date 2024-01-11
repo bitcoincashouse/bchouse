@@ -2,7 +2,7 @@ import { Contract, NetworkProvider } from 'cashscript'
 import { addressToBytecode, addressToHash160 } from '~/server/utils/bchUtils'
 import { CampaignInfo, CampaignUtxo, ContractExecutor } from '../../../types'
 import { getMintingToken } from '../../utils'
-import mainCampaignContract from './campaign-main.json'
+import mainCampaignContract from './contract.json'
 
 type ContractParams = Omit<CampaignInfo, 'version'> & {
   platformAddress: string

@@ -12,7 +12,7 @@ import {
   ContractExecutor,
 } from '../../../types'
 import { getMintingToken } from '../../utils'
-import mainCampaignContract from './campaign-main.json'
+import mainCampaignContract from './contract.json'
 
 type ContractParams = Omit<CampaignInfo, 'version'> & {
   platformAddress: string
