@@ -1,0 +1,42 @@
+.wcm-modal-header {
+  & {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+  }
+
+  &.wcm-border {
+    border-bottom: 1px solid var(--wcm-color-bg-2);
+    margin-bottom: 20px;
+  }
+
+  button {
+    padding: 15px 20px;
+  }
+
+  button:active {
+    opacity: 0.5;
+  }
+
+  @media (hover: hover) {
+    button:hover {
+      opacity: 0.5;
+    }
+  }
+
+  .wcm-back-btn {
+    position: absolute;
+    left: 0;
+  }
+
+  .wcm-action-btn {
+    position: absolute;
+    right: 0;
+  }
+
+  path {
+    fill: var(--wcm-accent-color);
+  }
+}

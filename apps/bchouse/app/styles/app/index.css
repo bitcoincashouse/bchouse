@@ -1,0 +1,168 @@
+.items {
+  @apply bg-primary;
+  @apply text-primary-text;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0px 10px 20px rgba(0, 0, 0, 0.1);
+  font-size: 0.9rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.item {
+  border-radius: 0.4rem;
+  display: block;
+  margin: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.item * {
+  @apply ring-0;
+}
+
+.item.is-selected,
+.item.is-selected * {
+  @apply bg-secondary;
+}
+
+.ProseMirror > * + * {
+  margin-top: 0.75em;
+}
+
+.mention {
+  @apply text-blue-500;
+}
+
+.hashtag {
+  @apply text-blue-500;
+}
+
+/* remove outline */
+.ProseMirror:focus {
+  outline: none;
+}
+
+/* set */
+.ProseMirror {
+  min-height: 100%;
+  max-height: 100%;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.link {
+  @apply text-blue-500;
+}
+
+.link-hover {
+  @apply hover:text-blue-600;
+}
+
+.link-visited {
+  @apply visited:text-purple-600;
+}
+
+@font-face {
+  font-family: 'inter';
+  font-style: normal;
+  font-weight: 100 1000;
+  font-stretch: 0% 200%;
+  src: url('/assets/fonts/inter-var-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'montserrat';
+  src: url('/assets/fonts/Montserrat-Medium.ttf');
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+#toggle-animation {
+  background-color: rgba(6, 27, 45, 0.6);
+  min-width: initial;
+  border: none;
+  color: #8c9aa2;
+  z-index: 2;
+
+  /* &:hover {
+    @apply text-blueGreenLight;
+  } */
+}
+
+.view-more {
+  z-index: 2;
+}
+
+.hero-container {
+  margin-top: 23vh;
+  z-index: 2;
+}
+
+.hero-container h2 {
+  font-size: 1.375rem;
+  font-weight: 200;
+  font-family: 'inter', sans-serif;
+  line-height: 2rem;
+}
+
+@media (max-width: 768px) {
+  .hero-container {
+    margin-top: 15vh;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-container h2 {
+    font-size: 1.1625rem;
+    line-height: 1.6rem;
+  }
+
+  .hero-container {
+    margin-top: 5vh;
+    padding: 0 10%;
+  }
+}
+
+@media (max-width: 420px) {
+  #stars {
+    min-height: 44rem;
+  }
+}
+
+.gitlab-link {
+  display: flex;
+  align-items: center;
+}
+
+.gitlab-link:before {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 380 380'%3E%3Cdefs%3E%3Cstyle%3E.cls-1%7Bfill:%23171321;%7D%3C/style%3E%3C/defs%3E%3Cg id='LOGO'%3E%3Cpath class='cls-1' d='M282.83,170.73l-.27-.69-26.14-68.22a6.81,6.81,0,0,0-2.69-3.24,7,7,0,0,0-8,.43,7,7,0,0,0-2.32,3.52l-17.65,54H154.29l-17.65-54A6.86,6.86,0,0,0,134.32,99a7,7,0,0,0-8-.43,6.87,6.87,0,0,0-2.69,3.24L97.44,170l-.26.69a48.54,48.54,0,0,0,16.1,56.1l.09.07.24.17,39.82,29.82,19.7,14.91,12,9.06a8.07,8.07,0,0,0,9.76,0l12-9.06,19.7-14.91,40.06-30,.1-.08A48.56,48.56,0,0,0,282.83,170.73Z'/%3E%3C/g%3E%3C/svg%3E")
+    no-repeat;
+  content: '';
+  display: flex;
+  height: 2.5rem;
+  width: 2.5rem;
+}
+
+.divider {
+  width: 3.125rem;
+  height: 0.1875rem;
+  border-radius: 0.1875rem;
+}
+
+* {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}

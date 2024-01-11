@@ -1,0 +1,54 @@
+{
+  "name": "@bchouse/cashconnect",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "npm run clean && npm run compile",
+    "clean": "rm -rf ./dist",
+    "prepare": "is-docker && echo 'Skipping prepare' || npm run build",
+    "compile": "tsup --tsconfig ./tsconfig.build.json ./src/index.ts --format esm,cjs --dts"
+  },
+  "dependencies": {
+    "@headlessui/react": "1.7.11",
+    "@heroicons/react": "^2.0.16",
+    "@radix-ui/react-label": "^2.0.2",
+    "@radix-ui/react-popover": "^1.0.7",
+    "@radix-ui/react-slot": "^1.0.2",
+    "@sahidmiller/react-currency-input-field": "^3.6.10",
+    "bchaddrjs": "^0.5.2",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.0.0",
+    "dayjs": "^1.11.9",
+    "lucide-react": "^0.279.0",
+    "luxon": "^3.4.3",
+    "motion": "^10.16.2",
+    "qrcode": "^1.5.3",
+    "react": "^18.2.0",
+    "react-day-picker": "^8.8.2",
+    "react-dom": "^18.2.0",
+    "react-zxing": "^2.0.0",
+    "tailwind-merge": "^1.14.0",
+    "valtio": "^1.11.2"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "devDependencies": {
+    "@types/bchaddrjs": "^0.4.0",
+    "@types/luxon": "^3.3.2",
+    "@types/node": "^20.2.5",
+    "@types/qrcode": "^1.5.1",
+    "@types/react": "^18.0.25",
+    "@types/react-dom": "^18.0.8",
+    "is-docker": "^3.0.0",
+    "ts-node": "^10.0.0",
+    "tsc-alias": "^1.8.8",
+    "tsconfig-paths": "^4.1.2",
+    "tsup": "^8.0.1",
+    "typescript": "^5.1.3"
+  }
+}

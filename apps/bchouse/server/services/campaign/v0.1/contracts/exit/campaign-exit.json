@@ -1,0 +1,52 @@
+{
+  "contractName": "campaignExit",
+  "constructorInputs": [
+    {
+      "name": "platformPkh",
+      "type": "bytes20"
+    },
+    {
+      "name": "fundraisingExpires",
+      "type": "int"
+    }
+  ],
+  "abi": [
+    {
+      "name": "refundBeforeExpirationByPlatform",
+      "inputs": [
+        {
+          "name": "platformPk",
+          "type": "pubkey"
+        },
+        {
+          "name": "platformSig",
+          "type": "sig"
+        }
+      ]
+    },
+    {
+      "name": "refundBeforeExpirationBySignedRequest",
+      "inputs": [
+        {
+          "name": "pledgerPk",
+          "type": "pubkey"
+        },
+        {
+          "name": "pledgerSig",
+          "type": "datasig"
+        }
+      ]
+    },
+    {
+      "name": "refundAfterExpiration",
+      "inputs": []
+    }
+  ],
+  "bytecode": "OP_2 OP_PICK OP_0 OP_NUMEQUAL OP_IF OP_3 OP_PICK OP_HASH160 OP_EQUALVERIFY OP_2SWAP OP_CHECKSIGVERIFY OP_1 OP_UTXOTOKENCOMMITMENT OP_1 OP_SPLIT OP_DROP OP_0 OP_1 OP_NUM2BIN OP_EQUALVERIFY OP_INPUTINDEX OP_1 OP_NUMEQUALVERIFY OP_1 OP_UTXOTOKENCATEGORY 20 OP_SPLIT OP_DROP OP_0 OP_UTXOTOKENCATEGORY OP_SWAP OP_2 OP_CAT OP_EQUALVERIFY OP_0 OP_OUTPUTBYTECODE OP_0 OP_UTXOBYTECODE OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCATEGORY OP_0 OP_UTXOTOKENCATEGORY OP_EQUALVERIFY OP_0 OP_OUTPUTVALUE OP_0 OP_UTXOVALUE OP_LESSTHAN OP_NIP OP_NIP OP_ELSE OP_2 OP_PICK OP_1 OP_NUMEQUAL OP_IF OP_1 OP_UTXOTOKENCOMMITMENT OP_1 OP_8 OP_ADD OP_SPLIT OP_NIP 76a914 OP_5 OP_PICK OP_HASH160 OP_CAT 88ac OP_CAT OP_EQUALVERIFY OP_4 OP_ROLL OP_INPUTINDEX OP_OUTPOINTTXHASH OP_5 OP_ROLL OP_CHECKDATASIGVERIFY OP_1 OP_UTXOTOKENCOMMITMENT OP_1 OP_SPLIT OP_DROP OP_0 OP_1 OP_NUM2BIN OP_EQUALVERIFY OP_INPUTINDEX OP_1 OP_NUMEQUALVERIFY OP_1 OP_UTXOTOKENCATEGORY 20 OP_SPLIT OP_DROP OP_0 OP_UTXOTOKENCATEGORY OP_SWAP OP_2 OP_CAT OP_EQUALVERIFY OP_0 OP_OUTPUTBYTECODE OP_0 OP_UTXOBYTECODE OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCATEGORY OP_0 OP_UTXOTOKENCATEGORY OP_EQUALVERIFY OP_0 OP_OUTPUTVALUE OP_0 OP_UTXOVALUE OP_LESSTHAN OP_NIP OP_NIP OP_NIP OP_ELSE OP_ROT OP_2 OP_NUMEQUALVERIFY OP_SWAP OP_CHECKLOCKTIMEVERIFY OP_DROP OP_INPUTINDEX OP_1 OP_NUMEQUALVERIFY OP_1 OP_UTXOTOKENCATEGORY 20 OP_SPLIT OP_DROP OP_0 OP_UTXOTOKENCATEGORY OP_SWAP OP_2 OP_CAT OP_EQUALVERIFY OP_0 OP_OUTPUTBYTECODE OP_0 OP_UTXOBYTECODE OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCATEGORY OP_0 OP_UTXOTOKENCATEGORY OP_EQUALVERIFY OP_0 OP_OUTPUTVALUE OP_0 OP_UTXOVALUE OP_LESSTHAN OP_NIP OP_ENDIF OP_ENDIF",
+  "source": "pragma cashscript ^0.8.0;\n\n// Pledge receipt of smart contract flipstarter used to cancel or refund pledge\n// All the campaignExit contracts for a given campaign share the same address but with different NFTs attached\n\n// Opcode count: xx (max xxx)\n// Bytesize: xx (max xxx)\n\ncontract campaignExit(bytes20 platformPkh, int fundraisingExpires) {\n  //Exit contract is spent with campaign and remoes funds to campaign.\n  // Payout and pledge functions ruled out by requiring campaign exists and decreased in value\n  function refundBeforeExpirationByPlatform(pubkey platformPk, sig platformSig) {\n    // so only the platform can cancel before expiration\n    require(hash160(platformPk) == platformPkh);\n    require(checkSig(platformSig, platformPk));\n    \n    // require this input nft and do not allow type bit 1 (donation) to be refunded before expiration\n    bytes type = tx.inputs[1].nftCommitment.split(1)[0];\n    require(type == bytes1(0));\n\n    // require pledge input to be spent at index 1\n    require(this.activeInputIndex == 1);\n    // can only be spent with campaign contract (campaign contract ensures the amount and refund address matches)\n    bytes categoryID = tx.inputs[1].tokenCategory.split(32)[0];\n    require(tx.inputs[0].tokenCategory == categoryID + 0x02);\n    // require campaign contract bytecode replicated on output index 0\n    require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);\n    // require campaign contract category replicated on output index 0\n    require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);\n    // require campaign decreases in value\n    require(tx.outputs[0].value < tx.inputs[0].value);\n  }\n\n  //Exit contract is spent with campaign and remoes funds to campaign.\n  // Payout and pledge functions ruled out by requiring campaign exists and decreased in value\n  function refundBeforeExpirationBySignedRequest(pubkey pledgerPk, datasig pledgerSig) {\n    // require refund locking bytecode to match commitment (assumes p2pkh locking script)\n    bytes refundLockingBytecode = tx.inputs[1].nftCommitment.split(1 + 8)[1];\n    require(new LockingBytecodeP2PKH(hash160(pledgerPk)) == refundLockingBytecode);\n\n    // require pledger to sign the current inputs tx hash to refund\n    require(checkDataSig(pledgerSig, tx.inputs[this.activeInputIndex].outpointTransactionHash, pledgerPk));\n\n    // require this input nft and do not allow type bit 1 (donation) to be refunded before expiration\n    bytes type = tx.inputs[1].nftCommitment.split(1)[0];\n    require(type == bytes1(0));\n    \n    // require pledge input to be spent at index 1\n    require(this.activeInputIndex == 1);\n    // can only be spent with campaign contract (campaign contract ensures the amount and refund address matches)\n    bytes categoryID = tx.inputs[1].tokenCategory.split(32)[0];\n    require(tx.inputs[0].tokenCategory == categoryID + 0x02);\n    // require campaign contract bytecode replicated on output index 0\n    require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);\n    // require campaign contract category replicated on output index 0\n    require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);\n    // require campaign decreases in value\n    require(tx.outputs[0].value < tx.inputs[0].value);\n  }\n\n  //Exit contract is spent with campaign and remoes funds to campaign.\n  // Payout and pledge functions ruled out by requiring campaign exists and decreased in value\n  function refundAfterExpiration() {\n    // require that the campaign expired\n    require(tx.time >= fundraisingExpires);\n\n    // require pledge input to be spent at index 1\n    require(this.activeInputIndex == 1);\n    // can only be spent with campaign contract (campaign contract ensures the amount and refund address matches)\n    bytes categoryID = tx.inputs[1].tokenCategory.split(32)[0];\n    require(tx.inputs[0].tokenCategory == categoryID + 0x02);\n    // require campaign contract bytecode replicated on output index 0\n    require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);\n    // require campaign contract category replicated on output index 0\n    require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);\n    // require campaign decreases in value\n    require(tx.outputs[0].value < tx.inputs[0].value);\n  }\n}",
+  "compiler": {
+    "name": "cashc",
+    "version": "0.8.2"
+  },
+  "updatedAt": "2023-12-22T16:34:17.089Z"
+}

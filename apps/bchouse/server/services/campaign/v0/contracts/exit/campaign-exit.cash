@@ -1,0 +1,29 @@
+pragma cashscript ^0.8.0;
+
+// Pledge receipt of smart contract flipstarter used to cancel or refund pledge
+// All the campaignExit contracts for a given campaign share the same address but with different NFTs attached
+
+// Opcode count: xx (max xxx)
+// Bytesize: xx (max xxx)
+
+contract campaignExit(bytes20 platformPkh, int fundraisingExpires) {
+  
+  function refundBeforeExpiration(pubkey platformPk, sig platformSig) {
+    // so only the platform can cancel before expiration
+    require(hash160(platformPk) == platformPkh);
+    require(checkSig(platformSig, platformPk));
+
+    // can only be spent with campaign contract (campaign contract ensures the amount and refund address matches)
+    bytes categoryID = tx.inputs[1].tokenCategory.split(32)[0];
+    require(tx.inputs[0].tokenCategory == categoryID + 0x02);
+  }
+
+  function refundAfterExpiration() {
+    // require that the campaign expired
+    require(tx.time >= fundraisingExpires);
+
+    // can only be spent with campaign contract (campaign contract ensures the amount and refund address matches)
+    bytes categoryID = tx.inputs[1].tokenCategory.split(32)[0];
+    require(tx.inputs[0].tokenCategory == categoryID + 0x02);
+  }
+}

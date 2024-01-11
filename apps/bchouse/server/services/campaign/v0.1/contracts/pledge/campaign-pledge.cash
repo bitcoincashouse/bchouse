@@ -1,0 +1,47 @@
+pragma cashscript ^0.8.0;
+
+// Forward contract to campaign which enables any wallet to pledge
+// Ensures it's only forwarded to specified contract (verifiable on-chain via categoryId reducing bytes) 
+// Also ensures a refund NFT is available to pledgers specified refund bytecode
+
+// Opcode count: xx (max xxx)
+// Bytesize: xx (max xxx)
+
+contract campaignEntry(
+  bytes pledgerRefundBytecode,
+  bytes campaignCategoryId,
+  bytes campaignExitBytecode
+) {
+
+  //Pledge contract is spent with campaign and adds funds to campaign.
+  // Payout and revocation functions ruled out by requiring campaign exists and increased in value
+  function pledge() {
+    // require pledge input to be spent at index 1
+    require(this.activeInputIndex == 1);
+    // require pledge contract to be spent with correct campaign at index 0
+    require(tx.inputs[0].tokenCategory == campaignCategoryId + 0x02);
+    // require campaign contract bytecode replicated on output index 0
+    require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);
+    // require campaign contract category replicated on output index 0
+    require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);
+    // require at least 2 outputs for refund NFT
+    require(tx.outputs.length >= 2);
+    // require 2nd output contains refund NFT (campaignCategoryId without minting 0x02)
+    require(tx.outputs[1].tokenCategory == campaignCategoryId);
+    // require the refund NFT can only be spent in certain ways
+    require(tx.outputs[1].lockingBytecode == campaignExitBytecode);
+
+    // require the refund NFT commitment to encode refund-address
+    require(tx.outputs[1].nftCommitment.split(1 + 8)[1] == pledgerRefundBytecode);
+    // require the refund NFT commiment to encode pledge bit
+    require(tx.outputs[1].nftCommitment.split(1)[0] == bytes1(0));
+    // require campaign increases in value (main pledge code ensures change)
+    require(tx.outputs[0].value > tx.inputs[0].value);
+  }
+
+  function cancel() {
+    // require output to be specified pledger refund
+    require(tx.outputs[this.activeInputIndex].value >= tx.inputs[this.activeInputIndex].value - 1000);
+    require(tx.outputs[this.activeInputIndex].lockingBytecode == pledgerRefundBytecode);
+  }
+}

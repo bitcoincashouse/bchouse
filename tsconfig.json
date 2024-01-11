@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "incremental": true,
+    "target": "es2022",
+    "module": "commonjs",
+    "declaration": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "rootDir": ".",
+  },
+  "files": [
+  ],
+  "references": [
+    {
+      "path": "./apps/bchouse"
+    },
+    {
+      "path": "./apps/paygate"
+    },
+    {
+      "path": "./packages/cashconnect"
+    },
+    {
+      "path": "./packages/inngest"
+    },
+    {
+      "path": "./packages/utils"
+    }
+  ]
+}

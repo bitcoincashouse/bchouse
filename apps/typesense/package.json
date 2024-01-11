@@ -1,0 +1,6 @@
+{
+  "name": "@bchouse/typesense",
+  "scripts": {
+    "fly:deploy": "fly deploy --config ./flyio/typesense/fly.toml"
+  }
+}

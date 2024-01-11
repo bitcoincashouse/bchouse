@@ -1,0 +1,226 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+@import './app/index.css';
+@import './donations/index.css';
+@import '@bchouse/cashconnect/styles/index.css';
+
+.break-word {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+@layer base {
+  :root {
+    --color-bg-primary: 255 255 255;
+    --color-text-primary: 17 24 39;
+    --color-text-secondary: 107 114 128;
+    --color-hover-primary: 249 250 251;
+    --color-hover-secondary: 241 245 249;
+  }
+  
+  .dark {
+    --color-bg-primary: 24 37 51;
+    --color-text-primary: 244 244 244;
+    --color-text-secondary: 156 163 175;
+    --color-hover-primary: 10 79 118;
+    --color-hover-secondary: 51 65 85;
+  }
+  
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 47.4% 11.2%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 210 40% 98%;
+
+    --ring: 215 20.2% 65.1%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+
+    --accent: 216 34% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --popover: 224 71% 4%;
+    --popover-foreground: 215 20.2% 65.1%;
+
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+
+    --card: 224 71% 4%;
+    --card-foreground: 213 31% 91%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 1.2%;
+
+    --secondary: 222.2 47.4% 11.2%;
+    --secondary-foreground: 210 40% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --ring: 216 34% 17%;
+
+    --radius: 0.5rem;
+  }
+}
+
+/** Fonts **/
+@font-face {
+  font-display: swap;
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Cairo'), local('Cairo-Regular'),
+    url('./fonts/cairo.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-display: swap;
+  font-family: 'icons';
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+  src: url('./fonts/icons.woff') format('woff');
+}
+
+/* Material icons packages with icomoon */
+[class^='icon-'],
+[class*=' icon-'] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'icons' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  font-size: 1.5rem;
+  line-height: 1.25;
+  margin-top: -0.15rem;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.leftarrow:before {
+  content: '\003c';
+}
+.icon-report_problem:before {
+  content: '\e900';
+}
+.icon-chat:before {
+  content: '\e901';
+}
+.icon-chat_bubble_outline:before {
+  content: '\e902';
+}
+.icon-email:before {
+  content: '\e903';
+}
+.icon-access_time:before {
+  content: '\e904';
+}
+.icon-attach_money:before {
+  content: '\e905';
+}
+.icon-download:before {
+  content: '\e90e';
+}
+.icon-security:before {
+  content: '\e906';
+}
+.icon-person_outline:before {
+  content: '\e907';
+}
+.icon-bookmark_border:before {
+  content: '\e908';
+}
+.icon-code:before {
+  content: '\e909';
+}
+.icon-face:before {
+  content: '\e90a';
+}
+.icon-favorite_border:before {
+  content: '\e90b';
+}
+.icon-info:before {
+  content: '\e90c';
+}
+.icon-translate:before {
+  content: '\e90d';
+}
+.icon-label:before {
+  content: '\e90f';
+}
+.icon-share:before {
+  content: '\e910';
+}
+.icon-help:before {
+  content: '\e911';
+}
+.icon-nightlife:before {
+  content: '\e912';
+}
+.icon-downarrow:before {
+  content: '\02ec';
+}
+.icon-bitcoin:before {
+  content: '\e913';
+}
+.icon-dollar:before {
+  content: '\e905';
+}
+.icon-usd:before {
+  content: '\e905';
+}
+.icon-bitcoin:before {
+  content: '\e913';
+}
+.icon-btc:before {
+  content: '\e913';
+}
+.icon-bch:before {
+  content: '\e913';
+}
+
+.down-arrow:before {
+  content: '▼';
+}
+.up-arrow:before {
+  content: '▲';
+}

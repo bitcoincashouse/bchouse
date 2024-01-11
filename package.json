@@ -1,0 +1,28 @@
+{
+  "name": "bchouse",
+  "private": true,
+  "sideEffects": false,
+  "type": "module",
+  "description": "A monorepo in TypeScript",
+  "version": "1.0.0",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=14"
+  },
+  "scripts": {
+    "dev": "run-p dev:*",
+    "dev:inngest": "inngest-cli dev --no-discovery -u http://localhost:3000/api/inngest",
+    "fly:deploy:bchouse": "fly deploy --config ./fly.bchouse.toml --dockerfile ./docker.bchouse.Dockerfile",
+    "fly:deploy:paygate": "fly deploy --config ./fly.paygate.toml --dockerfile ./docker.paygate.Dockerfile",
+    "staging:fly:deploy:bchouse": "fly deploy --config ./fly.staging.bchouse.toml --dockerfile ./docker.bchouse.Dockerfile",
+    "staging:fly:deploy:paygate": "fly deploy --config ./fly.staging.paygate.toml --dockerfile ./docker.paygate.Dockerfile"
+  },
+  "devDependencies": {
+    "inngest-cli": "^0.18.0",
+    "knip": "^2.20.0",
+    "npm-run-all": "^4.1.5"
+  }
+}

@@ -1,0 +1,42 @@
+{
+	"include": [
+		"src/**/*.ts",
+    "src/**/*.tsx",
+	],
+  "exclude": ["../../**/node_modules", "**/.*/"],
+  "compilerOptions": {
+    //EMISSIONS
+    "sourceMap": true,
+    "removeComments": true,
+    "outDir": "./dist/",
+
+    // ECMAS Module + ES2021 + Node-16LTS
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitThis": true,
+    "strictPropertyInitialization": false,
+    
+    //STRUCTURE
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "rootDir": "./src",
+		"paths": {
+			"~/*": ["./src/*"]
+		}
+  }
+}

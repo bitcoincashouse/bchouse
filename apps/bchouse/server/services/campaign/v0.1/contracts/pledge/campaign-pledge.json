@@ -1,0 +1,34 @@
+{
+  "contractName": "campaignEntry",
+  "constructorInputs": [
+    {
+      "name": "pledgerRefundBytecode",
+      "type": "bytes"
+    },
+    {
+      "name": "campaignCategoryId",
+      "type": "bytes"
+    },
+    {
+      "name": "campaignExitBytecode",
+      "type": "bytes"
+    }
+  ],
+  "abi": [
+    {
+      "name": "pledge",
+      "inputs": []
+    },
+    {
+      "name": "cancel",
+      "inputs": []
+    }
+  ],
+  "bytecode": "OP_3 OP_PICK OP_0 OP_NUMEQUAL OP_IF OP_INPUTINDEX OP_1 OP_NUMEQUALVERIFY OP_0 OP_UTXOTOKENCATEGORY OP_2 OP_PICK OP_2 OP_CAT OP_EQUALVERIFY OP_0 OP_OUTPUTBYTECODE OP_0 OP_UTXOBYTECODE OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCATEGORY OP_0 OP_UTXOTOKENCATEGORY OP_EQUALVERIFY OP_TXOUTPUTCOUNT OP_2 OP_GREATERTHANOREQUAL OP_VERIFY OP_1 OP_OUTPUTTOKENCATEGORY OP_ROT OP_EQUALVERIFY OP_1 OP_OUTPUTBYTECODE OP_ROT OP_EQUALVERIFY OP_1 OP_OUTPUTTOKENCOMMITMENT OP_1 OP_8 OP_ADD OP_SPLIT OP_NIP OP_EQUALVERIFY OP_1 OP_OUTPUTTOKENCOMMITMENT OP_1 OP_SPLIT OP_DROP OP_0 OP_1 OP_NUM2BIN OP_EQUALVERIFY OP_0 OP_OUTPUTVALUE OP_0 OP_UTXOVALUE OP_GREATERTHAN OP_NIP OP_ELSE OP_3 OP_ROLL OP_1 OP_NUMEQUALVERIFY OP_INPUTINDEX OP_OUTPUTVALUE OP_INPUTINDEX OP_UTXOVALUE e803 OP_SUB OP_GREATERTHANOREQUAL OP_VERIFY OP_INPUTINDEX OP_OUTPUTBYTECODE OP_EQUAL OP_NIP OP_NIP OP_ENDIF",
+  "source": "pragma cashscript ^0.8.0;\n\n// Forward contract to campaign which enables any wallet to pledge\n// Ensures it's only forwarded to specified contract (verifiable on-chain via categoryId reducing bytes) \n// Also ensures a refund NFT is available to pledgers specified refund bytecode\n\n// Opcode count: xx (max xxx)\n// Bytesize: xx (max xxx)\n\ncontract campaignEntry(\n  bytes pledgerRefundBytecode,\n  bytes campaignCategoryId,\n  bytes campaignExitBytecode\n) {\n\n  //Pledge contract is spent with campaign and adds funds to campaign.\n  // Payout and revocation functions ruled out by requiring campaign exists and increased in value\n  function pledge() {\n    // require pledge input to be spent at index 1\n    require(this.activeInputIndex == 1);\n    // require pledge contract to be spent with correct campaign at index 0\n    require(tx.inputs[0].tokenCategory == campaignCategoryId + 0x02);\n    // require campaign contract bytecode replicated on output index 0\n    require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);\n    // require campaign contract category replicated on output index 0\n    require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);\n    // require at least 2 outputs for refund NFT\n    require(tx.outputs.length >= 2);\n    // require 2nd output contains refund NFT (campaignCategoryId without minting 0x02)\n    require(tx.outputs[1].tokenCategory == campaignCategoryId);\n    // require the refund NFT can only be spent in certain ways\n    require(tx.outputs[1].lockingBytecode == campaignExitBytecode);\n\n    // require the refund NFT commitment to encode refund-address\n    require(tx.outputs[1].nftCommitment.split(1 + 8)[1] == pledgerRefundBytecode);\n    // require the refund NFT commiment to encode pledge bit\n    require(tx.outputs[1].nftCommitment.split(1)[0] == bytes1(0));\n    // require campaign increases in value (main pledge code ensures change)\n    require(tx.outputs[0].value > tx.inputs[0].value);\n  }\n\n  function cancel() {\n    // require output to be specified pledger refund\n    require(tx.outputs[this.activeInputIndex].value >= tx.inputs[this.activeInputIndex].value - 1000);\n    require(tx.outputs[this.activeInputIndex].lockingBytecode == pledgerRefundBytecode);\n  }\n}",
+  "compiler": {
+    "name": "cashc",
+    "version": "0.8.2"
+  },
+  "updatedAt": "2023-12-22T16:34:16.878Z"
+}

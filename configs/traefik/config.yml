@@ -1,0 +1,18 @@
+http:
+  routers:
+    flipstarter-local-router:
+      rule: HostRegexp(`{catchall:.*}`)
+      service: flipstarter-local  
+  services:
+    flipstarter-local:
+      loadBalancer:
+        servers:
+          - url: "{{env "APP_UPSTREAM"}}"
+  middlewares:
+    cors:
+      headers:
+        accessControlAllowOriginList: "*"
+        accessControlAllowMethods: "*"
+        accessControlAllowHeaders: "*"
+        accessControlMaxAge: 100
+        addVaryHeader: true

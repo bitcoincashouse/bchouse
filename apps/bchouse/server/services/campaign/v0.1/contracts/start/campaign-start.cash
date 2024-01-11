@@ -1,0 +1,95 @@
+pragma cashscript ^0.8.0;
+
+// Initial forwarding contract for campaign creation
+// Deposit into this contract ensures the appropriate campaign is created
+
+// Opcode count: xx (max xxx)
+// Bytesize: xx (max xxx)
+
+contract campaignCreate(
+  int fundraisingGoal,
+  bytes pledgerRefundBytecode,
+  bytes campaignMainBytecode, 
+  bytes campaignExitBytecode
+) {
+  
+  function forward() {
+    //Send this utxo back to this contract if non-zero index
+    require(tx.inputs[this.activeInputIndex].outpointIndex != 0);
+    require(tx.outputs.length == 1);
+    require(tx.outputs[0].lockingBytecode == tx.inputs[this.activeInputIndex].lockingBytecode);
+    require(tx.outputs[0].value == tx.inputs[this.activeInputIndex].value - 1000);
+  }
+
+  function create() {
+    // require this to be only input for campaign contract creation
+    require(tx.inputs.length == 1);
+    // require at least 2 outputs for campaign contract and refund NFT and optional change
+    require(tx.outputs.length <= 3);
+
+    int pledgeAmount = tx.outputs[0].value;
+
+    // require input value to be less than or equal to campaign goal
+    require(pledgeAmount <= fundraisingGoal + 2000);
+
+    // if there is a change output
+    if (tx.outputs.length == 3) {
+      // require that it does not mint *any* NFTs
+      require(tx.outputs[2].tokenCategory == 0x);
+      // require no unaccounted funds from pledge input
+      int changeAmount = tx.outputs[2].value;
+      require(tx.inputs[0].value == pledgeAmount + changeAmount + 2000);
+      // require change is returned to refund address
+      require(tx.outputs[2].lockingBytecode == pledgerRefundBytecode);
+    } else {
+      // require no unaccounted funds from pledge input
+      require(tx.inputs[0].value == pledgeAmount + 2000);
+    }
+
+    // require this input's outpoint to be a valid genesis by requiring input's output to be campaignCategoryId
+    bytes32 campaignCategoryId = tx.inputs[this.activeInputIndex].outpointTransactionHash;
+    // require 1st output to contain minting NFT as well
+    require(tx.outputs[0].tokenCategory == campaignCategoryId + 0x02);
+    // require 1st output to be campaign contract bytecode
+    require(tx.outputs[0].lockingBytecode == campaignMainBytecode);
+    // require 2nd output contains refund NFT (campaignCategoryId without minting 0x02)
+    require(tx.outputs[1].tokenCategory == campaignCategoryId);
+    // require refund NFT to only be spent in certain ways
+    require(tx.outputs[1].lockingBytecode == campaignExitBytecode);
+
+    // require refund NFT to encode initial value minus fee
+    //  No issue if campaign starts with pledge greater than goal, since no further pledges are necessary and no anyonecanpay pledges invalidated
+    bytes pledgeCommitment = bytes1(0) + bytes8(pledgeAmount) + pledgerRefundBytecode;
+    require(tx.outputs[1].nftCommitment == pledgeCommitment);
+  }
+
+  function pledge() {
+    // require pledge input to be spent at index 1
+    require(this.activeInputIndex == 1);
+    // require campaign contract to be spent at index 0
+    require(tx.outputs[0].lockingBytecode == campaignMainBytecode);
+    // require campaign contract bytecode replicated on output index 0
+    require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);
+    // require campaign contract category replicated on output index 0
+    require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);
+    // require at least 2 outputs for refund NFT
+    require(tx.outputs.length >= 2);
+    // require 2nd output contains refund NFT (campaignCategoryId without minting 0x02)
+    require(tx.outputs[1].tokenCategory == tx.inputs[0].tokenCategory.split(32)[0]);
+    // require the refund NFT can only be spent in certain ways
+    require(tx.outputs[1].lockingBytecode == campaignExitBytecode);
+
+    // require the refund NFT commitment to encode refund-address
+    require(tx.outputs[1].nftCommitment.split(1 + 8)[1] == pledgerRefundBytecode);
+    // require the refund NFT commiment to encode pledge bit
+    require(tx.outputs[1].nftCommitment.split(1)[0] == bytes1(0));
+    // require campaign increases in value (main pledge code ensures change)
+    require(tx.outputs[0].value > tx.inputs[0].value);
+  }
+
+  function cancel() {
+    // require output to specified pledger refund with same value minus a small fee
+    require(tx.outputs[this.activeInputIndex].value >= tx.inputs[this.activeInputIndex].value - 1000);
+    require(tx.outputs[this.activeInputIndex].lockingBytecode == pledgerRefundBytecode);
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "label": "Compile Project Typescript",
+  "type": "shell",
+  "command": "./node_modules/.bin/tsc",
+  "args": ["--noEmit", "--build"],
+  "presentation": {
+      "reveal":"never",
+      "echo": false,
+      "focus": false,
+      "panel": "dedicated"
+  },
+  "problemMatcher": "$tsc-watch",
+  "version": "2.0.0",
+  "tasks": []
+} 

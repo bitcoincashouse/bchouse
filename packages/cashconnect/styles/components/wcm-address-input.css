@@ -1,0 +1,56 @@
+.wcm-address-input {
+  & {
+    position: relative;
+  }
+
+  span {
+    border-top-left-radius: var(--wcm-input-border-radius);
+    border-bottom-left-radius: var(--wcm-input-border-radius);
+    font-style: normal;
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, Segoe UI, Roboto,
+      Ubuntu, Helvetica Neue, sans-serif;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+  }
+
+  input {
+    width: 100%;
+    line-height: 28px !important;
+    border-top-right-radius: var(--wcm-input-border-radius);
+    border-bottom-right-radius: var(--wcm-input-border-radius);
+    font-style: normal;
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI',
+      Roboto, Ubuntu, 'Helvetica Neue', sans-serif;
+    font-feature-settings: 'case' on;
+    font-weight: 500;
+    @apply text-sm;
+    letter-spacing: -0.03em;
+    padding: 0 10px 0 10px;
+    color: var(--wcm-color-fg-1);
+    background-color: var(--wcm-color-bg-3);
+    box-shadow: inset 0 0 0 1px var(--wcm-color-overlay);
+    caret-color: var(--wcm-accent-color);
+    transition: 0.2s all ease;
+  }
+
+  input::placeholder {
+    color: var(--wcm-color-fg-2);
+  }
+
+  svg {
+    left: 10px;
+    top: 6px;
+    pointer-events: none;
+    position: absolute;
+    width: 20px;
+    height: 20px;
+  }
+
+  input:focus-within {
+    box-shadow: inset 0 0 0 1px var(--wcm-accent-color);
+  }
+
+  path {
+    fill: var(--wcm-color-fg-2);
+  }
+}

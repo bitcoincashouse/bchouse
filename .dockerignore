@@ -1,0 +1,17 @@
+*.env
+.git
+.cert
+.tmp
+.vscode
+.yarn
+.cache
+.local
+build
+dist
+node_modules
+prisma/migrations
+Dockerfile
+website
+typesense-data
+flyio
+tsconfig.tsbuildinfo

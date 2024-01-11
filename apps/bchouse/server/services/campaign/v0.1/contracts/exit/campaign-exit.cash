@@ -1,0 +1,79 @@
+pragma cashscript ^0.8.0;
+
+// Pledge receipt of smart contract flipstarter used to cancel or refund pledge
+// All the campaignExit contracts for a given campaign share the same address but with different NFTs attached
+
+// Opcode count: xx (max xxx)
+// Bytesize: xx (max xxx)
+
+contract campaignExit(bytes20 platformPkh, int fundraisingExpires) {
+  //Exit contract is spent with campaign and remoes funds to campaign.
+  // Payout and pledge functions ruled out by requiring campaign exists and decreased in value
+  function refundBeforeExpirationByPlatform(pubkey platformPk, sig platformSig) {
+    // so only the platform can cancel before expiration
+    require(hash160(platformPk) == platformPkh);
+    require(checkSig(platformSig, platformPk));
+    
+    // require this input nft and do not allow type bit 1 (donation) to be refunded before expiration
+    bytes type = tx.inputs[1].nftCommitment.split(1)[0];
+    require(type == bytes1(0));
+
+    // require pledge input to be spent at index 1
+    require(this.activeInputIndex == 1);
+    // can only be spent with campaign contract (campaign contract ensures the amount and refund address matches)
+    bytes categoryID = tx.inputs[1].tokenCategory.split(32)[0];
+    require(tx.inputs[0].tokenCategory == categoryID + 0x02);
+    // require campaign contract bytecode replicated on output index 0
+    require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);
+    // require campaign contract category replicated on output index 0
+    require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);
+    // require campaign decreases in value
+    require(tx.outputs[0].value < tx.inputs[0].value);
+  }
+
+  //Exit contract is spent with campaign and remoes funds to campaign.
+  // Payout and pledge functions ruled out by requiring campaign exists and decreased in value
+  function refundBeforeExpirationBySignedRequest(pubkey pledgerPk, datasig pledgerSig) {
+    // require refund locking bytecode to match commitment (assumes p2pkh locking script)
+    bytes refundLockingBytecode = tx.inputs[1].nftCommitment.split(1 + 8)[1];
+    require(new LockingBytecodeP2PKH(hash160(pledgerPk)) == refundLockingBytecode);
+
+    // require pledger to sign the current inputs tx hash to refund
+    require(checkDataSig(pledgerSig, tx.inputs[this.activeInputIndex].outpointTransactionHash, pledgerPk));
+
+    // require this input nft and do not allow type bit 1 (donation) to be refunded before expiration
+    bytes type = tx.inputs[1].nftCommitment.split(1)[0];
+    require(type == bytes1(0));
+    
+    // require pledge input to be spent at index 1
+    require(this.activeInputIndex == 1);
+    // can only be spent with campaign contract (campaign contract ensures the amount and refund address matches)
+    bytes categoryID = tx.inputs[1].tokenCategory.split(32)[0];
+    require(tx.inputs[0].tokenCategory == categoryID + 0x02);
+    // require campaign contract bytecode replicated on output index 0
+    require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);
+    // require campaign contract category replicated on output index 0
+    require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);
+    // require campaign decreases in value
+    require(tx.outputs[0].value < tx.inputs[0].value);
+  }
+
+  //Exit contract is spent with campaign and remoes funds to campaign.
+  // Payout and pledge functions ruled out by requiring campaign exists and decreased in value
+  function refundAfterExpiration() {
+    // require that the campaign expired
+    require(tx.time >= fundraisingExpires);
+
+    // require pledge input to be spent at index 1
+    require(this.activeInputIndex == 1);
+    // can only be spent with campaign contract (campaign contract ensures the amount and refund address matches)
+    bytes categoryID = tx.inputs[1].tokenCategory.split(32)[0];
+    require(tx.inputs[0].tokenCategory == categoryID + 0x02);
+    // require campaign contract bytecode replicated on output index 0
+    require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);
+    // require campaign contract category replicated on output index 0
+    require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);
+    // require campaign decreases in value
+    require(tx.outputs[0].value < tx.inputs[0].value);
+  }
+}

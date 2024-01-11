@@ -1,0 +1,45 @@
+# Packages
+node_modules
+.yarn
+
+# Configuration
+**/.tmp
+**/*.tsbuildinfo
+
+dist
+.cert
+.env
+.production
+*.env
+*.cert
+!example.env
+
+# Personal Files
+*.local
+*.local.*
+*.production
+*.production.*
+*.staging.*
+local
+todo.md
+
+# App
+node_modules
+
+.cache
+.env
+
+/apps/bchouse/build
+/apps/bchouse/public/build
+
+/apps/paygate/build
+/apps/paygate/public/build
+
+/apps/bchouse/app/types/*
+/apps/bchouse/app/components/layouts/two-column-layout.tsx
+/apps/bchouse/app/components/layouts/three-column-layout.tsx
+
+.DS_Store
+
+typesense-data
+coverage

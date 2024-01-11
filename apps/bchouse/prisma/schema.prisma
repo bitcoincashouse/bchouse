@@ -1,0 +1,492 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider           = "prisma-kysely"
+  binaryTargets      = []
+  output             = "../server/db/"
+  bigIntTypeOverride = "bigint"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("BCHOUSE_DATABASE_URL")
+  relationMode = "prisma"
+}
+
+//--------------- User ------------------
+model User {
+  id       String @id
+  username String @unique
+
+  isAdmin       Boolean? @default(false) @map("__isAdmin")
+  fullName      String?
+  firstName     String?
+  lastName      String?
+  avatarUrl     String?
+  coverPhotoUrl String?
+  email         String?
+  about         String?
+  website       String?
+  company       String?
+  title         String?
+  location      String?
+
+  //Single default address to send funds to.
+  //An xpub or similar will work better in other cases.
+  bchAddress              String?
+  lastViewedNotifications DateTime?
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lastActiveAt DateTime?
+
+  posts Post[]
+
+  circles CircleMembership[] @relation("circles")
+  circle  CircleMembership[] @relation("circle")
+
+  follows   Follows[] @relation("follows")
+  followers Follows[] @relation("followers")
+
+  reposts Reposts[]
+  likes   Likes[]
+
+  tipRequest          TipRequest[]
+  mediaUploadRequests UploadRequest[]
+  reportedPosts       ReportedPosts[]
+  pledgeRequests      PledgeRequest[]
+  campaigns           Campaign[]
+  invites             Invite[]
+  mentions            Mention[]
+  inviteCodes         InviteCode[]
+  anyonecanpayPledges AnyonecanpayPledge[]
+}
+
+model InviteCode {
+  id String @id
+
+  code                String
+  userId              String
+  user                User     @relation(fields: [userId], references: [id])
+  claimedEmailAddress String?
+  createdAt           DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Invite {
+  id String @id
+
+  userId       String
+  user         User   @relation(fields: [userId], references: [id])
+  emailAddress String
+
+  @@index([userId])
+}
+
+model CircleMembership {
+  id String @id @default(dbgenerated("(uuid())"))
+
+  ownerId String
+  owner   User   @relation("circle", fields: [ownerId], references: [id])
+
+  memberId String
+  member   User   @relation("circles", fields: [memberId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([memberId, ownerId])
+  @@index([ownerId])
+}
+
+model Follows {
+  id         String @id @default(dbgenerated("(uuid())"))
+  followerId String
+  follower   User   @relation("follows", fields: [followerId], references: [id])
+
+  followedId String
+  followed   User   @relation("followers", fields: [followedId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([followerId, followedId])
+  @@index([followedId])
+}
+
+//--------------- Post ------------------
+model Post {
+  id   String   @id @default(dbgenerated("(uuid())"))
+  type PostType
+
+  publishedById String
+  publishedBy   User   @relation(fields: [publishedById], references: [id])
+
+  content  Json
+  status   PostPublishState
+  audience PostAudience     @default(PUBLIC)
+  deleted  Boolean          @default(false)
+  embed    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reposts         Reposts[]
+  quotePosts      Post[]       @relation("quote_tweets")
+  replies         Post[]       @relation("child_replies")
+  likes           Likes[]
+  viewCount       Int          @default(0)
+  mediaUrls       Media[]
+  hasMediaContent Boolean      @default(false)
+  hashtags        Hashtag[]
+  mentions        Mention[]
+  tipRequests     TipRequest[]
+
+  campaign   Campaign? @relation(fields: [campaignId], references: [id])
+  campaignId String?   @unique
+
+  parentPostId String?
+  parentPost   Post?   @relation("child_replies", fields: [parentPostId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  quotePostId String?
+  quotePost   Post?   @relation("quote_tweets", fields: [quotePostId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  reports         ReportedPosts[]
+  ancestorPaths   PostPaths[]     @relation("descendants")
+  descendantPaths PostPaths[]     @relation("ancestors")
+
+  @@index([publishedById])
+  @@index([parentPostId])
+  @@index([quotePostId])
+  @@index([campaignId])
+}
+
+model PostPaths {
+  ancestorId   String
+  ancestor     Post   @relation(name: "ancestors", fields: [ancestorId], references: [id])
+  descendantId String
+  descendant   Post   @relation(name: "descendants", fields: [descendantId], references: [id])
+  depth        Int
+
+  @@id([ancestorId, descendantId])
+  @@index([ancestorId])
+  @@index([descendantId])
+}
+
+model ReportedPosts {
+  id String @id @default(dbgenerated("(uuid())"))
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id])
+
+  reporterId String
+  reporter   User   @relation(fields: [reporterId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([reporterId, postId])
+  @@index([postId])
+}
+
+model Reposts {
+  id String @id @default(dbgenerated("(uuid())"))
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([postId])
+}
+
+model Likes {
+  id String @id @default(dbgenerated("(uuid())"))
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([postId])
+}
+
+model Hashtag {
+  id      String @id @default(dbgenerated("(uuid())"))
+  hashtag String
+  postId  String
+  post    Post   @relation(fields: [postId], references: [id])
+
+  @@unique([hashtag, postId])
+  @@index([postId])
+  @@index([hashtag])
+}
+
+model Mention {
+  id              String @id @default(dbgenerated("(uuid())"))
+  mention_user_id String
+  user            User   @relation(fields: [mention_user_id], references: [id])
+  postId          String
+  post            Post   @relation(fields: [postId], references: [id])
+
+  @@unique([mention_user_id, postId])
+  @@index([postId])
+  @@index([mention_user_id])
+}
+
+model TipRequest {
+  id        String   @id @default(dbgenerated("(uuid())"))
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  network   Network
+  createdAt DateTime @default(now())
+
+  tip TipPayment?
+
+  @@index([postId])
+  @@index([userId])
+}
+
+model TipPayment {
+  tipId      String     @id
+  tipRequest TipRequest @relation(fields: [tipId], references: [id])
+
+  txid      String
+  vout      Int
+  createdAt DateTime @default(now())
+  satoshis  BigInt?
+  //Recieving user's address at time of tip
+  address   String
+
+  name    String?
+  comment String?
+
+  @@unique([txid, vout])
+  @@index([tipId])
+}
+
+enum PostAudience {
+  PUBLIC
+  CIRCLE
+  CHILD //Children dependent on parent
+}
+
+enum PostType {
+  COMMENT
+  POLL
+  EVENT
+  ANNOUNCEMENT
+}
+
+enum PostPublishState {
+  SAVED
+  DRAFT
+  REVIEW
+  PUBLISHED
+}
+
+//--------------- Media ------------------
+model Media {
+  id  String @id @default(dbgenerated("(uuid())"))
+  url String @unique
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id])
+
+  placement MediaPlacement @default(Attached)
+  createdAt DateTime       @default(now())
+
+  @@index([postId])
+}
+
+enum MediaPlacement {
+  Inline
+  Attached
+}
+
+model UploadRequest {
+  id   String            @id @default(dbgenerated("(uuid())"))
+  type UploadRequestType
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+enum UploadRequestType {
+  COVER_PHOTO
+  AVATAR
+  POST
+}
+
+//------------- Campaign and pledges ------------
+model Campaign {
+  id              String @id @default(dbgenerated("(uuid())"))
+  satoshis        BigInt
+  expires         Int
+  address         String
+  title           String @default("")
+  campaignerId    String
+  donationAddress String
+  campaigner      User   @relation(fields: [campaignerId], references: [id])
+
+  version        Int
+  post           Post[]
+  createdAt      DateTime        @default(now())
+  pledgeRequests PledgeRequest[]
+  network        Network         @default(chipnet)
+
+  refunded          Boolean   @default(false)
+  pledgedAmount     BigInt?
+  //TODO: backfill payoutTxId from CampaignContractSpendTransaction
+  // this is for compat w/ 100% anyonecanpay
+  payoutTxId        String?
+  payoutTxTimestamp DateTime?
+
+  spends              CampaignContractSpendTransaction[]
+  anyonecanpayPledges AnyonecanpayPledge[]
+
+  @@index([id])
+  @@index([campaignerId])
+  @@index([expires])
+}
+
+model CampaignContractSpendTransaction {
+  txid String @id //Spend Transaction ID
+
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+
+  parentTxId String?                           @unique
+  parent     CampaignContractSpendTransaction? @relation(name: "parent", fields: [parentTxId], references: [txid], onDelete: Restrict, onUpdate: Restrict)
+  child      CampaignContractSpendTransaction? @relation(name: "parent")
+
+  categoryId String
+  satoshis   BigInt
+  type       CampaignSpendType
+  timestamp  DateTime          @default(now())
+
+  pledgePaymentId String?        @unique
+  pledgePayment   PledgePayment? @relation(name: "forward", fields: [pledgePaymentId], references: [pledgeId])
+  nftOutput       CampaignNFT?   @relation("output")
+
+  pledgeRefundId String?        @unique
+  pledgeRefund   PledgePayment? @relation(name: "refund", fields: [pledgeRefundId], references: [pledgeId])
+
+  @@index([campaignId])
+  @@index([parentTxId])
+  @@index([pledgePaymentId])
+  @@index([pledgeRefundId])
+}
+
+model CampaignNFT {
+  txid            String                            @id
+  satoshis        BigInt
+  campaignSpendTx CampaignContractSpendTransaction? @relation(name: "output", fields: [txid], references: [txid])
+
+  @@index([txid])
+}
+
+enum CampaignSpendType {
+  START
+  FORWARD
+  PLEDGE
+  PAYOUT
+  REFUND
+}
+
+model PledgeRequest {
+  id         String   @id @default(dbgenerated("(uuid())"))
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  network    Network
+  createdAt  DateTime @default(now())
+  secret     String   @default("")
+
+  pledge PledgePayment?
+
+  @@index([campaignId])
+  @@index([userId])
+}
+
+model PledgePayment {
+  pledgeId      String        @id
+  pledgeRequest PledgeRequest @relation(fields: [pledgeId], references: [id])
+
+  txid          String
+  vout          Int
+  createdAt     DateTime   @default(now())
+  satoshis      BigInt
+  address       String
+  returnAddress String
+  type          PledgeType
+  cancelTxId    String?
+
+  name    String?
+  comment String?
+
+  forwardTransaction CampaignContractSpendTransaction? @relation("forward")
+  refundTransaction  CampaignContractSpendTransaction? @relation("refund")
+
+  @@unique([txid, vout])
+  @@index([pledgeId])
+}
+
+enum PledgeType {
+  STARTED
+  STARTING
+  DONATION
+}
+
+model AnyonecanpayPledge {
+  pledgeId String @id
+
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+
+  txid            String
+  vout            Int
+  satoshis        BigInt
+  lockingScript   String
+  unlockingScript String   @db.Text
+  seqNum          BigInt
+  createdAt       DateTime @default(now())
+  address         String
+
+  name    String?
+  comment String?
+
+  // spendTxId   String?
+  // spendTxVout String?
+  spentAt DateTime?
+
+  @@unique([campaignId, txid, vout])
+  @@index([userId])
+  @@index([campaignId])
+}
+
+enum Network {
+  mainnet
+  testnet3
+  testnet4
+  chipnet
+  regtest
+}

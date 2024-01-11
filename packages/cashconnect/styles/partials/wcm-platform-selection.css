@@ -1,0 +1,15 @@
+.wcm-platform-selection {
+  & > div {
+    display: flex;
+    margin-top: 15px;
+  }
+
+  & > div > div {
+    display: inline-block;
+    margin: 0 5px;
+  }
+
+  .wcm-button {
+    margin: 0 5px;
+  }
+}

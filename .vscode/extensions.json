@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "eamodio.gitlens",
+    "prisma.prisma",
+    "esbenp.prettier-vscode",
+    "cweijan.vscode-mysql-client2",
+    "bradlc.vscode-tailwindcss",
+    "yoavbls.pretty-ts-errors",
+    "ryanluker.vscode-coverage-gutters"
+  ]
+}

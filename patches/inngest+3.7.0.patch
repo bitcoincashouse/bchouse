@@ -1,0 +1,98 @@
+diff --git a/node_modules/inngest/components/Inngest.d.ts b/node_modules/inngest/components/Inngest.d.ts
+index ce2d48d..23d63d0 100644
+--- a/node_modules/inngest/components/Inngest.d.ts
++++ b/node_modules/inngest/components/Inngest.d.ts
+@@ -1,10 +1,8 @@
+-import { type IfNever, type Jsonify } from "type-fest";
+-import { type SimplifyDeep } from "type-fest/source/merge-deep";
+ import { type ExclusiveKeys, type SendEventPayload } from "../helpers/types";
+ import { type Logger } from "../middleware/logger";
+-import { type AnyHandler, type ClientOptions, type EventNameFromTrigger, type EventPayload, type FailureEventArgs, type FunctionOptions, type Handler, type MiddlewareStack, type SendEventOutput, type TriggerOptions } from "../types";
++import { type ClientOptions, type EventNameFromTrigger, type EventPayload, type FailureEventArgs, type FunctionOptions, type FunctionTrigger, type Handler, type MiddlewareStack, type SendEventOutput, type TriggerOptions } from "../types";
+ import { type EventSchemas } from "./EventSchemas";
+-import { InngestFunction, type AnyInngestFunction } from "./InngestFunction";
++import { InngestFunction } from "./InngestFunction";
+ import { InngestMiddleware, type ExtendWithMiddleware } from "./InngestMiddleware";
+ /**
+  * Given a set of client options for Inngest, return the event types that can
+@@ -37,6 +35,7 @@ export type AnyInngest = Inngest<any>;
+  * @public
+  */
+ export declare class Inngest<TOpts extends ClientOptions = ClientOptions> {
++    #private;
+     /**
+      * The ID of this instance, most commonly a reference to the application it
+      * resides in.
+@@ -91,10 +90,6 @@ export declare class Inngest<TOpts extends ClientOptions = ClientOptions> {
+      * in sequence and returning the requested hook registrations.
+      */
+     private initializeMiddleware;
+-    /**
+-     * Given a response from Inngest, relay the error to the caller.
+-     */
+-    private getResponseError;
+     /**
+      * Set the event key for this instance of Inngest. This is useful if for some
+      * reason the key is not available at time of instantiation or present in the
+@@ -136,11 +131,7 @@ export declare class Inngest<TOpts extends ClientOptions = ClientOptions> {
+      * ```
+      */
+     send<Payload extends SendEventPayload<EventsFromOpts<TOpts>>>(payload: Payload): Promise<SendEventOutput<TOpts>>;
+-    createFunction<TMiddleware extends MiddlewareStack, TTrigger extends TriggerOptions<TTriggerName>, TTriggerName extends keyof EventsFromOpts<TOpts> & string = EventNameFromTrigger<EventsFromOpts<TOpts>, TTrigger>, THandler extends AnyHandler = Handler<TOpts, EventsFromOpts<TOpts>, TTriggerName, ExtendWithMiddleware<[
+-        typeof builtInMiddleware,
+-        NonNullable<TOpts["middleware"]>,
+-        TMiddleware
+-    ]>>>(options: ExclusiveKeys<Omit<FunctionOptions<EventsFromOpts<TOpts>, TTriggerName>, "onFailure" | "middleware"> & {
++    createFunction<TMiddleware extends MiddlewareStack, TTrigger extends TriggerOptions<keyof EventsFromOpts<TOpts> & string>, TTriggerName extends keyof EventsFromOpts<TOpts> & string = EventNameFromTrigger<EventsFromOpts<TOpts>, TTrigger>>(options: ExclusiveKeys<Omit<FunctionOptions<EventsFromOpts<TOpts>, TTriggerName>, "onFailure" | "middleware"> & {
+         /**
+          * Provide a function to be called if your function fails, meaning
+          * that it ran out of retries and was unable to complete successfully.
+@@ -177,7 +168,11 @@ export declare class Inngest<TOpts extends ClientOptions = ClientOptions> {
+          * ```
+          */
+         middleware?: TMiddleware;
+-    }, "batchEvents", "cancelOn" | "rateLimit">, trigger: TTrigger, handler: THandler): InngestFunction<TOpts, EventsFromOpts<TOpts>, TTrigger, FunctionOptions<EventsFromOpts<TOpts>, EventNameFromTrigger<EventsFromOpts<TOpts>, TTrigger>>, THandler>;
++    }, "batchEvents", "cancelOn" | "rateLimit">, trigger: TTrigger, handler: Handler<TOpts, EventsFromOpts<TOpts>, TTriggerName, ExtendWithMiddleware<[
++        typeof builtInMiddleware,
++        NonNullable<TOpts["middleware"]>,
++        TMiddleware
++    ]>>): InngestFunction<TOpts, EventsFromOpts<TOpts>, FunctionTrigger<keyof EventsFromOpts<TOpts> & string>, FunctionOptions<EventsFromOpts<TOpts>, keyof EventsFromOpts<TOpts> & string>>;
+ }
+ /**
+  * Default middleware that is included in every client, placed after the user's
+@@ -194,7 +189,7 @@ export declare const builtInMiddleware: [InngestMiddleware<{
+     name: string;
+     init({ client }: {
+         client: AnyInngest;
+-        fn?: AnyInngestFunction | undefined;
++        fn?: import("./InngestFunction").AnyInngestFunction | undefined;
+     }): {
+         onFunctionRun(arg: Readonly<{
+             readonly steps: Readonly<{
+@@ -202,7 +197,7 @@ export declare const builtInMiddleware: [InngestMiddleware<{
+                 data?: any;
+                 error?: any;
+             }>[];
+-            readonly fn: AnyInngestFunction;
++            readonly fn: import("./InngestFunction").AnyInngestFunction;
+             ctx: Pick<Record<string, unknown> & Readonly<import("../types").BaseContext<ClientOptions, string>>, "event" | "runId">;
+         }>): {
+             transformInput(): {
+@@ -262,17 +257,6 @@ export type GetFunctionInput<TInngest extends Inngest<any>, TTrigger extends key
+     typeof builtInMiddleware,
+     NonNullable<ClientOptionsFromInngest<TInngest>["middleware"]>
+ ]>>>[0];
+-/**
+- * A helper type to extract the type of the output of an Inngest function.
+- *
+- * @example Get a function's output
+- * ```ts
+- * type Output = GetFunctionOutput<typeof myFunction>;
+- * ```
+- *
+- * @public
+- */
+-export type GetFunctionOutput<TFunction extends AnyInngestFunction | string> = TFunction extends InngestFunction<any, any, any, any, infer IHandler> ? IfNever<SimplifyDeep<Jsonify<Awaited<ReturnType<IHandler>>>>, null, SimplifyDeep<Jsonify<Awaited<ReturnType<IHandler>>>>> : unknown;
+ /**
+  * A helper type to extract the inferred event schemas from a given Inngest
+  * instance.

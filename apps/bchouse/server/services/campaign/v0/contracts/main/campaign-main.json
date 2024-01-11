@@ -1,0 +1,64 @@
+{
+  "contractName": "campaignMain",
+  "constructorInputs": [
+    {
+      "name": "platformPkh",
+      "type": "bytes20"
+    },
+    {
+      "name": "fundraisingGoal",
+      "type": "int"
+    },
+    {
+      "name": "fundraisingExpires",
+      "type": "int"
+    },
+    {
+      "name": "payoutBytecode",
+      "type": "bytes"
+    }
+  ],
+  "abi": [
+    {
+      "name": "payout",
+      "inputs": []
+    },
+    {
+      "name": "pledge",
+      "inputs": [
+        {
+          "name": "platformPk",
+          "type": "pubkey"
+        },
+        {
+          "name": "platformSig",
+          "type": "sig"
+        }
+      ]
+    },
+    {
+      "name": "refundBeforeExpiration",
+      "inputs": [
+        {
+          "name": "platformPk",
+          "type": "pubkey"
+        },
+        {
+          "name": "platformSig",
+          "type": "sig"
+        }
+      ]
+    },
+    {
+      "name": "refundAfterExpiration",
+      "inputs": []
+    }
+  ],
+  "bytecode": "OP_4 OP_PICK OP_0 OP_NUMEQUAL OP_IF OP_INPUTINDEX OP_0 OP_NUMEQUALVERIFY OP_0 OP_OUTPUTVALUE OP_ROT d007 OP_SUB OP_GREATERTHANOREQUAL OP_VERIFY OP_0 OP_OUTPUTVALUE OP_0 OP_UTXOVALUE e803 OP_SUB OP_NUMEQUALVERIFY OP_0 OP_OUTPUTBYTECODE OP_3 OP_ROLL OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCATEGORY OP_0 OP_EQUAL OP_NIP OP_NIP OP_NIP OP_ELSE OP_4 OP_PICK OP_1 OP_NUMEQUAL OP_IF OP_5 OP_PICK OP_HASH160 OP_EQUALVERIFY OP_2ROT OP_CHECKSIGVERIFY OP_INPUTINDEX OP_0 OP_NUMEQUALVERIFY OP_TXINPUTCOUNT OP_2 OP_GREATERTHANOREQUAL OP_VERIFY OP_TXOUTPUTCOUNT OP_3 OP_LESSTHANOREQUAL OP_VERIFY OP_0 OP_UTXOTOKENCATEGORY 20 OP_SPLIT OP_DROP OP_0 OP_OUTPUTTOKENCATEGORY OP_OVER OP_2 OP_CAT OP_EQUALVERIFY OP_0 OP_OUTPUTBYTECODE OP_0 OP_UTXOBYTECODE OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCATEGORY OP_0 OP_UTXOTOKENCATEGORY OP_EQUALVERIFY OP_1 OP_OUTPUTTOKENCATEGORY OP_EQUALVERIFY OP_1 OP_OUTPUTTOKENCOMMITMENT OP_8 OP_SPLIT OP_DROP OP_BIN2NUM OP_0 OP_OUTPUTVALUE OP_0 OP_UTXOVALUE OP_SUB OP_NUMEQUALVERIFY OP_TXOUTPUTCOUNT OP_3 OP_NUMEQUAL OP_IF OP_2 OP_OUTPUTTOKENCATEGORY OP_0 OP_EQUALVERIFY OP_ENDIF OP_2DROP OP_2DROP OP_1 OP_ELSE OP_4 OP_PICK OP_2 OP_NUMEQUAL OP_IF OP_5 OP_PICK OP_HASH160 OP_EQUALVERIFY OP_2ROT OP_CHECKSIGVERIFY OP_INPUTINDEX OP_0 OP_NUMEQUALVERIFY OP_TXOUTPUTCOUNT OP_2 OP_NUMEQUALVERIFY OP_0 OP_UTXOTOKENCATEGORY 20 OP_SPLIT OP_DROP OP_0 OP_UTXOTOKENCATEGORY OP_OVER OP_2 OP_CAT OP_EQUALVERIFY OP_0 OP_OUTPUTBYTECODE OP_0 OP_UTXOBYTECODE OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCATEGORY OP_0 OP_UTXOTOKENCATEGORY OP_EQUALVERIFY OP_1 OP_UTXOTOKENCATEGORY OP_EQUALVERIFY OP_1 OP_UTXOTOKENCOMMITMENT OP_8 OP_SPLIT OP_DROP OP_BIN2NUM OP_0 OP_UTXOVALUE OP_0 OP_OUTPUTVALUE OP_SUB OP_OVER OP_LESSTHANOREQUAL OP_VERIFY OP_1 OP_UTXOTOKENCOMMITMENT OP_8 OP_SPLIT OP_NIP OP_1 OP_OUTPUTBYTECODE OP_EQUALVERIFY OP_1 OP_OUTPUTVALUE OP_SWAP d007 OP_SUB OP_GREATERTHANOREQUAL OP_VERIFY OP_1 OP_OUTPUTTOKENCATEGORY OP_0 OP_EQUALVERIFY OP_2DROP OP_2DROP OP_1 OP_ELSE OP_4 OP_ROLL OP_3 OP_NUMEQUALVERIFY OP_ROT OP_CHECKLOCKTIMEVERIFY OP_DROP OP_INPUTINDEX OP_0 OP_NUMEQUALVERIFY OP_TXOUTPUTCOUNT OP_2 OP_NUMEQUALVERIFY OP_0 OP_UTXOTOKENCATEGORY 20 OP_SPLIT OP_DROP OP_0 OP_UTXOTOKENCATEGORY OP_OVER OP_2 OP_CAT OP_EQUALVERIFY OP_0 OP_OUTPUTBYTECODE OP_0 OP_UTXOBYTECODE OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCATEGORY OP_0 OP_UTXOTOKENCATEGORY OP_EQUALVERIFY OP_1 OP_UTXOTOKENCATEGORY OP_EQUALVERIFY OP_1 OP_UTXOTOKENCOMMITMENT OP_8 OP_SPLIT OP_DROP OP_BIN2NUM OP_0 OP_UTXOVALUE OP_0 OP_OUTPUTVALUE OP_SUB OP_OVER OP_LESSTHANOREQUAL OP_VERIFY OP_1 OP_UTXOTOKENCOMMITMENT OP_8 OP_SPLIT OP_NIP OP_1 OP_OUTPUTBYTECODE OP_EQUALVERIFY OP_1 OP_OUTPUTVALUE OP_SWAP d007 OP_SUB OP_GREATERTHANOREQUAL OP_VERIFY OP_1 OP_OUTPUTTOKENCATEGORY OP_0 OP_EQUAL OP_NIP OP_NIP OP_NIP OP_ENDIF OP_ENDIF OP_ENDIF",
+  "source": "pragma cashscript ^0.8.0;\n\n// Assurance smart contract which can have unlimited paricipants with option to cancel at any time\n// first input pledger should be p2pkh to allow for cancel at any time in cancelOrRefund.cash\n//  - Platform participation is required for all actions during campaign to reduce polling/unexpected changes.\n//  - Platform is not required post-expiration\n\n// Opcode count: xxx (max xxx)\n// Bytesize: xxx (max xxx)\n\ncontract campaignMain(\n  bytes20 platformPkh,\n  int fundraisingGoal,\n  int fundraisingExpires,\n  bytes payoutBytecode, // either 25 bytes for P2PKH output or 23 bytes for P2SH\n) {\n\n  function payout() {\n    // require the contract input to be on index 0 to read its value\n    require(this.activeInputIndex == 0);\n    // require that atleast fundraising goal is reached\n    require(tx.outputs[0].value >= fundraisingGoal - 2000);\n    // require payout value to be the contract value minus miner fee\n    require(tx.outputs[0].value == tx.inputs[0].value - 1000);\n    // payout can either be to P2PKH or P2SH address\n    require(tx.outputs[0].lockingBytecode == payoutBytecode);\n    // require the campaign is burned (TODO: require change if a pledge takes campaign over)\n    require(tx.outputs[0].tokenCategory == 0x);\n  }\n\n  function pledge(pubkey platformPk, sig platformSig) {\n    require(hash160(platformPk) == platformPkh);\n    require(checkSig(platformSig, platformPk));\n\n    // require pledge input to be spent at index 0\n    require(this.activeInputIndex == 0);\n    // require there to be at leaast 2 inputs\n    require(tx.inputs.length >= 2);\n    // require outputs <= 3 so no additional NFTs can be minted\n    require(tx.outputs.length <= 3);\n\n    bytes campaignCategoryId = tx.inputs[0].tokenCategory.split(32)[0];\n    // require pledge contract to be spent with correct campaign at index 0\n    require(tx.outputs[0].tokenCategory == campaignCategoryId + 0x02);\n    // require campaign contract bytecode replicated on output index 0\n    require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);\n    // require campaign contract category replicated on output index 0\n    require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);\n    // require campaign fundds increase by an amount\n    // require(tx.outputs[0].value - tx.inputs[0].value >= 10000);\n    \n    // require that it does not mint a *minting* NFTs\n    require(tx.outputs[1].tokenCategory == campaignCategoryId);\n\n    // require the nft committment to contain correct pledge (payout address not our concern)\n    int refundCommitmentAmount = int(tx.outputs[1].nftCommitment.split(8)[0]);\n    int pledgeAmount = tx.outputs[0].value - tx.inputs[0].value;\n    require(refundCommitmentAmount == pledgeAmount);\n\n    // if there is a change output\n    if (tx.outputs.length == 3) {\n      // require that it does not mint *any* NFTs\n      require(tx.outputs[2].tokenCategory == 0x);\n    }\n  }\n\n  function refundBeforeExpiration(pubkey platformPk, sig platformSig) {\n    require(hash160(platformPk) == platformPkh);\n    require(checkSig(platformSig, platformPk));\n\n    // require pledge input to be spent at index 0\n    require(this.activeInputIndex == 0);\n    // require there to be only 2 outputs so no additional NFTs can be minted\n    require(tx.outputs.length == 2);\n    \n    bytes campaignCategoryId = tx.inputs[0].tokenCategory.split(32)[0];\n    // require pledge contract to be spent with correct campaign at index 0\n    require(tx.inputs[0].tokenCategory == campaignCategoryId + 0x02);\n    // require campaign contract bytecode replicated on output index 0\n    require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);\n    // require campaign contract category replicated on output index 0\n    require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);\n    // require valid refund NFT as input, validate by checking the tokenCategory without capability\n    require(tx.inputs[1].tokenCategory == campaignCategoryId);\n    \n    int refundCommitmentAmount = int(tx.inputs[1].nftCommitment.split(8)[0]);\n    int refundAmount = tx.inputs[0].value - tx.outputs[0].value;\n    // require campaign balance to decrease by refund amount\n    require(refundAmount <= refundCommitmentAmount);\n    \n    // refund output on index 1 minus tx fee\n    bytes refundLockingBytecode = tx.inputs[1].nftCommitment.split(8)[1];\n    require(tx.outputs[1].lockingBytecode == refundLockingBytecode);\n    require(tx.outputs[1].value >= refundCommitmentAmount - 2000);\n    // require that the refund NFT is burned\n    require(tx.outputs[1].tokenCategory == 0x);\n  }\n\n  function refundAfterExpiration() {\n    // require fundraiser to be expired\n    require(tx.time >= fundraisingExpires);\n    // require campaign contract to be spent at index 0\n    require(this.activeInputIndex == 0);\n    // require there to be only 2 outputs so no additional NFTs can be minted\n    // TODO: allow 1 output if refund amount < refundCommitment amount\n    require(tx.outputs.length == 2);\n    \n    bytes campaignCategoryId = tx.inputs[0].tokenCategory.split(32)[0];\n    // require campaign contract to be spent with correct campaign at index 0\n    require(tx.inputs[0].tokenCategory == campaignCategoryId + 0x02);\n    // require campaign contract bytecode replicated on output index 0\n    require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);\n    // require campaign contract category replicated on output index 0\n    require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);\n    // require valid refund NFT as input, validate by checking the tokenCategory without capability\n    require(tx.inputs[1].tokenCategory == campaignCategoryId);\n    \n    int refundCommitmentAmount = int(tx.inputs[1].nftCommitment.split(8)[0]);\n    int refundAmount = tx.inputs[0].value - tx.outputs[0].value;\n    // require campaign balance to decrease by refund amount\n    require(refundAmount <= refundCommitmentAmount);\n    \n    // refund output on index 1 minus tx fee\n    bytes refundLockingBytecode = tx.inputs[1].nftCommitment.split(8)[1];\n    require(tx.outputs[1].lockingBytecode == refundLockingBytecode);\n    require(tx.outputs[1].value >= refundCommitmentAmount - 2000);\n    // require that the refund NFT is burned\n    require(tx.outputs[1].tokenCategory == 0x);\n  }\n}",
+  "compiler": {
+    "name": "cashc",
+    "version": "0.8.2"
+  },
+  "updatedAt": "2023-12-10T11:29:34.164Z"
+}

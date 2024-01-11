@@ -1,0 +1,46 @@
+# fly.toml app configuration file generated for my-typesense on 2023-08-04T10:48:31-04:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "bchouse-search"
+primary_region = "iad"
+kill_signal = "SIGINT"
+kill_timeout = "5s"
+
+[experimental]
+  auto_rollback = true
+
+[build]
+  image = "typesense/typesense:0.24.1"
+
+[env]
+  TYPESENSE_API_KEY = "xyz"
+  TYPESENSE_DATA_DIR = "/data"
+
+[[mounts]]
+  source = "disc1"
+  destination = "/data"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 8108
+  processes = ["app"]
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+  [[services.tcp_checks]]
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "1s"

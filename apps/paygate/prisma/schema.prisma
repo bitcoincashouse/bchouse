@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider           = "prisma-kysely"
+  binaryTargets      = []
+  output             = "../server/db/"
+  bigIntTypeOverride = "bigint"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("PAYGATE_DATABASE_URL")
+  relationMode = "prisma"
+}
+
+//------------- Campaign and pledges ------------
+model Invoice {
+  id        String          @id @default(dbgenerated("(uuid())"))
+  network   Network
+  amount    BigInt
+  address   String
+  memo      String?         @db.Text
+  event     Json
+  createdAt DateTime        @default(now())
+  payment   InvoicePayment?
+  version   Int
+
+  @@index([id])
+  @@index([address])
+}
+
+model InvoicePayment {
+  invoiceId String  @id
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+
+  txid   String
+  vout   Int
+  paidAt DateTime @default(now())
+
+  @@unique([txid, vout])
+  @@index([txid])
+  @@index([txid, vout])
+  @@index([invoiceId])
+}
+
+enum Network {
+  mainnet
+  testnet3
+  testnet4
+  chipnet
+  regtest
+}

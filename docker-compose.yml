@@ -1,0 +1,158 @@
+version: '3'
+
+services:
+  bchouse:
+    image: sahidmiller/bchouse:development
+    build:
+      context: .
+      dockerfile: ./docker.bchouse.Dockerfile
+      secrets:
+        - GITLAB_AUTH_TOKEN
+      args:
+        NODE_ENV: ${NODE_ENV:-production}
+    env_file:
+      - _development.env
+    ports:
+      - '3000:3000'
+    expose:
+      - 3000
+    healthcheck:
+      test: netstat -ltn | grep -c ":3000"
+    restart: always
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.bchouse.rule=Host(`bchouse.localhost`)'
+
+  paygate:
+    image: sahidmiller/paygate:development
+    build:
+      context: .
+      dockerfile: ./docker.paygate.Dockerfile
+      secrets:
+        - GITLAB_AUTH_TOKEN
+      args:
+        NODE_ENV: ${NODE_ENV:-production}
+    env_file:
+      - _development.env
+    ports:
+      - '3002:3002'
+    healthcheck:
+      test: netstat -ltn | grep -c ":3002"
+    restart: always
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.bchouse.rule=Host(`pay.bchouse.localhost`)'
+
+  # db:
+  #   image: mysql:8.1
+  #   restart: always
+  #   environment:
+  #     - MYSQL_DATABASE=db
+  #     - MYSQL_USER=user
+  #     - MYSQL_PASSWORD=password
+  #     - MYSQL_ROOT_PASSWORD=password
+  #   ports:
+  #     - '127.0.0.1:3306:3306'
+  #   expose:
+  #     - 3306
+
+  # minio:
+  #   image: minio/minio
+  #   hostname: minio
+  #   ports:
+  #     - 9099:9000
+  #     - 9001:9001
+  #   command: server /data --console-address ":9001"
+  #   environment:
+  #     MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+  #     MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+  #     MINIO_API_CORS_ALLOW_ORIGIN: ${APP_URL:-http://localhost:3000}
+  #   healthcheck:
+  #     test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+  #     interval: 30s
+  #     timeout: 20s
+  #     retries: 3
+  #   networks:
+  #     - intranet
+
+  # createbuckets:
+  #   image: minio/mc
+  #   depends_on:
+  #     - minio
+  #   environment:
+  #     MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+  #     MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+  #   entrypoint: ['/bin/sh', '-c']
+  #   command:
+  #     - |
+  #       /usr/bin/mc config host add myminio http://minio:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD
+  #       /usr/bin/mc mb myminio/$STORAGE_BUCKET
+  #       /usr/bin/mc anonymous set download myminio/$STORAGE_BUCKET
+  #   networks:
+  #     - intranet
+
+  typesense:
+    image: typesense/typesense:0.24.1
+    restart: on-failure
+    ports:
+      - '8108:8108'
+    volumes:
+      - ./typesense-data:/data
+    command: '--data-dir /data --api-key=xyz --enable-cors'
+
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass password
+    volumes:
+      - redis:/data
+
+  # traefik:
+  #   image: traefik:v2.9.6
+  #   container_name: traefik
+  #   environment:
+  #     - APP_HOSTNAME=${APP_HOSTNAME:-localhost}
+  #     - APP_UPSTREAM=${APP_UPSTREAM:-http://bchouse:3000}
+  #     #If running on Linux host
+  #     # - APP_UPSTREAM=http://172.17.0.1:3000
+  #     #If running on Mac host
+  #     # - APP_UPSTREAM=http://host.docker.internal:3000
+  #   volumes:
+  #     - type: bind
+  #       source: ./configs/traefik/config.yml
+  #       target: /etc/traefik/config.yml
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   ports:
+  #     - 80:80
+  #     - 443:443
+  #   networks:
+  #     - intranet
+  #   command:
+  #     - '--api=true'
+  #     - '--api.insecure'
+  #     - '--providers.docker=true'
+  #     - '--providers.docker.exposedByDefault=false'
+  #     - '--providers.file.filename=/etc/traefik/config.yml'
+  #     - '--entrypoints.http=true'
+  #     - '--entrypoints.http.address=:80'
+  #     - '--log=true'
+  #     - '--log.level=DEBUG'
+  #     - '--accesslog'
+  #   labels:
+  #     - 'traefik.enable=true'
+  #     - 'traefik.http.routers.traefik.rule=Host(`traefik.localhost`)'
+  #     - 'traefik.http.routers.traefik.service=api@internal'
+
+secrets:
+  GITLAB_AUTH_TOKEN:
+    environment: GITLAB_AUTH_TOKEN
+
+volumes:
+  flipstarter_source:
+  node-modules:
+  redis:
+
+networks:
+  intranet:

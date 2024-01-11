@@ -1,0 +1,32 @@
+{
+  "name": "@bchouse/inngest",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "npm run clean && npm run compile",
+    "clean": "rm -rf ./dist",
+    "prepare": "is-docker && echo 'Skipping prepare' || npm run build",
+    "dev": "tsup --watch --tsconfig ./tsconfig.build.json ./src/index.ts --format esm,cjs --dts",
+    "compile": "tsup --tsconfig ./tsconfig.build.json ./src/index.ts --format esm,cjs --dts"
+  },
+  "dependencies": {
+    "@bchouse/utils": "^1.0.0",
+    "inngest": "3.1.0",
+    "zod": "^3.21.4"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "devDependencies": {
+    "is-docker": "^3.0.0",
+    "ts-node": "^10.0.0",
+    "tsc-alias": "^1.8.8",
+    "tsconfig-paths": "^4.1.2",
+    "tsup": "^8.0.1",
+    "typescript": "^5.1.3"
+  }
+}
