@@ -25,8 +25,10 @@ const currentModuleDirectory = dirname(currentModulePath)
 const BUILD_DIR = path.resolve(currentModuleDirectory, '../build/')
 const ASSETS_DIR = path.resolve(currentModuleDirectory, '../public')
 const BUILD_ASSETS_DIR = path.resolve(ASSETS_DIR, './public')
-const BUILD_PATH = path.join(BUILD_DIR, 'index.js')
-const CONTEXT_PATH = path.join(BUILD_DIR, 'getContext.js')
+const BUILD_PATH = pathToFileURL(path.join(BUILD_DIR, 'index.js')).toString()
+const CONTEXT_PATH = pathToFileURL(
+  path.join(BUILD_DIR, 'getContext.js')
+).toString()
 console.log('BUILD_PATH:', BUILD_DIR)
 
 const app = express()
