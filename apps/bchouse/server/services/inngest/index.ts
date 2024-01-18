@@ -3,6 +3,7 @@ import { createClerkClient } from '@clerk/clerk-sdk-node'
 import { db } from '~/server/db'
 import { savePledgePayment } from '~/server/repositories/pledge'
 import { saveTipPayment } from '~/server/repositories/tip'
+import { saveMediaAspectRatios } from '~/server/utils/loadImageAspect'
 import moment from '~/server/utils/moment'
 import {
   getCompletableCampaigns,
@@ -257,6 +258,18 @@ export class InngestService {
             await step.run('handleCampaignExpired', () =>
               campaignService.handleCampaignExpired(event.data.id)
             )
+          }
+        ),
+        inngest.createFunction(
+          {
+            id: 'size-images',
+          },
+          {
+            event: 'image/size' as any,
+          },
+          async () => {
+            console.log('running')
+            await saveMediaAspectRatios()
           }
         ),
         //redis/rebuild

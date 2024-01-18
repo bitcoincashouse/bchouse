@@ -306,6 +306,9 @@ model Media {
   placement MediaPlacement @default(Attached)
   createdAt DateTime       @default(now())
 
+  width  Int?
+  height Int?
+
   @@index([postId])
 }
 

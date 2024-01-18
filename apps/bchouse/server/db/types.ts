@@ -149,6 +149,8 @@ export type Media = {
   postId: string
   placement: Generated<MediaPlacement>
   createdAt: Generated<Timestamp>
+  width: number | null
+  height: number | null
 }
 export type Mention = {
   id: Generated<string>
