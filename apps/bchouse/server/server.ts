@@ -28,10 +28,8 @@ const currentModuleDirectory = dirname(currentModulePath)
 const BUILD_DIR = path.resolve(currentModuleDirectory, '../build/')
 const ASSETS_DIR = path.resolve(currentModuleDirectory, '../public')
 const BUILD_ASSETS_DIR = path.resolve(ASSETS_DIR, './public')
-const BUILD_PATH = pathToFileURL(path.join(BUILD_DIR, 'index.js')).toString()
-const CONTEXT_PATH = pathToFileURL(
-  path.join(BUILD_DIR, 'getContext.js')
-).toString()
+const BUILD_PATH = path.join(BUILD_DIR, 'index.js')
+const CONTEXT_PATH = path.join(BUILD_DIR, 'getContext.js')
 console.log('BUILD_PATH:', BUILD_DIR)
 
 const app = express()
@@ -77,8 +75,10 @@ function isDescendant(childPath: string, parentPath: string) {
 }
 
 async function startup() {
-  let build = await import(BUILD_PATH)
-  let context = await import(CONTEXT_PATH).then((mod) => mod.getContext())
+  const BUILD_URL = pathToFileURL(BUILD_PATH).href
+  const CONTEXT_URL = pathToFileURL(CONTEXT_PATH).href
+  let build = await import(BUILD_URL)
+  let context = await import(CONTEXT_URL).then((mod) => mod.getContext())
 
   app.all(
     '*',
