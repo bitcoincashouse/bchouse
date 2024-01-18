@@ -36,7 +36,11 @@ export type PostCardModel = {
   content: Doc
   date: string
   isThread: boolean
-  mediaUrls: string[]
+  mediaUrls: {
+    url: string
+    height: number
+    width: number
+  }[]
   embed?: string | undefined | null
   monetization?:
     | {

@@ -334,7 +334,11 @@ export class RedisService extends Redis {
       publishedById: string
       createdAt: Date
       content: unknown
-      mediaIds: string[]
+      mediaUrls: {
+        url: string
+        height: number
+        width: number
+      }[]
       embed?: string | null | undefined
       replyCount: number
       repostCount: number
@@ -362,6 +366,7 @@ export class RedisService extends Redis {
       posts.map((post) => {
         const postKey = getPostKey(post.id, post.publishedById)
         const postEmbeddedKey = getPostEmbeddedKey(post.id, post.publishedById)
+
         return Promise.all([
           this.hset(postKey, {
             id: post.id,
@@ -375,7 +380,10 @@ export class RedisService extends Redis {
             date: moment(post.createdAt).unix(),
 
             //TODO: Resolve mentions, hashtags, and media links
-            mediaUrls: post.mediaIds?.filter(Boolean) || [],
+            mediaUrls:
+              post.mediaUrls
+                ?.map(({ url, height, width }) => `${url}:${height}:${width}`)
+                .join(',') || [],
             content: JSON.stringify(post.content),
             isThread: false,
             embed: post.embed,
@@ -758,7 +766,11 @@ export class RedisService extends Redis {
     content: Doc
     createdAt: Date
     audienceType: 'PUBLIC' | 'CIRCLE' | 'CHILD'
-    mediaIds?: string[]
+    mediaUrls?: {
+      url: string
+      height: number
+      width: number
+    }[]
     parentPost?: {
       id: string
       publishedById: string
@@ -1178,7 +1190,20 @@ function mapRedisPostToPostCard(
     key: key,
     deleted: false as const,
     type: 'comment',
-    mediaUrls: post.mediaUrls?.split(',').filter(Boolean) || [],
+    mediaUrls:
+      post.mediaUrls
+        ?.split(',')
+        .filter(Boolean)
+        .map((media) => {
+          const [url, height, width] = media.split(':')
+          if (!url || !height || !width) return undefined
+          return {
+            url,
+            height: Number(height),
+            width: Number(width),
+          }
+        })
+        .filter(Boolean) || [],
     repostedBy: redisRepostedBy || undefined,
     wasLiked: !!redisIsLikedByCurrentUser,
     wasReposted: !!redisIsRepostedByCurrentUser,

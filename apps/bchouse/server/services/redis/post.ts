@@ -111,7 +111,7 @@ export function setPost(post: {
   publishedById: string
   createdAt: Date
   content: unknown
-  mediaIds?: string[]
+  mediaUrls?: { url: string; height: number; width: number }[]
   embed?: string | undefined | null
   replyCount: number
   repostCount: number
@@ -146,7 +146,10 @@ export function setPost(post: {
       tipAmount: post.tipAmount,
 
       //TODO: Resolve mentions, hashtags, and media links
-      mediaUrls: post.mediaIds?.filter(Boolean) || [],
+      mediaUrls:
+        post.mediaUrls
+          ?.map(({ url, height, width }) => `${url}:${height}:${width}`)
+          .join(',') || [],
       content: JSON.stringify(post.content),
       isThread: false,
       parent_post_id: post.parentPost?.id,
@@ -329,7 +332,7 @@ export function addToMediaTimeline(post: {
   publishedById: string
   createdAt: Date
   content: Doc
-  mediaIds?: string[]
+  mediaUrls?: { url: string; height: number; width: number }[]
 }) {
   const { mediaKey } = getKeys(post.publishedById)
   const likeOrRepostKey = getPostEmbeddedKey(post.id, post.publishedById)
@@ -340,7 +343,7 @@ export function addToMediaTimeline(post: {
         (content): content is Extract<typeof content, { type: 'media' }> =>
           content.type === 'media'
       )
-      .map((media) => media.attrs.id).length > 0 || post.mediaIds?.length
+      .map((media) => media.attrs.id).length > 0 || post.mediaUrls?.length
 
   return (p: ChainableCommander) => {
     return hasMedia

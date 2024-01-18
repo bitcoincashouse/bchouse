@@ -1,7 +1,11 @@
 export type KyselyPostDbModel = {
   key: string
   id: string
-  mediaUrls: string[]
+  mediaUrls: {
+    url: string
+    height: number
+    width: number
+  }[]
   embed: string | null
   publishedById: string
   parentPostId?: string | null

@@ -1,6 +1,7 @@
 import { Doc, Hashtag, Media, Mention, Text } from '../utils/tiptapSchema'
 
 import { TipEvent, inngest } from '@bchouse/inngest'
+import getSize from 'image-size'
 import { z } from 'zod'
 import { logger } from '~/utils/logger'
 import { prettyPrintSats } from '~/utils/prettyPrintSats'
@@ -19,7 +20,11 @@ import moment from '../utils/moment'
 import { paygateInvoiceReq } from '../utils/paygateInvoiceReq'
 import { serializeCursor } from '../utils/serializeCursor'
 import { CampaignService } from './campaign'
-import { setMediaPublic, validateImageUploadRequest } from './images'
+import {
+  getUploadUrl,
+  setMediaPublic,
+  validateImageUploadRequest,
+} from './images'
 import { RedisService } from './redis'
 import { SearchService } from './search'
 import { PostCardModel } from './types'
@@ -247,10 +252,24 @@ export class PostService {
       ),
     ]
 
+    const mediaUrls = await Promise.all(
+      post.mediaIds.map(async (id) => {
+        const url = getUploadUrl(id) as string
+        const image = Buffer.from(await (await fetch(url)).arrayBuffer())
+        const size = getSize(image)
+
+        if (!size.height || !size.width)
+          throw new Error('Failed to fetch image dimensions')
+
+        return { url: id, height: size.height, width: size.width }
+      })
+    )
+
     const { postId, campaignId } = await postRepo.createPost({
       userId: currentUserId,
       post: {
         ...post,
+        mediaUrls,
         monetization: post.monetization
           ? {
               ...post.monetization,
@@ -278,6 +297,7 @@ export class PostService {
 
     const postModel = {
       ...post,
+      mediaUrls,
       id: postId,
       publishedById: currentUserId,
       createdAt: new Date(),

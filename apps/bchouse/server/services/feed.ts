@@ -126,7 +126,11 @@ export class FeedService {
           createdAt: Date
           parentPostId?: string | null
           parentPostPublishedById?: string | null
-          mediaIds: string[]
+          mediaIds: {
+            url: string
+            height: number
+            width: number
+          }[]
         } => {
           return {
             id: post.id,

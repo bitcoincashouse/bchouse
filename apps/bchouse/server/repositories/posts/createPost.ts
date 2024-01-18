@@ -11,7 +11,11 @@ export async function createPost(params: {
       id: string
     }
     audienceType: 'PUBLIC' | 'CIRCLE' | 'CHILD'
-    mediaIds?: string[]
+    mediaUrls?: {
+      url: string
+      height: number
+      width: number
+    }[]
     monetization?: {
       amount: bigint
       payoutAddress: string
@@ -33,7 +37,7 @@ export async function createPost(params: {
       content,
       parentPost: { id: parentPostId } = { id: undefined },
       audienceType = 'PUBLIC',
-      mediaIds = [],
+      mediaUrls = [],
       monetization,
     },
     hashtags,
@@ -81,55 +85,47 @@ export async function createPost(params: {
 
     //Insert inline media as well
     const insertMedia = () => {
-      if (mediaIds.length) {
-        return trx
-          .insertInto('Media')
-          .values(
-            mediaIds.map((mediaId) => {
-              return {
-                postId,
-                url: mediaId,
-              }
+      return Promise.all(
+        mediaUrls.map(({ url, height, width }) => {
+          return trx
+            .insertInto('Media')
+            .values({
+              postId,
+              url,
+              height,
+              width,
             })
-          )
-          .execute()
-      }
-      return Promise.resolve()
+            .execute()
+        })
+      )
     }
 
     const insertMentions = () => {
-      if (mentions.length) {
-        return trx
-          .insertInto('Mention')
-          .values(
-            mentions.map((mention) => {
-              return {
-                mention_user_id: mention.userId,
-                postId,
-              }
+      return Promise.all(
+        mentions.map((mention) => {
+          return trx
+            .insertInto('Mention')
+            .values({
+              mention_user_id: mention.userId,
+              postId,
             })
-          )
-          .execute()
-      }
-
-      return Promise.resolve()
+            .execute()
+        })
+      )
     }
 
     const insertHashtags = () => {
-      if (hashtags.length) {
-        return trx
-          .insertInto('Hashtag')
-          .values(
-            hashtags.map((hashtag) => {
-              return {
-                hashtag: hashtag.tag,
-                postId,
-              }
+      return Promise.all(
+        hashtags.map((hashtag) => {
+          return trx
+            .insertInto('Hashtag')
+            .values({
+              hashtag: hashtag.tag,
+              postId,
             })
-          )
-          .execute()
-      }
-      return Promise.resolve()
+            .execute()
+        })
+      )
     }
 
     const insertPostPaths = () => {

@@ -5,6 +5,7 @@ import {
   SqlBool,
   sql,
 } from 'kysely'
+import { jsonBuildObject } from 'kysely/helpers/mysql'
 import { DB } from '../../db/index'
 
 export type SqlNumber = string | number | bigint
@@ -18,7 +19,11 @@ type PostExpression = ExpressionBuilder<
 
 type MediaUrlsAgg = AliasedSelectQueryBuilder<
   {
-    mediaUrls: string[]
+    mediaUrls: {
+      url: string
+      height: number
+      width: number
+    }[]
   },
   'mediaUrls'
 >
@@ -153,7 +158,19 @@ export const selectors = {
       .limit(6)
       .select((qb) =>
         qb.fn
-          .agg<string[]>('JSON_ARRAYAGG', [qb.ref('media.url')])
+          .agg<
+            {
+              url: string
+              height: number
+              width: number
+            }[]
+          >('JSON_ARRAYAGG', [
+            jsonBuildObject({
+              url: qb.ref('media.url'),
+              height: qb.ref('media.height'),
+              width: qb.ref('media.width'),
+            }),
+          ])
           .as('mediaUrls')
       )
       .as('mediaUrls'),

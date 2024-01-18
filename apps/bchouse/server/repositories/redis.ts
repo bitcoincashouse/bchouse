@@ -1,3 +1,4 @@
+import { jsonBuildObject } from 'kysely/helpers/mysql'
 import { Network, db } from '../db/index'
 import { paginate } from './paginate'
 import { selectors } from './posts/selectors'
@@ -540,7 +541,11 @@ export async function getRedisPostsPaginated(params: {
     createdAt: Date
     content: unknown
     embed: string | null
-    mediaIds: string[]
+    mediaUrls: {
+      url: string
+      height: number
+      width: number
+    }[]
     replyCount: number
     repostCount: number
     likeCount: number
@@ -590,10 +595,22 @@ export async function getRedisPostsPaginated(params: {
             .limit(6)
             .select((qb) =>
               qb.fn
-                .agg<string[]>('JSON_ARRAYAGG', [qb.ref('media.url')])
-                .as('mediaIds')
+                .agg<
+                  {
+                    url: string
+                    height: number
+                    width: number
+                  }[]
+                >('JSON_ARRAYAGG', [
+                  jsonBuildObject({
+                    url: qb.ref('media.url'),
+                    height: qb.ref('media.height'),
+                    width: qb.ref('media.width'),
+                  }),
+                ])
+                .as('mediaUrls')
             )
-            .as('mediaIds'),
+            .as('mediaUrls'),
         'parent.id as parentPostId',
         'parent.publishedById as parentPublishedById',
         'campaign.id as campaignId',
@@ -620,7 +637,7 @@ export async function getRedisPostsPaginated(params: {
           publishedById: post.publishedById,
           createdAt: post.createdAt,
           content: post.content,
-          mediaIds: post.mediaIds || [],
+          mediaUrls: post.mediaUrls || [],
           replyCount: Number(post.comments || 0),
           repostCount: Number(post.reposts || 0),
           likeCount: Number(post.likes || 0),

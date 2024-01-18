@@ -163,7 +163,13 @@ export type SelectPost = {
   parentPostPublishedById: string | null
   quotePostId: string | null
   postId: string
-  mediaUrls: string[] | null
+  mediaUrls:
+    | {
+        url: string
+        height: number
+        width: number
+      }[]
+    | null
   likes: SqlNumber | null
   quotePosts: SqlNumber | null
   comments: SqlNumber | null

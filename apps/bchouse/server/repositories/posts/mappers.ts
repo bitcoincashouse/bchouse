@@ -7,7 +7,13 @@ export function postRowMapper(row: {
   avatarUrl?: string | null
   content: unknown
   createdAt: Date
-  mediaUrls: string[] | null
+  mediaUrls:
+    | {
+        url: string
+        height: number
+        width: number
+      }[]
+    | null
   publishedById: string
   parentPostId: string | null
   parentPostPublishedById: string | null

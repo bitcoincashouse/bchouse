@@ -118,23 +118,36 @@ export function View({
   showFullLength,
 }: {
   showFullLength?: boolean
-  urls: string[]
+  urls: {
+    url: string
+    height: number
+    width: number
+  }[]
 }) {
-  const [padding, setPadding] = useState(urls.length === 1 ? '80%' : '56.25%')
+  const aspectRatio = useMemo(() => {
+    if (urls.length === 1) {
+      const url = urls[0] as NonNullable<(typeof urls)[number]>
+      return Math.min(url.height / url.width, 1.33) * 100 + '%'
+    }
+    return '56.25%'
+  }, [urls])
+
+  const [padding, setPadding] = useState(aspectRatio)
 
   return (
     <>
       <div style={{ paddingBottom: padding }}></div>
       <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-4">
-        {urls.map((key, i, arr) => {
+        {urls.map(({ url: key, height, width }, i, arr) => {
           let gridClass
           let aspect: Aspect
 
           if (i >= 4) {
+            //All images after 4th render nothing
             return <Fragment key={i}></Fragment>
           } else if (arr.length === 1) {
             gridClass = 'col-span-2 row-span-2'
-            aspect = '4:5'
+            aspect = `${width}:${height}`
           } else if (arr.length === 2) {
             gridClass = 'col-span-1 row-span-2'
             aspect = '9:16'
