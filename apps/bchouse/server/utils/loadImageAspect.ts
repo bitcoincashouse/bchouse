@@ -45,33 +45,33 @@ export async function saveMediaAspectRatios() {
         limit: 100,
         cursor,
       }),
-    async (media) =>
-      Promise.all(
-        media.map(async (media) => {
-          const url = getUploadUrl(media.url)
-          if (url) {
-            const image = Buffer.from(await (await fetch(url)).arrayBuffer())
-            const size = getSize(image)
-            return { id: media.id, height: size.height, width: size.width }
-          }
+    async (media) => {
+      const items = [] as { id: string; height?: number; width?: number }[]
 
-          return { id: media.id, height: undefined, width: undefined }
-        })
-      ).then((media) => {
-        console.log('Saving', media, media.length)
-        return db.transaction().execute(async (trx) =>
-          Promise.all(
-            media.map(async (media) => {
-              if (media.height && media.width) {
-                await trx
-                  .updateTable('Media')
-                  .set({ height: media.height, width: media.width })
-                  .where('id', '=', media.id)
-                  .execute()
-              }
-            })
-          )
+      for (let i = 0; i < media.length; i++) {
+        const item = media[i] as NonNullable<(typeof media)[number]>
+        const url = getUploadUrl(item.url)
+        if (url) {
+          const image = Buffer.from(await (await fetch(url)).arrayBuffer())
+          const size = getSize(image)
+          items.push({ id: item.id, height: size.height, width: size.width })
+        }
+      }
+
+      console.log('Saving', media.length)
+      return db.transaction().execute(async (trx) =>
+        Promise.all(
+          items.map(async (media) => {
+            if (media.height && media.width) {
+              await trx
+                .updateTable('Media')
+                .set({ height: media.height, width: media.width })
+                .where('id', '=', media.id)
+                .execute()
+            }
+          })
         )
-      })
+      )
+    }
   )
 }

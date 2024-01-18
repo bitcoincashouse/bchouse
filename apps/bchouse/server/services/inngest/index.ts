@@ -296,7 +296,7 @@ export class InngestService {
                 return mapPaginatedQuery(
                   (cursor) =>
                     getRedisUserProfilePaginated({
-                      limit: 100,
+                      limit: 25,
                       cursor,
                     }),
                   (users) => {
@@ -329,7 +329,7 @@ export class InngestService {
                 return mapPaginatedQuery(
                   (cursor) =>
                     getRedisPostsPaginated({
-                      limit: 100,
+                      limit: 25,
                       cursor,
                     }),
                   (posts) => {
