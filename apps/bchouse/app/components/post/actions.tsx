@@ -5,7 +5,7 @@ import {
   HeartIcon,
   ShareIcon,
 } from '@heroicons/react/24/outline'
-import { Link, useFetcher } from '@remix-run/react'
+import { Fetcher, Link, useFetcher } from '@remix-run/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo } from 'react'
 import { $path } from 'remix-routes'
@@ -122,16 +122,7 @@ export function Actions({ item }: { item: PostCardModel }) {
   )
 }
 
-export function CardAction({
-  action,
-  item,
-  children,
-}: {
-  action: string
-  children: React.ReactNode
-  item: PostCardModel
-}) {
-  const fetcher = useFetcher()
+function useInvalidateFeedPage(fetcher: Fetcher, postId: string) {
   const queryClient = useQueryClient()
 
   useEffect(() => {
@@ -143,13 +134,26 @@ export function CardAction({
         //TODO: invalidate the feed we're on whether home, profile (username + index/replies/likes/media)
         queryKey: ['feed'],
         refetchPage: (page: { posts: { id: string }[] }, i, all) => {
-          return page.posts.some((post) => post.id === item.id)
+          return page.posts.some((post) => post.id === postId)
         },
       })
     }
   }, [
     typeof fetcher.formData !== 'undefined' && fetcher.state !== 'submitting',
   ])
+}
+
+export function CardAction({
+  action,
+  item,
+  children,
+}: {
+  action: string
+  children: React.ReactNode
+  item: PostCardModel
+}) {
+  const fetcher = useFetcher()
+  useInvalidateFeedPage(fetcher, item.id)
 
   return (
     <fetcher.Form
@@ -193,59 +197,89 @@ export function CommentsButton({ item }: { item: PostCardModel }) {
 }
 
 export function RepostButton({ item }: { item: PostCardModel }) {
+  const fetcher = useFetcher()
+  useInvalidateFeedPage(fetcher, item.id)
+
+  const toggled =
+    typeof fetcher.formData?.get('_action') !== 'undefined'
+      ? fetcher.formData.get('_action') === 'addRepost'
+      : item.wasReposted
+
   return (
-    <CardAction
-      item={item}
+    <fetcher.Form
+      method="POST"
       action={$path('/api/post/:postId/retweet', { postId: item.id })}
+      preventScrollReset={true}
+      onSubmit={(e) => {
+        if (item.deleted) {
+          e.preventDefault()
+        }
+      }}
+      className="items-center flex"
     >
       <input type="hidden" name="postAuthorId" value={item.publishedById} />
       <button
         type="submit"
         name="_action"
         onClick={(e) => e.stopPropagation()}
-        value={item.wasReposted ? 'removeRepost' : 'addRepost'}
+        value={toggled ? 'removeRepost' : 'addRepost'}
         className={classNames(
           'inline-flex gap-1 items-center cursor-pointer group',
-          item.wasReposted ? 'text-emerald-600' : ''
+          toggled ? 'text-emerald-600' : ''
         )}
-        title={item.wasReposted ? 'Unrepost' : 'Repost'}
+        title={toggled ? 'Unrepost' : 'Repost'}
       >
         <ArrowPathRoundedSquareIcon
-          title={item.wasReposted ? 'Unrepost' : 'Repost'}
+          title={toggled ? 'Unrepost' : 'Repost'}
           className="w-6 h-6 group-hover:ring-8 group-hover:bg-emerald-600/20 group-hover:ring-emerald-600/20 rounded-full transition-all ease-in-out duration-300"
         />
       </button>
-    </CardAction>
+    </fetcher.Form>
   )
 }
 
 export function LikeButton({ item }: { item: PostCardModel }) {
+  const fetcher = useFetcher()
+  useInvalidateFeedPage(fetcher, item.id)
+
+  const toggled =
+    typeof fetcher.formData?.get('_action') !== 'undefined'
+      ? fetcher.formData.get('_action') === 'addLike'
+      : item.wasLiked
+
   return (
-    <CardAction
-      item={item}
+    <fetcher.Form
+      method="POST"
       action={$path('/api/post/:postId/like', { postId: item.id })}
+      preventScrollReset={true}
+      onSubmit={(e) => {
+        if (item.deleted) {
+          e.preventDefault()
+        }
+      }}
+      className="items-center flex"
     >
       <input type="hidden" name="postAuthorId" value={item.publishedById} />
       <button
         type="submit"
         name="_action"
-        value={item.wasLiked ? 'removeLike' : 'addLike'}
+        value={toggled ? 'removeLike' : 'addLike'}
         className={classNames(
           'inline-flex gap-1 items-center cursor-pointer group',
-          item.wasLiked ? 'text-rose-600' : ''
+          toggled ? 'text-rose-600' : ''
         )}
-        title={item.wasLiked ? 'Unlike' : 'Like'}
+        title={toggled ? 'Unlike' : 'Like'}
         onClick={(e) => e.stopPropagation()}
       >
         <HeartIcon
-          title={item.wasLiked ? 'Unlike' : 'Like'}
+          title={toggled ? 'Unlike' : 'Like'}
           className={classNames(
             'w-6 h-6 group-hover:ring-8 group-hover:bg-rose-600/20 group-hover:ring-rose-600/20 rounded-full transition-all ease-in-out duration-300',
-            item.wasLiked && 'fill-rose-600'
+            toggled && 'fill-rose-600'
           )}
         />
       </button>
-    </CardAction>
+    </fetcher.Form>
   )
 }
 
