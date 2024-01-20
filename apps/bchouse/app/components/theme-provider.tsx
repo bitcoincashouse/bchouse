@@ -53,7 +53,7 @@ function ThemeProvider({
 
   const { submit: submitTheme } = useSetThemeFetcher()
   useMounted(() => {
-    if (theme) {
+    if (theme && theme !== specifiedTheme) {
       submitTheme(theme)
     }
   }, [theme])
