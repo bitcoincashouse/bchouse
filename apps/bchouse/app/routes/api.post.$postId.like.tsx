@@ -1,6 +1,8 @@
 import { ActionArgs, json } from '@remix-run/node'
+import { ClientActionFunctionArgs } from '@remix-run/react'
 import { typedjson } from 'remix-typedjson'
 import { z } from 'zod'
+import { queryClient } from '~/utils/query-client'
 import { zx } from '~/utils/zodix'
 
 export const action = async (_: ActionArgs) => {
@@ -27,4 +29,22 @@ export const action = async (_: ActionArgs) => {
   } catch (err) {
     return typedjson({ error: err })
   }
+}
+
+export const clientAction = async (args: ClientActionFunctionArgs) => {
+  const { postId } = zx.parseParams(args.params, {
+    postId: z.string(),
+  })
+
+  const result = await args.serverAction()
+
+  //Refetch related loader for optimistic updates (submission and loading state will match useFetcher expectations)
+  await queryClient.refetchQueries({
+    queryKey: ['feed'],
+    refetchPage: (page: { posts: { id: string }[] }, i, all) => {
+      return page.posts.some((post) => post.id === postId)
+    },
+  })
+
+  return result
 }

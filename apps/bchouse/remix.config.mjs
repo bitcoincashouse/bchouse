@@ -13,6 +13,9 @@ export default {
   assetsBuildDirectory: './public/build',
   tailwind: true,
   postcss: true,
+  future: {
+    v3_fetcherPersist: true,
+  },
   browserNodeBuiltinsPolyfill: {
     modules: {
       stream: true,
