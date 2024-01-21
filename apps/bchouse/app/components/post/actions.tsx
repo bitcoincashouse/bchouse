@@ -200,15 +200,28 @@ export function RepostButton({ item }: { item: PostCardModel }) {
   const fetcher = useFetcher()
   useInvalidateFeedPage(fetcher, item.id)
 
+  const submittedAction =
+    fetcher.state !== 'idle'
+      ? fetcher.formAction?.indexOf('repost:add') !== -1
+        ? 'repost:add'
+        : 'repost:remove'
+      : undefined
+
   const toggled =
-    typeof fetcher.formData?.get('_action') !== 'undefined'
-      ? fetcher.formData.get('_action') === 'addRepost'
+    typeof submittedAction !== 'undefined'
+      ? submittedAction === 'repost:add'
       : item.wasReposted
+
+  const action = toggled ? 'repost:remove' : 'repost:add'
 
   return (
     <fetcher.Form
       method="POST"
-      action={$path('/api/post/:postId/retweet', { postId: item.id })}
+      action={$path('/api/post/:postId/:authorId/action/:action', {
+        postId: item.id,
+        authorId: item.publishedById,
+        action,
+      })}
       preventScrollReset={true}
       onSubmit={(e) => {
         if (item.deleted) {
@@ -242,15 +255,28 @@ export function LikeButton({ item }: { item: PostCardModel }) {
   const fetcher = useFetcher()
   useInvalidateFeedPage(fetcher, item.id)
 
+  const submittedAction =
+    fetcher.state !== 'idle'
+      ? fetcher.formAction?.indexOf('like:add') !== -1
+        ? 'like:add'
+        : 'like:remove'
+      : undefined
+
   const toggled =
-    typeof fetcher.formData?.get('_action') !== 'undefined'
-      ? fetcher.formData.get('_action') === 'addLike'
+    typeof submittedAction !== 'undefined'
+      ? submittedAction === 'like:add'
       : item.wasLiked
+
+  const action = toggled ? 'like:remove' : 'like:add'
 
   return (
     <fetcher.Form
       method="POST"
-      action={$path('/api/post/:postId/like', { postId: item.id })}
+      action={$path('/api/post/:postId/:authorId/action/:action', {
+        postId: item.id,
+        authorId: item.publishedById,
+        action,
+      })}
       preventScrollReset={true}
       onSubmit={(e) => {
         if (item.deleted) {

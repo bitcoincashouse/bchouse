@@ -37,7 +37,7 @@ import { useLayoutLoaderData } from '~/routes/_app/route'
 import {
   PostActionType,
   usePostActionSubmit,
-} from '~/routes/api.post.$postId.action.$action'
+} from '~/routes/api.post.$postId.$authorId.action.$action'
 import { Network } from '~/utils/bchUtils'
 import { classNames } from '~/utils/classNames'
 import { prettyPrintSats } from '~/utils/prettyPrintSats'
@@ -218,7 +218,7 @@ PostCard.ItemMenu = function () {
                     'w-full py-3 text-[15px] px-4 flex text-left gap-4 font-semibold text-primary-text'
                   )}
                   onClick={(e) => {
-                    submitAction(post.id, item.action)
+                    submitAction(post.id, post.publishedById, item.action)
                     e.stopPropagation()
                   }}
                 >
@@ -490,38 +490,28 @@ function CommentsButton({ item }: { item: PostCardModel }) {
 
 function RepostButton({ item }: { item: PostCardModel }) {
   const fetcher = useFetcher()
-
-  const submittedAction =
-    fetcher.state !== 'idle' ? fetcher.formData?.get('_action') : undefined
-
-  const toggled =
-    typeof submittedAction !== 'undefined'
-      ? submittedAction === 'addRepost'
-      : item.wasReposted
-
-  const count =
-    typeof submittedAction !== 'undefined'
-      ? item.repostCount +
-        (submittedAction === 'addRepost' && !item.wasReposted
-          ? 1
-          : submittedAction === 'removeRepost' && item.wasReposted
-          ? -1
-          : 0)
-      : item.repostCount
+  const toggled = item.wasReposted
+  const count = item.repostCount
+  const action = toggled ? 'repost:remove' : 'repost:add'
 
   return (
     <fetcher.Form
       className="flex items-center"
       method="POST"
-      action={$path('/api/post/:postId/retweet', { postId: item.id })}
+      action={$path('/api/post/:postId/:authorId/action/:action', {
+        postId: item.id,
+        authorId: item.publishedById,
+        action,
+      })}
       preventScrollReset={true}
     >
       <input type="hidden" name="postAuthorId" value={item.publishedById} />
       <button
         type="submit"
-        name="_action"
-        onClick={(e) => e.stopPropagation()}
-        value={toggled ? 'removeRepost' : 'addRepost'}
+        onClick={(e) => {
+          e.stopPropagation()
+          console.log({ action })
+        }}
         className={classNames(
           'inline-flex gap-1 items-center cursor-pointer group',
           toggled ? 'text-emerald-600' : ''
@@ -539,44 +529,33 @@ function RepostButton({ item }: { item: PostCardModel }) {
 }
 
 function LikeButton({ item }: { item: PostCardModel }) {
-  const fetcher = useFetcher({ key: 'like:' + item.id })
-
-  const submittedAction =
-    fetcher.state !== 'idle' ? fetcher.formData?.get('_action') : undefined
-
-  const toggled =
-    typeof submittedAction !== 'undefined'
-      ? submittedAction === 'addLike'
-      : item.wasLiked
-
-  const count =
-    typeof submittedAction !== 'undefined'
-      ? item.likeCount +
-        (submittedAction === 'addLike' && !item.wasLiked
-          ? 1
-          : submittedAction === 'removeLike' && item.wasLiked
-          ? -1
-          : 0)
-      : item.likeCount
+  const fetcher = useFetcher()
+  const toggled = item.wasLiked
+  const count = item.likeCount
+  const action = toggled ? 'like:remove' : 'like:add'
 
   return (
     <fetcher.Form
       className="flex items-center"
       method="POST"
-      action={$path('/api/post/:postId/like', { postId: item.id })}
+      action={$path('/api/post/:postId/:authorId/action/:action', {
+        postId: item.id,
+        authorId: item.publishedById,
+        action,
+      })}
       preventScrollReset={true}
     >
-      <input type="hidden" name="postAuthorId" value={item.publishedById} />
       <button
         type="submit"
-        name="_action"
-        value={toggled ? 'removeLike' : 'addLike'}
         className={classNames(
           'inline-flex gap-1 items-center cursor-pointer group',
           toggled ? 'text-rose-600' : ''
         )}
         title={toggled ? 'Unlike' : 'Like'}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation()
+          console.log({ action })
+        }}
       >
         <HeartIcon
           title={toggled ? 'Unlike' : 'Like'}
