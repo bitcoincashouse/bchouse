@@ -287,37 +287,31 @@ export function TipButton({ item }: { item: PostCardModel }) {
   const { setTipPost } = useTipPostModal()
 
   return (
-    <CardAction
-      item={item}
-      action={$path('/api/post/:postId/like', { postId: item.id })}
+    <button
+      type="button"
+      className={classNames(
+        'inline-flex gap-1 items-center cursor-pointer group',
+        item.wasTipped ? 'text-[#0ac18e]' : ''
+      )}
+      title="Tip"
+      onClick={(e) => {
+        e.stopPropagation()
+        setTipPost({
+          authorDisplayName: item.person.name || item.person.handle,
+          postId: item.id,
+          network: item.person.network as Network,
+          bchAddress: item.person.bchAddress as string,
+        })
+      }}
     >
-      <input type="hidden" name="postAuthorId" value={item.publishedById} />
-      <button
-        type="button"
-        className={classNames(
-          'inline-flex gap-1 items-center cursor-pointer group',
-          item.wasTipped ? 'text-[#0ac18e]' : ''
-        )}
+      <BitcoinIcon
         title="Tip"
-        onClick={(e) => {
-          e.stopPropagation()
-          setTipPost({
-            authorDisplayName: item.person.name || item.person.handle,
-            postId: item.id,
-            network: item.person.network as Network,
-            bchAddress: item.person.bchAddress as string,
-          })
-        }}
-      >
-        <BitcoinIcon
-          title="Tip"
-          className={classNames(
-            'w-6 h-6 flex items-center group-hover:ring-8 group-hover:bg-[#0ac18e]/20 group-hover:ring-[#0ac18e]/20 transition-all ease-in-out duration-300 rounded-full',
-            item.wasTipped && 'fill-[#0ac18e]'
-          )}
-        />
-      </button>
-    </CardAction>
+        className={classNames(
+          'w-6 h-6 flex items-center group-hover:ring-8 group-hover:bg-[#0ac18e]/20 group-hover:ring-[#0ac18e]/20 transition-all ease-in-out duration-300 rounded-full',
+          item.wasTipped && 'fill-[#0ac18e]'
+        )}
+      />
+    </button>
   )
 }
 
@@ -327,43 +321,28 @@ export function BookmarkButton({
   item: PostCardModel & { wasBookmarked?: boolean }
 }) {
   return (
-    <CardAction
-      item={item}
-      action={$path('/api/post/:postId/like', { postId: item.id })}
+    <button
+      className={classNames(
+        'inline-flex gap-1 items-center hover:text-rose-500 cursor-pointer',
+        item.wasBookmarked ? 'text-rose-600' : ''
+      )}
+      onClick={(e) => e.stopPropagation()}
     >
-      <input type="hidden" name="postAuthorId" value={item.publishedById} />
-      <button
-        type="submit"
-        name="_action"
-        value={item.wasBookmarked ? 'removeLike' : 'addLike'}
-        className={classNames(
-          'inline-flex gap-1 items-center hover:text-rose-500 cursor-pointer',
-          item.wasBookmarked ? 'text-rose-600' : ''
-        )}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <BookmarkIcon className="w-6 h-6" />
-      </button>
-    </CardAction>
+      <BookmarkIcon className="w-6 h-6" />
+    </button>
   )
 }
 
 export function ShareButton({ item }: { item: PostCardModel }) {
   return (
-    <CardAction
-      item={item}
-      action={$path('/api/post/:postId/like', { postId: item.id })}
+    <button
+      type="button"
+      className={classNames(
+        'inline-flex gap-1 items-center hover:text-rose-500 cursor-pointer'
+      )}
+      onClick={(e) => e.stopPropagation()}
     >
-      <input type="hidden" name="postAuthorId" value={item.publishedById} />
-      <button
-        type="button"
-        className={classNames(
-          'inline-flex gap-1 items-center hover:text-rose-500 cursor-pointer'
-        )}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <ShareIcon className="w-6 h-6" />
-      </button>
-    </CardAction>
+      <ShareIcon className="w-6 h-6" />
+    </button>
   )
 }
