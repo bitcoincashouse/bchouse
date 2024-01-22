@@ -16,6 +16,7 @@ import { BitcoinIcon } from '../icons/BitcoinIcon'
 import { useTipPostModal } from '../tip-modal'
 import { classNames } from '../utils'
 import { classnames } from '../utils/classnames'
+import { useAuthGuardCheck } from '../utils/useAuthGuardCheck'
 import { PostCardModel } from './types'
 
 export function Actions({ item }: { item: PostCardModel }) {
@@ -173,6 +174,8 @@ export function CardAction({
 }
 
 export function CommentsButton({ item }: { item: PostCardModel }) {
+  const checkAuth = useAuthGuardCheck()
+
   return (
     <Link
       to={{ search: `?modal=reply&postId=${item.id}` }}
@@ -180,9 +183,12 @@ export function CommentsButton({ item }: { item: PostCardModel }) {
       preventScrollReset={true}
       replace={true}
       onClick={(e) => {
+        checkAuth(e)
+
         if (item.deleted) {
           e.preventDefault()
         }
+
         e.stopPropagation()
       }}
       className="inline-flex gap-1 items-center cursor-pointer group"
@@ -199,6 +205,8 @@ export function CommentsButton({ item }: { item: PostCardModel }) {
 export function RepostButton({ item }: { item: PostCardModel }) {
   const fetcher = useFetcher()
   useInvalidateFeedPage(fetcher, item.id)
+
+  const checkAuth = useAuthGuardCheck()
 
   const submittedAction =
     fetcher.state !== 'idle'
@@ -224,6 +232,7 @@ export function RepostButton({ item }: { item: PostCardModel }) {
       })}
       preventScrollReset={true}
       onSubmit={(e) => {
+        checkAuth(e)
         if (item.deleted) {
           e.preventDefault()
         }
@@ -254,6 +263,7 @@ export function RepostButton({ item }: { item: PostCardModel }) {
 export function LikeButton({ item }: { item: PostCardModel }) {
   const fetcher = useFetcher()
   useInvalidateFeedPage(fetcher, item.id)
+  const checkAuth = useAuthGuardCheck()
 
   const submittedAction =
     fetcher.state !== 'idle'
@@ -279,6 +289,7 @@ export function LikeButton({ item }: { item: PostCardModel }) {
       })}
       preventScrollReset={true}
       onSubmit={(e) => {
+        checkAuth(e)
         if (item.deleted) {
           e.preventDefault()
         }

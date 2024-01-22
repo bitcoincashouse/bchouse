@@ -44,6 +44,7 @@ import { prettyPrintSats } from '~/utils/prettyPrintSats'
 import { BitcoinIcon } from '../icons/BitcoinIcon'
 import { useTipPostModal } from '../tip-modal'
 import { UserPopover, useUserPopover } from '../user-popover'
+import { useAuthGuardCheck } from '../utils/useAuthGuardCheck'
 import { View as FileGridView } from './file-grid'
 import Iframely from './iframely'
 import { PostContentRenderer } from './post-content-renderer'
@@ -467,6 +468,8 @@ function CardAction({
 }
 
 function CommentsButton({ item }: { item: PostCardModel }) {
+  const checkAuth = useAuthGuardCheck()
+
   return (
     <Link
       to={{ search: `?modal=reply&postId=${item.id}` }}
@@ -475,6 +478,7 @@ function CommentsButton({ item }: { item: PostCardModel }) {
       replace={true}
       onClick={(e) => {
         e.stopPropagation()
+        checkAuth(e)
       }}
       className="inline-flex gap-1 items-center cursor-pointer group"
       title="Comment"
@@ -493,6 +497,7 @@ function RepostButton({ item }: { item: PostCardModel }) {
   const toggled = item.wasReposted
   const count = item.repostCount
   const action = toggled ? 'repost:remove' : 'repost:add'
+  const checkAuth = useAuthGuardCheck()
 
   return (
     <fetcher.Form
@@ -510,7 +515,7 @@ function RepostButton({ item }: { item: PostCardModel }) {
         type="submit"
         onClick={(e) => {
           e.stopPropagation()
-          console.log({ action })
+          checkAuth(e)
         }}
         className={classNames(
           'inline-flex gap-1 items-center cursor-pointer group',
@@ -533,6 +538,7 @@ function LikeButton({ item }: { item: PostCardModel }) {
   const toggled = item.wasLiked
   const count = item.likeCount
   const action = toggled ? 'like:remove' : 'like:add'
+  const checkAuth = useAuthGuardCheck()
 
   return (
     <fetcher.Form
@@ -554,7 +560,7 @@ function LikeButton({ item }: { item: PostCardModel }) {
         title={toggled ? 'Unlike' : 'Like'}
         onClick={(e) => {
           e.stopPropagation()
-          console.log({ action })
+          checkAuth(e)
         }}
       >
         <HeartIcon
