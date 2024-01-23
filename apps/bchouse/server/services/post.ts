@@ -533,6 +533,7 @@ function postToViewModel(
         repostedById: undefined,
         wasReposted: false,
         wasLiked: false,
+        isFollowed: false,
         campaignId: post.campaignId,
         person: {
           name: '',
@@ -584,6 +585,7 @@ function postToViewModel(
         repostedById: post._computed.repostedById,
         wasReposted: post._computed.wasReposted,
         wasLiked: post._computed.wasLiked,
+        isFollowed: post.isFollowed,
         embed: post.embed,
         person: {
           name: post.publishedBy.fullName || post.publishedBy.username,

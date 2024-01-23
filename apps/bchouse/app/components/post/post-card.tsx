@@ -1,3 +1,4 @@
+/* eslint-disable react/display-name */
 import { Menu } from '@headlessui/react'
 import { EllipsisHorizontalIcon } from '@heroicons/react/20/solid'
 import {
@@ -11,6 +12,7 @@ import {
   SpeakerXMarkIcon,
   TrashIcon,
   UserMinusIcon,
+  UserPlusIcon,
 } from '@heroicons/react/24/outline'
 import {
   Fetcher,
@@ -170,9 +172,11 @@ PostCard.ItemMenu = function () {
       ? []
       : [
           {
-            icon: UserMinusIcon,
-            content: `Unfollow @${post.person.handle}`,
-            action: 'follow:remove',
+            icon: post.isFollowed ? UserMinusIcon : UserPlusIcon,
+            content: `${post.isFollowed ? 'Unfollow' : 'Follow'} @${
+              post.person.handle
+            }`,
+            action: post.isFollowed ? 'follow:remove' : 'follow:add',
           },
           // {
           //   icon: ClipboardDocumentListIcon,
@@ -637,5 +641,38 @@ function ViewCounts({ item }: { item: PostCardModel }) {
       <ChartBarIcon className="w-5 h-5" />
       {item.viewCount && <span>{item.viewCount}</span>}
     </span>
+  )
+}
+
+function FollowButton({ item }: { item: PostCardModel }, active: boolean) {
+  return (
+    <Menu.Item>
+      {({ active }) => (
+        <>
+          {console.log('active', active)}
+          <input type="hidden" name="profileId" value={item.publishedById} />
+          <button
+            type="submit"
+            name="_action"
+            value={item.isCurrentUserFollowing ? 'unfollow' : 'follow'}
+            className={classNames(
+              `${active && 'bg-blue-500/20'}`,
+              'w-full py-3 text-[15px] px-4 flex text-left gap-4 font-semibold text-primary-text'
+            )}
+            onClick={(e) => {
+              e.stopPropagation()
+            }}
+          >
+            {item.isCurrentUserFollowing ? (
+              <UserMinusIcon className="w-5 h-5" title="Unfollow" />
+            ) : (
+              <UserPlusIcon className="w-5 h-5" title="Follow" />
+            )}
+            {item.isCurrentUserFollowing ? 'Unfollow' : 'Follow'} @
+            {item.person.handle}
+          </button>
+        </>
+      )}
+    </Menu.Item>
   )
 }

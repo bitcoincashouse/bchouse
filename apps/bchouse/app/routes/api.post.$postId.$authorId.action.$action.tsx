@@ -62,6 +62,10 @@ export const action = async (_: ActionArgs) => {
     await _.context.userService.addBlock(userId, authorId)
   } else if (action === 'block:remove') {
     await _.context.userService.removeBlock(userId, authorId)
+  } else if (action === 'follow:add') {
+    await _.context.profileService.addUserFollow(userId, authorId)
+  } else if (action === 'follow:remove') {
+    await _.context.profileService.removeUserFollow(userId, authorId)
   }
 
   return typedjson({})
@@ -121,6 +125,24 @@ export async function clientAction(_: ClientActionFunctionArgs) {
 
     const newResult = {
       pages: old.pages.map((page) => {
+        if (action === 'follow:add' || action === 'follow:remove') {
+          const newPage = {
+            ...page,
+            posts: page.posts.map((post) => {
+              if (post.publishedById === authorId) {
+                return {
+                  ...post,
+                  isFollowed: action === 'follow:add',
+                }
+              }
+
+              return post
+            }),
+          }
+
+          return newPage
+        }
+
         if (
           type === 'home' ||
           type === 'all_posts' ||
@@ -206,9 +228,14 @@ export async function clientAction(_: ClientActionFunctionArgs) {
     action === 'mute:add' ||
     action === 'mute:remove' ||
     action === 'block:add' ||
-    action === 'block:remove'
+    action === 'block:remove' ||
+    action === 'follow:add' ||
+    action === 'follow:remove'
   ) {
-    await queryClient.invalidateQueries({ queryKey: ['feed', 'home'] })
+    await queryClient.invalidateQueries({
+      queryKey: ['feed', 'home'],
+      refetchType: 'all',
+    })
   }
 
   return result

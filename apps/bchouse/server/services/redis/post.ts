@@ -66,6 +66,20 @@ export function getIsBlockedByCurrentUser({
   }
 }
 
+export function getIsFollowedByCurrentUser({
+  currentUserId,
+  publishedById,
+}: {
+  currentUserId: string | null
+  publishedById: string
+}) {
+  const { followersKey } = getKeys(publishedById)
+
+  return (p: ChainableCommander) => {
+    return currentUserId ? p.zscore(followersKey, currentUserId) : false
+  }
+}
+
 export function getIsLikedByCurrentUser({
   currentUserId,
   postId,

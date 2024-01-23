@@ -19,6 +19,7 @@ export function postRowMapper(row: {
   parentPostPublishedById: string | null
   bchAddress?: string | null
 
+  isFollowed?: boolean | number | string
   wasLiked: boolean | number | string
   wasReposted: boolean | number | string
   wasQuoted: boolean | number | string
@@ -86,6 +87,7 @@ export function postRowMapper(row: {
         handleSqlBoolean(row.wasReposted) || handleSqlBoolean(row.wasQuoted),
       isThread: false,
     },
+    isFollowed: handleSqlBoolean(row.isFollowed),
   }
 }
 

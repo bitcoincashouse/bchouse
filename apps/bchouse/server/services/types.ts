@@ -7,6 +7,7 @@ export type PostCardModel = {
   type: string
   isBlocked?: boolean
   isMuted?: boolean
+  isFollowed?: boolean
   repostedById?: string
   repostedBy?: string
   wasReposted: boolean

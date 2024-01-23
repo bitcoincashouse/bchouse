@@ -1025,6 +1025,10 @@ export class RedisService extends Redis {
                 publishedById,
               }),
               postCache.getRepostedBy({ repostedById }),
+              postCache.getIsFollowedByCurrentUser({
+                currentUserId,
+                publishedById,
+              }),
               postCache.getIsMutedByCurrentUser({
                 currentUserId,
                 publishedById,
@@ -1041,6 +1045,7 @@ export class RedisService extends Redis {
                 isRepostedByCurrentUser,
                 isTippedByCurrentUser,
                 repostedBy,
+                isFollowedByCurrentUser,
                 isMutedByCurrentUser,
                 isBlockedByCurrentUser,
               ]) => {
@@ -1056,6 +1061,7 @@ export class RedisService extends Redis {
                         publishedById: post.parent_post_publishedById,
                       })(this)
                     : null),
+                  isFollowedByCurrentUser,
                   isMutedByCurrentUser,
                   isBlockedByCurrentUser,
                 })
@@ -1127,6 +1133,10 @@ export class RedisService extends Redis {
               postId,
               publishedById,
             }),
+            postCache.getIsFollowedByCurrentUser({
+              currentUserId,
+              publishedById,
+            }),
             postCache.getIsMutedByCurrentUser({
               currentUserId,
               publishedById,
@@ -1142,6 +1152,7 @@ export class RedisService extends Redis {
               isLikedByCurrentUser,
               isRepostedByCurrentUser,
               isTippedByCurrentUser,
+              isFollowedByCurrentUser,
               isMutedByCurrentUser,
               isBlockedByCurrentUser,
             ]) => {
@@ -1157,6 +1168,7 @@ export class RedisService extends Redis {
                       publishedById: post.parent_post_publishedById,
                     })(this)
                   : null),
+                isFollowedByCurrentUser,
                 isMutedByCurrentUser,
                 isBlockedByCurrentUser,
               })
@@ -1178,6 +1190,7 @@ function mapRedisPostToPostCard(
     isTippedByCurrentUser: redisIsTippedByCurrentUser,
     repostedBy: redisRepostedBy,
     parentAuthor: redisParentAuthor,
+    isFollowedByCurrentUser: redisIsFollowedByCurrentUser,
     isMutedByCurrentUser: redisIsMutedByCurrentUser,
     isBlockedByCurrentUser: redisIsBlockedByCurrentUser,
   }: {
@@ -1186,7 +1199,7 @@ function mapRedisPostToPostCard(
     isLikedByCurrentUser: any
     isRepostedByCurrentUser: any
     isTippedByCurrentUser: any
-
+    isFollowedByCurrentUser: any
     isMutedByCurrentUser: any
     isBlockedByCurrentUser: any
     repostedBy: any
@@ -1275,6 +1288,7 @@ function mapRedisPostToPostCard(
     wasReposted: !!redisIsRepostedByCurrentUser,
     wasTipped: !!redisIsTippedByCurrentUser,
     isBlocked: !!redisIsBlockedByCurrentUser,
+    isFollowed: !!redisIsFollowedByCurrentUser,
     isMuted: !!redisIsMutedByCurrentUser,
     person: {
       name: author.displayName,

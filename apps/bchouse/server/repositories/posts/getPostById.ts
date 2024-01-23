@@ -37,6 +37,7 @@ export async function getPostById(params: {
     .select([
       ...selectors.post.all,
       ...selectors.post.publishedBy,
+      selectors.isFollowed(currentUserId),
       selectors.wasReposted(currentUserId),
       selectors.wasQuoted(currentUserId),
       selectors.wasLiked(currentUserId),

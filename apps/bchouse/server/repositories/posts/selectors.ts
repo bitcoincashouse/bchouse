@@ -17,6 +17,13 @@ type PostExpression = ExpressionBuilder<
   'post'
 >
 
+type PostExpression2 = ExpressionBuilder<
+  DB & {
+    post: { id: string; createdAt: Date; publishedById: string }
+  },
+  'post'
+>
+
 type MediaUrlsAgg = AliasedSelectQueryBuilder<
   {
     mediaUrls: {
@@ -90,6 +97,23 @@ export const selectors = {
     ] as const,
   },
   flag: (flag: boolean) => sql.lit(flag ? 1 : 0).$castTo<SqlBool>(),
+  isFollowed:
+    (currentUserId: string | null) =>
+    (qb: PostExpression2): BooleanSelector<'isFollowed'> =>
+      qb
+        .exists((qb) =>
+          qb
+            .selectFrom('Follows as f')
+            .where((eb) =>
+              eb('f.followerId', '=', currentUserId).and(
+                'f.followedId',
+                '=',
+                eb.ref('post.publishedById')
+              )
+            )
+            .select('f.id')
+        )
+        .as('isFollowed'),
   wasReposted:
     (currentUserId: string | null) =>
     (qb: PostExpression): BooleanSelector<'wasReposted'> =>
