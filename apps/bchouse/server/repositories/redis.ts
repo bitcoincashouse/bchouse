@@ -541,6 +541,7 @@ export async function getRedisPostsPaginated(params: {
     createdAt: Date
     content: unknown
     embed: string | null
+    deleted: boolean
     mediaUrls: {
       url: string
       height: number
@@ -587,6 +588,7 @@ export async function getRedisPostsPaginated(params: {
         'post.createdAt',
         'post.content',
         'post.embed',
+        'post.deleted',
         (eb) =>
           eb
             .selectFrom('Media as media')
@@ -632,11 +634,16 @@ export async function getRedisPostsPaginated(params: {
   ).then(({ results, nextCursor }) => {
     return {
       results: results.map((post) => {
+        if (post.id === '347a6297-16fb-451f-8705-eb6270d6b706') {
+          console.log(post, Boolean(post.deleted))
+        }
+
         return {
           id: post.id,
           publishedById: post.publishedById,
           createdAt: post.createdAt,
           content: post.content,
+          deleted: Boolean(post.deleted),
           mediaUrls: post.mediaUrls || [],
           replyCount: Number(post.comments || 0),
           repostCount: Number(post.reposts || 0),

@@ -339,6 +339,7 @@ export class RedisService extends Redis {
         height: number
         width: number
       }[]
+      deleted: boolean
       embed?: string | null | undefined
       replyCount: number
       repostCount: number
@@ -376,6 +377,7 @@ export class RedisService extends Redis {
             likeCount: post.likeCount,
             viewCount: 1,
             tipAmount: post.tipAmount,
+            deleted: post.deleted ? 0 : 1,
 
             date: moment(post.createdAt).unix(),
 
@@ -899,78 +901,20 @@ export class RedisService extends Redis {
   ) {
     const timelineKey = getTimelineKey(id, type)
     const limit = 20
+    const mutedUserIds =
+      currentUserId &&
+      (type === 'all_posts' || type === 'all_campaigns' || type === 'home')
+        ? await this.smembers('mutes:user:' + currentUserId)
+        : undefined
 
     try {
-      let postIds: string[]
-
-      if (!cursor) {
-        postIds = await this.zrangebyscore(
-          timelineKey,
-          '-inf',
-          '+inf',
-          'LIMIT',
-          0,
-          limit
-        )
-      } else {
-        const start = -moment(cursor.fromTimestamp).unix()
-
-        const [concurrentPostIds, postIdsPage] = await Promise.all([
-          this.zrangebyscore(timelineKey, start, start),
-          this.zrangebyscore(
-            timelineKey,
-            `(${start}`,
-            '+inf',
-            'LIMIT',
-            0,
-            limit
-          ),
-        ])
-
-        let cursorItemIndex = -1
-
-        for (let i = 0; i < concurrentPostIds.length; i++) {
-          const postId = concurrentPostIds[i] as string
-          if (postId === cursor.fromId) {
-            //Start next page from next item
-            cursorItemIndex = i + 1
-            break
-          }
-
-          if (postId > cursor.fromId) {
-            //Start from current item
-            cursorItemIndex = i
-            break
-          }
-        }
-
-        //If last item of previous page not found (or one with same score and further in list lexigraphically), then skip all with same score
-        // Otherwise, grab max from both arrays starting from next item or first item with same score and lexigraphically further in list
-        postIds =
-          cursorItemIndex === -1
-            ? postIdsPage
-            : getNResults(
-                concurrentPostIds,
-                postIdsPage,
-                limit,
-                cursorItemIndex
-              )
-      }
-
-      let nextCursor
-
-      if (postIds.length && postIds.length === limit) {
-        const lastItem = postIds[postIds.length - 1] as string
-        const lastItemScore = (await this.zscore(
-          timelineKey,
-          lastItem
-        )) as string
-
-        nextCursor = serializeCursor({
-          fromId: lastItem,
-          fromTimestamp: moment.unix(Math.abs(Number(lastItemScore))).toDate(),
-        })
-      }
+      const { results: postIds, nextCursor } = await getPostPage(
+        this,
+        timelineKey,
+        cursor,
+        limit,
+        mutedUserIds
+      )
 
       const feedResult = (
         await Promise.all(
@@ -1174,7 +1118,7 @@ function mapRedisPostToPostCard(
     displayName: string
   }
 
-  const deleted = Boolean(Number(post.deleted || 0))
+  const deleted = Boolean(Number(post.deleted || 0)) || post.deleted === 'true'
 
   if (deleted) {
     return {
@@ -1272,4 +1216,154 @@ function parseContent(content: string): Doc {
       },
     ],
   }
+}
+
+async function getPostPage(
+  redis: Redis,
+  key: string,
+  cursor: Cursor | undefined,
+  limit: number,
+  mutedUserIds?: string[] | null
+) {
+  const results: string[] = []
+
+  //TODO: iterate until end of timeline or page is filled
+  //TODO: convert to lua script using zscan?
+  let nextPageCursor =
+    typeof cursor !== 'undefined'
+      ? {
+          score: -moment(cursor.fromTimestamp).unix(),
+          member: cursor.fromId,
+        }
+      : undefined
+
+  let offset = 0
+  do {
+    await redis
+      .zrangebyscore(
+        key,
+        nextPageCursor?.score || '-inf',
+        '+inf',
+        'WITHSCORES',
+        'LIMIT',
+        offset,
+        nextPageCursor?.score ? limit + 1 : limit
+      )
+      .then((postIdMember) => {
+        const cursor = nextPageCursor
+
+        //set nextCursor to last score in case limit not reached
+        nextPageCursor =
+          postIdMember.length > 0
+            ? {
+                score: Number(postIdMember[postIdMember.length - 1] as string),
+                member: postIdMember[postIdMember.length - 2] as string,
+              }
+            : undefined
+
+        for (
+          let i = 0;
+          i < postIdMember.length && results.length < limit;
+          i += 2
+        ) {
+          const postId = postIdMember[i] as string
+          const score = Number(postIdMember[i + 1] as string)
+
+          if (nextPageCursor && nextPageCursor.score === score) {
+            //Increment offset to skip current member if limit not reached
+            offset++
+          } else {
+            //reset offset
+            offset = 0
+          }
+
+          //Mostly applies to first run when not offset, skip until after timestamp OR greater than cursor id
+          if (cursor && cursor.score === score && postId <= cursor.member) {
+            continue
+          }
+
+          if (!mutedUserIds) {
+            results.push(postId)
+            continue
+          }
+
+          const { publishedById, repostedById } = parsePostEmbeddedKey(postId)
+          const muted = mutedUserIds.some(
+            (id) => id === publishedById || id === repostedById
+          )
+
+          if (!muted) {
+            results.push(postId)
+            continue
+          }
+        }
+      })
+  } while (results.length < limit && nextPageCursor)
+
+  const lastItem = results.length
+    ? (results[results.length - 1] as string)
+    : undefined
+
+  let nextCursor
+
+  if (lastItem) {
+    const { postId } = parsePostEmbeddedKey(lastItem)
+
+    if (postId !== cursor?.fromId) {
+      const lastItemScore = (await redis.zscore(key, lastItem)) as string
+
+      nextCursor = serializeCursor({
+        fromId: lastItem,
+        fromTimestamp: moment.unix(Math.abs(Number(lastItemScore))).toDate(),
+      })
+    }
+  }
+
+  return { results, nextCursor: nextCursor }
+}
+
+async function oldGetPostPage(
+  redis: Redis,
+  key: string,
+  cursor: Cursor | undefined,
+  limit: number
+) {
+  let postIds: string[]
+
+  if (!cursor) {
+    postIds = await redis.zrangebyscore(key, '-inf', '+inf', 'LIMIT', 0, limit)
+  } else {
+    const start = -moment(cursor.fromTimestamp).unix()
+
+    const [concurrentPostIds, postIdsPage] = await Promise.all([
+      redis.zrangebyscore(key, start, start),
+      redis.zrangebyscore(key, `(${start}`, '+inf', 'LIMIT', 0, limit),
+    ])
+
+    let cursorItemIndex = -1
+
+    for (let i = 0; i < concurrentPostIds.length; i++) {
+      const postId = concurrentPostIds[i] as string
+      if (postId === cursor.fromId) {
+        //Start next page from next item
+        cursorItemIndex = i + 1
+        break
+      }
+
+      if (postId > cursor.fromId) {
+        //Start from current item
+        cursorItemIndex = i
+        break
+      }
+    }
+
+    //If last item of previous page not found (or one with same score and further in list lexigraphically), then skip all with same score
+    // Otherwise, grab max from both arrays starting from next item or first item with same score and lexigraphically further in list
+    postIds =
+      cursorItemIndex === -1
+        ? postIdsPage
+        : getNResults(concurrentPostIds, postIdsPage, limit, cursorItemIndex)
+  }
+
+  return postIds
 }
