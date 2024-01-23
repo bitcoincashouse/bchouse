@@ -63,7 +63,7 @@ export async function getRedisUserFollowersPaginated(params: {
   cursor: Cursor | undefined
 }): Promise<{
   results: Array<{
-    id: string
+    followerId: string
     createdAt: Date
   }>
   nextCursor: Cursor | undefined
@@ -73,16 +73,102 @@ export async function getRedisUserFollowersPaginated(params: {
   return await paginate(
     db
       .selectFrom('Follows as follow')
-      .innerJoin('User as follower', 'follower.id', 'follow.followerId')
       .where('followedId', '=', userId)
-      .select(['follower.id', 'follower.createdAt']),
-    'follower.id',
-    'follower.createdAt',
+      .select(['follow.followerId', 'follow.createdAt']),
+    'follow.followerId',
+    'follow.createdAt',
     cursor,
     limit,
     (lastResult) => ({
       fromTimestamp: lastResult.createdAt,
-      fromId: lastResult.id,
+      fromId: lastResult.followerId,
+    })
+  )
+}
+
+export async function getRedisUserMutesPaginated(params: {
+  userId: string
+  limit?: number
+  cursor: Cursor | undefined
+}): Promise<{
+  results: Array<{
+    mutedUserId: string
+    createdAt: Date
+  }>
+  nextCursor: Cursor | undefined
+}> {
+  const { userId, cursor, limit = 20 } = params || {}
+
+  return await paginate(
+    db
+      .selectFrom('Mute as m')
+      .where('m.userId', '=', userId)
+      .select(['m.mutedUserId', 'm.createdAt']),
+    'm.mutedUserId',
+    'm.createdAt',
+    cursor,
+    limit,
+    (lastResult) => ({
+      fromTimestamp: lastResult.createdAt,
+      fromId: lastResult.mutedUserId,
+    })
+  )
+}
+
+export async function getRedisUserBlockingPaginated(params: {
+  userId: string
+  limit?: number
+  cursor: Cursor | undefined
+}): Promise<{
+  results: Array<{
+    blockedUserId: string
+    createdAt: Date
+  }>
+  nextCursor: Cursor | undefined
+}> {
+  const { userId, cursor, limit = 20 } = params || {}
+
+  return await paginate(
+    db
+      .selectFrom('Block as b')
+      .where('b.userId', '=', userId)
+      .select(['b.blockedUserId', 'b.createdAt']),
+    'b.blockedUserId',
+    'b.createdAt',
+    cursor,
+    limit,
+    (lastResult) => ({
+      fromTimestamp: lastResult.createdAt,
+      fromId: lastResult.blockedUserId,
+    })
+  )
+}
+
+export async function getRedisUserBlockedByPaginated(params: {
+  userId: string
+  limit?: number
+  cursor: Cursor | undefined
+}): Promise<{
+  results: Array<{
+    blockingUserId: string
+    createdAt: Date
+  }>
+  nextCursor: Cursor | undefined
+}> {
+  const { userId, cursor, limit = 20 } = params || {}
+
+  return await paginate(
+    db
+      .selectFrom('Block as b')
+      .where('b.blockedUserId', '=', userId)
+      .select(['b.userId as blockingUserId', 'b.createdAt']),
+    'b.blockedUserId',
+    'b.createdAt',
+    cursor,
+    limit,
+    (lastResult) => ({
+      fromTimestamp: lastResult.createdAt,
+      fromId: lastResult.blockingUserId,
     })
   )
 }

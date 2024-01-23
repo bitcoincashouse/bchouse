@@ -11,11 +11,14 @@ import {
 } from '../../repositories/campaign'
 import {
   getRedisPostsPaginated,
+  getRedisUserBlockedByPaginated,
+  getRedisUserBlockingPaginated,
   getRedisUserCampaignPostsPaginated,
   getRedisUserFollowersPaginated,
   getRedisUserHomePostsPaginated,
   getRedisUserLikedPostsPaginated,
   getRedisUserMediaPostsPaginated,
+  getRedisUserMutesPaginated,
   getRedisUserPostsPaginated,
   getRedisUserProfilePaginated,
   getRedisUserReplyPostsPaginated,
@@ -316,6 +319,9 @@ export class InngestService {
                             cacheUserReplyPosts(user),
                             cacheUserMediaPosts(user),
                             cacheUserTippedPosts(user),
+                            cacheUserMutes(user),
+                            cacheUserBlocking(user),
+                            cacheUserBlockedBy(user),
                           ])
                         )
                       ),
@@ -430,6 +436,60 @@ async function cacheUserFollowers(user: User) {
     (followers) => {
       //Cache @ user:followers:{userId}
       return redisService.updateUserFollowers(user.id, followers)
+    }
+  )
+}
+
+async function cacheUserMutes(user: User) {
+  return mapPaginatedQuery(
+    (cursor) =>
+      getRedisUserMutesPaginated({
+        userId: user.id,
+        limit: 100,
+        cursor,
+      }),
+    (mutes) => {
+      //Cache @ user:followers:{userId}
+      return redisService.updateUserMutes(
+        user.id,
+        mutes.map((m) => m.mutedUserId)
+      )
+    }
+  )
+}
+
+async function cacheUserBlocking(user: User) {
+  return mapPaginatedQuery(
+    (cursor) =>
+      getRedisUserBlockingPaginated({
+        userId: user.id,
+        limit: 100,
+        cursor,
+      }),
+    (blocks) => {
+      //Cache @ user:followers:{userId}
+      return redisService.updateUserBlocking(
+        user.id,
+        blocks.map((b) => b.blockedUserId)
+      )
+    }
+  )
+}
+
+async function cacheUserBlockedBy(user: User) {
+  return mapPaginatedQuery(
+    (cursor) =>
+      getRedisUserBlockedByPaginated({
+        userId: user.id,
+        limit: 100,
+        cursor,
+      }),
+    (blocks) => {
+      //Cache @ user:followers:{userId}
+      return redisService.updateUserBlockedBy(
+        user.id,
+        blocks.map((b) => b.blockingUserId)
+      )
     }
   )
 }

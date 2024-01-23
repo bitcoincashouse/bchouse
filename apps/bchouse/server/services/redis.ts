@@ -158,17 +158,35 @@ export class RedisService extends Redis {
   async updateUserFollowers(
     userId: string,
     followers: Array<{
-      id: string
+      followerId: string
       createdAt: Date
     }>
   ) {
     const { followersKey } = getKeys(userId)
 
     const followerMembers = followers
-      .map((follower) => [-moment(follower.createdAt).unix(), follower.id])
+      .map((follower) => [
+        -moment(follower.createdAt).unix(),
+        follower.followerId,
+      ])
       .flat()
 
     if (followerMembers.length) this.zadd(followersKey, ...followerMembers)
+  }
+
+  async updateUserMutes(userId: string, mutes: Array<string>) {
+    const { mutesKey } = getKeys(userId)
+    if (mutes.length) this.sadd(mutesKey, ...mutes)
+  }
+
+  async updateUserBlocking(userId: string, blockedUsers: Array<string>) {
+    const { userBlockingKey } = getKeys(userId)
+    if (blockedUsers.length) this.sadd(userBlockingKey, ...blockedUsers)
+  }
+
+  async updateUserBlockedBy(userId: string, blockedUsers: Array<string>) {
+    const { userBlockedByKey } = getKeys(userId)
+    if (blockedUsers.length) this.sadd(userBlockedByKey, ...blockedUsers)
   }
 
   async updateUserHomeTimeline(
