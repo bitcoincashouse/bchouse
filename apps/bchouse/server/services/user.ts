@@ -6,7 +6,9 @@ import {
 import { prettyPrintSats } from '~/utils/prettyPrintSats'
 import { KyselyPostDbModel } from '../repositories/posts/types'
 import userRepo from '../repositories/user'
+import { blockUser, unblockUser } from '../repositories/user/blockUser'
 import { getUserId } from '../repositories/user/getProfile'
+import { muteUser, unmuteUser } from '../repositories/user/muteUser'
 import { updateLastViewedNotifications } from '../repositories/user/updateLastViewedNotifications'
 import {
   getDailyActiveUserCount,
@@ -216,7 +218,7 @@ function postToViewModel(post: KyselyPostDbModel) {
 
 export class UserService {
   constructor(
-    readonly redis: RedisService,
+    readonly redisService: RedisService,
     readonly searchService: SearchService
   ) {}
 
@@ -254,7 +256,7 @@ export class UserService {
       user_username: user.username as string,
     })
 
-    await this.redis.updateUserFromDb(user.id)
+    await this.redisService.updateUserFromDb(user.id)
   }
 
   async createAccountWebhook(user: UserJSON) {
@@ -285,7 +287,7 @@ export class UserService {
       user_username: user.username as string,
     })
 
-    await this.redis.updateUserFromDb(user.id)
+    await this.redisService.updateUserFromDb(user.id)
   }
 
   async createAccountRedirect(userId: string) {
@@ -318,7 +320,7 @@ export class UserService {
       user_username: user.username as string,
     })
 
-    await this.redis.updateUserFromDb(userId)
+    await this.redisService.updateUserFromDb(userId)
   }
 
   async updateAccountActivity(id: string) {
@@ -340,10 +342,36 @@ export class UserService {
     return { userCount, dailyActiveUserCount, weeklyActiveUserCount }
   }
 
+  async addMute(userId: string, mutedUserId: string) {
+    if (userId === mutedUserId) return
+    if (await muteUser({ userId: userId, mutedUserId })) {
+      await this.redisService.addMute(userId, mutedUserId)
+    }
+  }
+
+  async removeMute(userId: string, mutedUserId: string) {
+    if (await unmuteUser({ userId: userId, mutedUserId })) {
+      await this.redisService.removeMute(userId, mutedUserId)
+    }
+  }
+
+  async addBlock(userId: string, blockedUserId: string) {
+    if (userId === blockedUserId) return
+    if (await blockUser({ userId: userId, blockedUserId })) {
+      await this.redisService.addBlock(userId, blockedUserId)
+    }
+  }
+
+  async removeBlock(userId: string, blockedUserId: string) {
+    if (await unblockUser({ userId: userId, blockedUserId })) {
+      await this.redisService.removeBlock(userId, blockedUserId)
+    }
+  }
+
   async updateLastViewedNotifications(userId: string) {
     const wasUpdated = await updateLastViewedNotifications({ userId })
     if (wasUpdated) {
-      await this.redis.clearNotifications(userId)
+      await this.redisService.clearNotifications(userId)
     }
 
     return wasUpdated

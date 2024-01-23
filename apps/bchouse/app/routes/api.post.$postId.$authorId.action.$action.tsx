@@ -1,6 +1,7 @@
 import { ActionArgs } from '@remix-run/node'
-import { ClientActionFunctionArgs } from '@remix-run/react'
+import { ClientActionFunctionArgs, useSubmit } from '@remix-run/react'
 import { useCallback } from 'react'
+import { $path } from 'remix-routes'
 import { typedjson } from 'remix-typedjson'
 import { z } from 'zod'
 import { PostCardModel } from '~/components/post/types'
@@ -53,6 +54,14 @@ export const action = async (_: ActionArgs) => {
     await _.context.postService.addPostLike(userId, postId, authorId)
   } else if (action === 'like:remove') {
     await _.context.postService.removePostLike(userId, postId, authorId)
+  } else if (action === 'mute:add') {
+    await _.context.userService.addMute(userId, authorId)
+  } else if (action === 'mute:remove') {
+    await _.context.userService.removeMute(userId, authorId)
+  } else if (action === 'block:add') {
+    await _.context.userService.addBlock(userId, authorId)
+  } else if (action === 'block:remove') {
+    await _.context.userService.removeBlock(userId, authorId)
   }
 
   return typedjson({})
@@ -89,25 +98,80 @@ function updatePost(
   return post
 }
 
-export async function clientAction(_: ClientActionFunctionArgs) {
-  const { action, postId } = zx.parseParams(_.params, postActionSchema)
+type FeedData =
+  | {
+      pages: {
+        posts: PostCardModel[]
+        shouldRefresh: boolean
+        isRebuilding: boolean
+        nextCursor: string | undefined
+      }[]
+      pageParams: (string | undefined)[]
+    }
+  | undefined
 
-  queryClient.setQueriesData<
-    | {
-        pages: {
-          posts: PostCardModel[]
-          shouldRefresh: boolean
-          isRebuilding: boolean
-          nextCursor: string | undefined
-        }[]
-        pageParams: (string | undefined)[]
-      }
-    | undefined
-  >(['feed'], (old) => {
+export async function clientAction(_: ClientActionFunctionArgs) {
+  const { action, postId, authorId } = zx.parseParams(
+    _.params,
+    postActionSchema
+  )
+
+  const updater = (type: string) => (old: FeedData) => {
     if (!old) return undefined
 
-    return {
+    const newResult = {
       pages: old.pages.map((page) => {
+        if (
+          type === 'home' ||
+          type === 'all_posts' ||
+          type === 'all_campaigns'
+        ) {
+          if (action === 'mute:add' || action === 'block:add') {
+            const newPage = {
+              ...page,
+              posts: page.posts.filter(
+                (post) =>
+                  post.publishedById !== authorId &&
+                  post.repostedById !== authorId
+              ),
+            }
+
+            return newPage
+          }
+        }
+
+        if (type === 'user') {
+          if (
+            action === 'mute:add' ||
+            action === 'mute:remove' ||
+            action === 'block:add' ||
+            action === 'block:remove'
+          ) {
+            const newPage = {
+              ...page,
+              posts: page.posts.map((post) => {
+                if (post.publishedById === authorId) {
+                  return {
+                    ...post,
+                    isMuted:
+                      action === 'mute:add' || action === 'mute:remove'
+                        ? action === 'mute:add'
+                        : post.isMuted,
+                    isBlocked:
+                      action === 'block:add' || action === 'block:remove'
+                        ? action === 'block:add'
+                        : post.isBlocked,
+                  }
+                }
+
+                return post
+              }),
+            }
+
+            return newPage
+          }
+        }
+
         return {
           ...page,
           posts: page.posts.map((post) => {
@@ -121,22 +185,49 @@ export async function clientAction(_: ClientActionFunctionArgs) {
       }),
       pageParams: old.pageParams,
     }
-  })
 
-  return await _.serverAction()
+    return newResult
+  }
+
+  queryClient.setQueriesData<FeedData>(['feed', 'home'], updater('home'))
+  queryClient.setQueriesData<FeedData>(
+    ['feed', 'all_posts'],
+    updater('all_posts')
+  )
+  queryClient.setQueriesData<FeedData>(
+    ['feed', 'all_campaigns'],
+    updater('all_campaigns')
+  )
+  queryClient.setQueriesData<FeedData>(['feed', 'user'], updater('user'))
+
+  const result = await _.serverAction()
+
+  if (
+    action === 'mute:add' ||
+    action === 'mute:remove' ||
+    action === 'block:add' ||
+    action === 'block:remove'
+  ) {
+    await queryClient.invalidateQueries({ queryKey: ['feed', 'home'] })
+  }
+
+  return result
 }
 
 export function usePostActionSubmit() {
+  const submit = useSubmit()
+
   return useCallback(
     (postId: string, authorId: string, action: PostActionType) => {
-      fetch(
-        `/api/post/${postId}/${authorId}/action/${encodeURIComponent(
-          action
-        )}?_data=routes/api.post.$postId.action.$action`,
-        {
-          method: 'POST',
-        }
-      )
+      submit(null, {
+        action: $path('/api/post/:postId/:authorId/action/:action', {
+          action,
+          authorId,
+          postId,
+        }),
+        method: 'POST',
+        navigate: false,
+      })
     },
     []
   )

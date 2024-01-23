@@ -64,5 +64,8 @@ export const getKeys = (currentUserId: string) => {
     //Also used to find if user repost a post if current user
     retweetsKey: `timeline:retweets:user:${currentUserId}`,
     tipsKey: `timeline:tips:user:${currentUserId}`,
+    mutesKey: `mutes:user:${currentUserId}`,
+    userBlockingKey: `user:blocking:${currentUserId}`,
+    userBlockedByKey: `user:blocked_by:${currentUserId}`,
   }
 }

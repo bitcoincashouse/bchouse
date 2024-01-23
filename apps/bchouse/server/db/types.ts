@@ -77,6 +77,12 @@ export type AnyonecanpayPledge = {
   comment: string | null
   spentAt: Timestamp | null
 }
+export type Block = {
+  id: Generated<string>
+  userId: string
+  blockedUserId: string
+  createdAt: Generated<Timestamp>
+}
 export type Campaign = {
   id: Generated<string>
   satoshis: bigint
@@ -156,6 +162,12 @@ export type Mention = {
   id: Generated<string>
   mention_user_id: string
   postId: string
+}
+export type Mute = {
+  id: Generated<string>
+  userId: string
+  mutedUserId: string
+  createdAt: Generated<Timestamp>
 }
 export type PledgePayment = {
   pledgeId: string
@@ -260,6 +272,7 @@ export type User = {
 }
 export type DB = {
   AnyonecanpayPledge: AnyonecanpayPledge
+  Block: Block
   Campaign: Campaign
   CampaignContractSpendTransaction: CampaignContractSpendTransaction
   CampaignNFT: CampaignNFT
@@ -271,6 +284,7 @@ export type DB = {
   Likes: Likes
   Media: Media
   Mention: Mention
+  Mute: Mute
   PledgePayment: PledgePayment
   PledgeRequest: PledgeRequest
   Post: Post

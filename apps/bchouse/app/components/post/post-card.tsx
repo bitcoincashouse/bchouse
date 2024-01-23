@@ -4,7 +4,6 @@ import {
   ArrowPathRoundedSquareIcon,
   ChartBarIcon,
   ChatBubbleLeftRightIcon,
-  ClipboardDocumentListIcon,
   CodeBracketIcon,
   FlagIcon,
   HeartIcon,
@@ -138,10 +137,13 @@ PostCard.ItemMenu = function () {
   const layoutData = useLayoutLoaderData()
 
   const menuItems = React.useMemo<PostCardMenuItem[]>(() => {
-    const currentUserItems: PostCardMenuItem[] =
+    const isCurrentUser =
       !layoutData.anonymousView &&
       post.publishedById === layoutData.profile.id &&
-      !post.repostedBy
+      post.repostedBy !== layoutData.profile.id
+
+    const currentUserItems: PostCardMenuItem[] =
+      isCurrentUser && !post.repostedBy
         ? [
             {
               icon: TrashIcon,
@@ -154,40 +156,49 @@ PostCard.ItemMenu = function () {
 
     const baseItems: PostCardMenuItem[] = [
       { icon: CodeBracketIcon, content: `Embed Tweet`, action: 'embed' },
-      {
+    ]
+
+    if (!isCurrentUser) {
+      baseItems.push({
         icon: FlagIcon,
         content: `Report @${post.person.handle}`,
         action: 'report',
-      },
-    ]
+      })
+    }
 
-    const loggedInItems: PostCardMenuItem[] = [
-      {
-        icon: UserMinusIcon,
-        content: `Unfollow @${post.person.handle}`,
-        action: 'follow:remove',
-      },
-      {
-        icon: ClipboardDocumentListIcon,
-        content: `Add/remove @${post.person.handle} from Lists`,
-        action: 'list:remove',
-      },
-      {
-        icon: SpeakerXMarkIcon,
-        content: `Mute @${post.person.handle}`,
-        action: 'mute:remove',
-      },
-      {
-        icon: NoSymbolIcon,
-        content: `Block @${post.person.handle}`,
-        action: 'block:remove',
-      },
-    ]
+    const loggedInItems: PostCardMenuItem[] = isCurrentUser
+      ? []
+      : [
+          {
+            icon: UserMinusIcon,
+            content: `Unfollow @${post.person.handle}`,
+            action: 'follow:remove',
+          },
+          // {
+          //   icon: ClipboardDocumentListIcon,
+          //   content: `Add/remove @${post.person.handle} from Lists`,
+          //   action: 'list:add',
+          // },
+          {
+            icon: SpeakerXMarkIcon,
+            content: `${post.isMuted ? 'Unmute' : 'Mute'} @${
+              post.person.handle
+            }`,
+            action: post.isMuted ? 'mute:remove' : 'mute:add',
+          },
+          {
+            icon: NoSymbolIcon,
+            content: `${post.isBlocked ? 'Unblock' : 'Block'} @${
+              post.person.handle
+            }`,
+            action: post.isBlocked ? 'block:remove' : 'block:add',
+          },
+        ]
 
     return layoutData.anonymousView
       ? baseItems
       : Array.prototype.concat(currentUserItems, loggedInItems, baseItems)
-  }, [])
+  }, [post])
 
   const submitAction = usePostActionSubmit()
 

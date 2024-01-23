@@ -600,6 +600,40 @@ export class RedisService extends Redis {
     await this.zrem(followerHomeTimelineKey, ...followedPostMembers)
   }
 
+  async addMute(userId: string, mutedUserId: string) {
+    let { mutesKey } = getKeys(userId)
+
+    await PipelineHandler(this.pipeline())((p) =>
+      p.sadd(mutesKey, -moment().unix(), mutedUserId)
+    )
+  }
+
+  async removeMute(userId: string, mutedUserId: string) {
+    let { mutesKey } = getKeys(userId)
+
+    await PipelineHandler(this.pipeline())((p) => p.srem(mutesKey, mutedUserId))
+  }
+
+  async addBlock(userId: string, blockedUserId: string) {
+    let { userBlockedByKey } = getKeys(userId)
+    let { userBlockingKey } = getKeys(blockedUserId)
+
+    await PipelineHandler(this.pipeline())(
+      (p) => p.sadd(userBlockingKey, -moment().unix(), blockedUserId),
+      (p) => p.sadd(userBlockedByKey, -moment().unix(), userId)
+    )
+  }
+
+  async removeBlock(userId: string, blockedUserId: string) {
+    let { userBlockedByKey } = getKeys(userId)
+    let { userBlockingKey } = getKeys(blockedUserId)
+
+    await PipelineHandler(this.pipeline())(
+      (p) => p.srem(userBlockingKey, blockedUserId),
+      (p) => p.srem(userBlockedByKey, userId)
+    )
+  }
+
   //Pipelining
   async addLike(userId: string, postId: string, publishedById: string) {
     let { likesKey } = getKeys(userId)
@@ -900,20 +934,51 @@ export class RedisService extends Redis {
     cursor: Cursor | undefined
   ) {
     const timelineKey = getTimelineKey(id, type)
+    const {
+      mutesKey = undefined,
+      userBlockingKey = undefined,
+      userBlockedByKey = undefined,
+    } = currentUserId ? getKeys(currentUserId) : {}
+
     const limit = 20
     const mutedUserIds =
-      currentUserId &&
+      mutesKey &&
       (type === 'all_posts' || type === 'all_campaigns' || type === 'home')
-        ? await this.smembers('mutes:user:' + currentUserId)
+        ? await this.smembers(mutesKey)
         : undefined
+
+    const blockedUserIds =
+      userBlockingKey &&
+      (type === 'all_posts' || type === 'all_campaigns' || type === 'home')
+        ? await this.smembers(userBlockingKey)
+        : undefined
+
+    const blockedByUserIds =
+      userBlockedByKey &&
+      (type === 'all_posts' || type === 'all_campaigns' || type === 'home')
+        ? await this.smembers(userBlockedByKey)
+        : undefined
+
+    const filterUserPosts = ([] as string[]).concat(
+      mutedUserIds || [],
+      blockedUserIds || [],
+      blockedByUserIds || []
+    )
+
+    console.log({
+      filterUserPosts,
+      mutedUserIds,
+      currentUserId,
+      mutesKey,
+      type,
+    })
 
     try {
       const { results: postIds, nextCursor } = await getPostPage(
         this,
         timelineKey,
         cursor,
-        limit,
-        mutedUserIds
+        limit
       )
 
       const feedResult = (
@@ -941,7 +1006,15 @@ export class RedisService extends Redis {
                 postId,
                 publishedById,
               }),
-              postCache.getRepostedBy({ repostedById })
+              postCache.getRepostedBy({ repostedById }),
+              postCache.getIsMutedByCurrentUser({
+                currentUserId,
+                publishedById,
+              }),
+              postCache.getIsBlockedByCurrentUser({
+                currentUserId,
+                publishedById,
+              })
             ).then(
               async ([
                 post,
@@ -950,6 +1023,8 @@ export class RedisService extends Redis {
                 isRepostedByCurrentUser,
                 isTippedByCurrentUser,
                 repostedBy,
+                isMutedByCurrentUser,
+                isBlockedByCurrentUser,
               ]) => {
                 return mapRedisPostToPostCard(embeddedKey, {
                   post,
@@ -963,12 +1038,25 @@ export class RedisService extends Redis {
                         publishedById: post.parent_post_publishedById,
                       })(this)
                     : null),
+                  isMutedByCurrentUser,
+                  isBlockedByCurrentUser,
                 })
               }
             )
           })
         )
-      ).filter((p) => !p.deleted)
+      ).filter(
+        (p) =>
+          !p.deleted &&
+          !p.isBlocked &&
+          //Only mute if not on user's page
+          !(
+            p.isMuted &&
+            (type === 'home' ||
+              type === 'all_posts' ||
+              type === 'all_campaigns')
+          )
+      )
 
       const seenPostIds = new Set<string>()
       const feed = [] as PostCardModel[]
@@ -1020,6 +1108,14 @@ export class RedisService extends Redis {
               currentUserId,
               postId,
               publishedById,
+            }),
+            postCache.getIsMutedByCurrentUser({
+              currentUserId,
+              publishedById,
+            }),
+            postCache.getIsBlockedByCurrentUser({
+              currentUserId,
+              publishedById,
             })
           ).then(
             async ([
@@ -1028,6 +1124,8 @@ export class RedisService extends Redis {
               isLikedByCurrentUser,
               isRepostedByCurrentUser,
               isTippedByCurrentUser,
+              isMutedByCurrentUser,
+              isBlockedByCurrentUser,
             ]) => {
               return mapRedisPostToPostCard(embeddedKey, {
                 post,
@@ -1041,12 +1139,14 @@ export class RedisService extends Redis {
                       publishedById: post.parent_post_publishedById,
                     })(this)
                   : null),
+                isMutedByCurrentUser,
+                isBlockedByCurrentUser,
               })
             }
           )
         })
       )
-    ).filter((p) => !p.deleted) as PostCardModel[]
+    ).filter((p) => !p.deleted && !p.isBlocked) as PostCardModel[]
   }
 }
 
@@ -1060,6 +1160,8 @@ function mapRedisPostToPostCard(
     isTippedByCurrentUser: redisIsTippedByCurrentUser,
     repostedBy: redisRepostedBy,
     parentAuthor: redisParentAuthor,
+    isMutedByCurrentUser: redisIsMutedByCurrentUser,
+    isBlockedByCurrentUser: redisIsBlockedByCurrentUser,
   }: {
     post: any
     author: any
@@ -1067,6 +1169,8 @@ function mapRedisPostToPostCard(
     isRepostedByCurrentUser: any
     isTippedByCurrentUser: any
 
+    isMutedByCurrentUser: any
+    isBlockedByCurrentUser: any
     repostedBy: any
     parentAuthor: any
   }
@@ -1152,6 +1256,8 @@ function mapRedisPostToPostCard(
     wasLiked: !!redisIsLikedByCurrentUser,
     wasReposted: !!redisIsRepostedByCurrentUser,
     wasTipped: !!redisIsTippedByCurrentUser,
+    isBlocked: !!redisIsBlockedByCurrentUser,
+    isMuted: !!redisIsMutedByCurrentUser,
     person: {
       name: author.displayName,
       href: '#',

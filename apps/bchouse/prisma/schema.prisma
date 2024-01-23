@@ -61,6 +61,38 @@ model User {
   mentions            Mention[]
   inviteCodes         InviteCode[]
   anyonecanpayPledges AnyonecanpayPledge[]
+  mutes               Mute[]               @relation("user_mutes")
+  mutedBy             Mute[]               @relation("user_muted_by")
+  blocks              Block[]              @relation("user_blocks")
+  blockedBy           Block[]              @relation("user_blocked_by")
+}
+
+model Mute {
+  id     String @id @default(dbgenerated("(uuid())"))
+  userId String
+  user   User   @relation("user_mutes", fields: [userId], references: [id])
+
+  mutedUserId String
+  mutedUser   User   @relation("user_muted_by", fields: [mutedUserId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, mutedUserId])
+  @@index([mutedUserId])
+}
+
+model Block {
+  id     String @id @default(dbgenerated("(uuid())"))
+  userId String
+  user   User   @relation("user_blocks", fields: [userId], references: [id])
+
+  blockedUserId String
+  blockedUser   User   @relation("user_blocked_by", fields: [blockedUserId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, blockedUserId])
+  @@index([blockedUserId])
 }
 
 model InviteCode {

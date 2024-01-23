@@ -32,6 +32,40 @@ export function getPostAuthor({ publishedById }: { publishedById: string }) {
   }
 }
 
+export function getIsMutedByCurrentUser({
+  currentUserId,
+  publishedById,
+}: {
+  currentUserId: string | null
+  publishedById: string
+}) {
+  const { mutesKey = undefined } = currentUserId ? getKeys(currentUserId) : {}
+
+  return (p: ChainableCommander) => {
+    return typeof mutesKey !== 'undefined'
+      ? p.sismember(mutesKey, publishedById)
+      : false
+  }
+}
+
+export function getIsBlockedByCurrentUser({
+  currentUserId,
+  publishedById,
+}: {
+  currentUserId: string | null
+  publishedById: string
+}) {
+  const { userBlockingKey = undefined } = currentUserId
+    ? getKeys(currentUserId)
+    : {}
+
+  return (p: ChainableCommander) => {
+    return typeof userBlockingKey !== 'undefined'
+      ? p.sismember(userBlockingKey, publishedById)
+      : false
+  }
+}
+
 export function getIsLikedByCurrentUser({
   currentUserId,
   postId,
