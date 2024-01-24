@@ -98,6 +98,20 @@ function updatePage(
   const { action, postId, authorId } = params
 
   if (action === 'follow:add' || action === 'follow:remove') {
+    //handle unfollow by removing posts
+    //  do not immediately return to set isfollowing for reposts of user by other users
+    if (type === 'home' && action === 'follow:remove') {
+      posts = posts.filter(
+        (post) =>
+          //remove users posts unless reposted by someone else
+          (post.publishedById !== authorId ||
+            (!!post.repostedById && post.repostedById !== authorId)) &&
+          //remove users reposts
+          post.repostedById !== authorId
+      )
+    }
+
+    //handle setting isFollowed if adding or removing follow on any page
     return posts.map((post) => {
       if (post.publishedById === authorId) {
         return {
@@ -117,17 +131,18 @@ function updatePage(
     )
   }
 
-  if (
-    action === 'mute:add' &&
-    (type === 'home' || type === 'all_posts' || type === 'all_campaigns')
-  ) {
-    return posts.filter(
-      (post) =>
-        post.publishedById !== authorId && post.repostedById !== authorId
-    )
-  }
-
   if (action === 'mute:add' || action === 'mute:remove') {
+    if (
+      action === 'mute:add' &&
+      (type === 'home' || type === 'all_posts' || type === 'all_campaigns')
+    ) {
+      //mute both posts and reposts on homepage (no need for button change)
+      return posts.filter(
+        (post) =>
+          post.publishedById !== authorId && post.repostedById !== authorId
+      )
+    }
+
     return posts.map((post) => {
       if (post.publishedById === authorId) {
         return {
