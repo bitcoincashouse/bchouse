@@ -194,7 +194,7 @@ PostCard.ItemMenu = function () {
       : [
           {
             type: 'toggle',
-            key: 'follow',
+            key: 'follow:' + post.publishedById,
             value: !!post.isFollowed,
             props: (isFollowed) => ({
               icon: isFollowed ? UserMinusIcon : UserPlusIcon,
