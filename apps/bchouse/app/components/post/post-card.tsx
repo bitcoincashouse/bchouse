@@ -601,7 +601,16 @@ function RepostButton({ item }: { item: PostCardModel }) {
       ? submittedAction === 'repost:add'
       : item.wasReposted
 
-  const count = item.repostCount
+  const count =
+    typeof submittedAction !== 'undefined'
+      ? item.repostCount +
+        (submittedAction === 'repost:add' && !item.wasReposted
+          ? 1
+          : submittedAction === 'repost:remove' && item.wasReposted
+          ? -1
+          : 0)
+      : item.repostCount
+
   const action = toggled ? 'repost:remove' : 'repost:add'
   const checkAuth = useAuthGuardCheck()
 
@@ -654,10 +663,15 @@ function LikeButton({ item }: { item: PostCardModel }) {
       ? submittedAction === 'like:add'
       : item.wasLiked
 
-  //TODO: since optimistic updates confict (remix vs react-query) with counts,
-  // wait until update to get counts (feed updates immediately)
-  // easier if everywhere posts render with this component are feeds using react-query
-  const count = item.likeCount
+  const count =
+    typeof submittedAction !== 'undefined'
+      ? item.likeCount +
+        (submittedAction === 'like:add' && !item.wasLiked
+          ? 1
+          : submittedAction === 'like:remove' && item.wasLiked
+          ? -1
+          : 0)
+      : item.likeCount
 
   const action = toggled ? 'like:remove' : 'like:add'
   const checkAuth = useAuthGuardCheck()
