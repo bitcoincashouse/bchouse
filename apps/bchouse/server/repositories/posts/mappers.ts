@@ -20,6 +20,9 @@ export function postRowMapper(row: {
   bchAddress?: string | null
 
   isFollowed?: boolean | number | string
+  isMuted?: boolean | number | string
+  isBlocked?: boolean | number | string
+
   wasLiked: boolean | number | string
   wasReposted: boolean | number | string
   wasQuoted: boolean | number | string
@@ -88,6 +91,8 @@ export function postRowMapper(row: {
       isThread: false,
     },
     isFollowed: handleSqlBoolean(row.isFollowed),
+    isMuted: handleSqlBoolean(row.isMuted),
+    isBlocked: handleSqlBoolean(row.isBlocked),
   }
 }
 

@@ -23,6 +23,9 @@ export async function getPostParents(
       selectors.wasReposted(currentUserId),
       selectors.wasQuoted(currentUserId),
       selectors.wasLiked(currentUserId),
+      selectors.isBlocked(currentUserId),
+      selectors.isMuted(currentUserId),
+      selectors.isFollowed(currentUserId),
       selectors.mediaUrls,
       selectors.likes,
       selectors.quotePosts,
@@ -34,6 +37,8 @@ export async function getPostParents(
     ])
     .innerJoin('PostPaths as path', 'path.ancestorId', 'post.id')
     .where((eb) => eb('path.descendantId', '=', id).and('post.id', '<>', id))
+    .leftJoin('Post as parentPost', 'parentPost.id', 'post.parentPostId')
+    .select('parentPost.publishedById as parentPostPublishedById')
     .orderBy('post.createdAt', 'asc')
     .execute()
 

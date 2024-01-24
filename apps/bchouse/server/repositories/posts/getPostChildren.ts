@@ -23,6 +23,9 @@ export async function getPostChildren(
       selectors.wasReposted(currentUserId),
       selectors.wasQuoted(currentUserId),
       selectors.wasLiked(currentUserId),
+      selectors.isBlocked(currentUserId),
+      selectors.isMuted(currentUserId),
+      selectors.isFollowed(currentUserId),
       selectors.mediaUrls,
       selectors.likes,
       selectors.quotePosts,
@@ -38,13 +41,13 @@ export async function getPostChildren(
         .and('post.id', '<>', id)
         .and('post.deleted', '!=', 1)
     )
+    .leftJoin('Post as parentPost', 'parentPost.id', 'post.parentPostId')
+    .select('parentPost.publishedById as parentPostPublishedById')
     .orderBy('post.createdAt', 'asc')
     .execute()
 
   return {
-    results: childPosts.map((row) =>
-      postRowMapper({ ...row, parentPostPublishedById: params.id })
-    ),
+    results: childPosts.map((row) => postRowMapper(row)),
     nextCursor: undefined,
   }
 }

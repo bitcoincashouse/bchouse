@@ -97,6 +97,40 @@ export const selectors = {
     ] as const,
   },
   flag: (flag: boolean) => sql.lit(flag ? 1 : 0).$castTo<SqlBool>(),
+  isBlocked:
+    (currentUserId: string | null) =>
+    (qb: PostExpression2): BooleanSelector<'isBlocked'> =>
+      qb
+        .exists((qb) =>
+          qb
+            .selectFrom('Block as b')
+            .where((eb) =>
+              eb('b.userId', '=', currentUserId).and(
+                'b.blockedUserId',
+                '=',
+                eb.ref('post.publishedById')
+              )
+            )
+            .select('b.id')
+        )
+        .as('isBlocked'),
+  isMuted:
+    (currentUserId: string | null) =>
+    (qb: PostExpression2): BooleanSelector<'isMuted'> =>
+      qb
+        .exists((qb) =>
+          qb
+            .selectFrom('Mute as m')
+            .where((eb) =>
+              eb('m.userId', '=', currentUserId).and(
+                'm.mutedUserId',
+                '=',
+                eb.ref('post.publishedById')
+              )
+            )
+            .select('m.id')
+        )
+        .as('isMuted'),
   isFollowed:
     (currentUserId: string | null) =>
     (qb: PostExpression2): BooleanSelector<'isFollowed'> =>

@@ -75,30 +75,6 @@ function updatePost(
   post: PostCardModel,
   action: z.infer<typeof postActionSchema>['action']
 ) {
-  console.log({ clientAction: action })
-
-  if (action === 'repost:add' || action === 'repost:remove') {
-    const wasReposted = action === 'repost:add'
-    if (wasReposted !== post.wasReposted) {
-      const repostCount = post.repostCount + (wasReposted ? 1 : -1)
-      return {
-        ...post,
-        wasReposted,
-        repostCount,
-      }
-    }
-  } else if (action === 'like:add' || action === 'like:remove') {
-    const wasLiked = action === 'like:add'
-    if (wasLiked !== post.wasLiked) {
-      const likeCount = post.likeCount + (wasLiked ? 1 : -1)
-      return {
-        ...post,
-        wasLiked,
-        likeCount,
-      }
-    }
-  }
-
   return post
 }
 
@@ -114,97 +90,105 @@ type FeedData =
     }
   | undefined
 
+function updatePage(
+  type: string,
+  posts: PostCardModel[],
+  params: z.infer<typeof postActionSchema>
+) {
+  const { action, postId, authorId } = params
+
+  if (action === 'follow:add' || action === 'follow:remove') {
+    return posts.map((post) => {
+      if (post.publishedById === authorId) {
+        return {
+          ...post,
+          isFollowed: action === 'follow:add',
+        }
+      }
+
+      return post
+    })
+  }
+
+  if (action === 'block:add') {
+    return posts.filter(
+      (post) =>
+        post.publishedById !== authorId && post.repostedById !== authorId
+    )
+  }
+
+  if (
+    action === 'mute:add' &&
+    (type === 'home' || type === 'all_posts' || type === 'all_campaigns')
+  ) {
+    return posts.filter(
+      (post) =>
+        post.publishedById !== authorId && post.repostedById !== authorId
+    )
+  }
+
+  if (action === 'mute:add' || action === 'mute:remove') {
+    return posts.map((post) => {
+      if (post.publishedById === authorId) {
+        return {
+          ...post,
+          isMuted: action === 'mute:add',
+        }
+      }
+
+      return post
+    })
+  }
+
+  if (
+    action === 'repost:add' ||
+    action === 'repost:remove' ||
+    action === 'like:add' ||
+    action === 'like:remove'
+  ) {
+    return posts.map((post) => {
+      if (post.id !== params.postId) return post
+
+      if (action === 'repost:add' || action === 'repost:remove') {
+        const wasReposted = action === 'repost:add'
+        if (wasReposted !== post.wasReposted) {
+          const repostCount = post.repostCount + (wasReposted ? 1 : -1)
+          return {
+            ...post,
+            wasReposted,
+            repostCount,
+          }
+        }
+      } else if (action === 'like:add' || action === 'like:remove') {
+        const wasLiked = action === 'like:add'
+        if (wasLiked !== post.wasLiked) {
+          const likeCount = post.likeCount + (wasLiked ? 1 : -1)
+          return {
+            ...post,
+            wasLiked,
+            likeCount,
+          }
+        }
+      }
+
+      return post
+    })
+  }
+
+  return posts
+}
+
 export async function clientAction(_: ClientActionFunctionArgs) {
-  const { action, postId, authorId } = zx.parseParams(
-    _.params,
-    postActionSchema
-  )
+  const params = zx.parseParams(_.params, postActionSchema)
 
   const updater = (type: string) => (old: FeedData) => {
     if (!old) return undefined
 
     const newResult = {
-      pages: old.pages.map((page) => {
-        if (action === 'follow:add' || action === 'follow:remove') {
-          const newPage = {
-            ...page,
-            posts: page.posts.map((post) => {
-              if (post.publishedById === authorId) {
-                return {
-                  ...post,
-                  isFollowed: action === 'follow:add',
-                }
-              }
-
-              return post
-            }),
-          }
-
-          return newPage
-        }
-
-        if (
-          type === 'home' ||
-          type === 'all_posts' ||
-          type === 'all_campaigns'
-        ) {
-          if (action === 'mute:add' || action === 'block:add') {
-            const newPage = {
-              ...page,
-              posts: page.posts.filter(
-                (post) =>
-                  post.publishedById !== authorId &&
-                  post.repostedById !== authorId
-              ),
-            }
-
-            return newPage
-          }
-        }
-
-        if (type === 'user') {
-          if (
-            action === 'mute:add' ||
-            action === 'mute:remove' ||
-            action === 'block:add' ||
-            action === 'block:remove'
-          ) {
-            const newPage = {
-              ...page,
-              posts: page.posts.map((post) => {
-                if (post.publishedById === authorId) {
-                  return {
-                    ...post,
-                    isMuted:
-                      action === 'mute:add' || action === 'mute:remove'
-                        ? action === 'mute:add'
-                        : post.isMuted,
-                    isBlocked:
-                      action === 'block:add' || action === 'block:remove'
-                        ? action === 'block:add'
-                        : post.isBlocked,
-                  }
-                }
-
-                return post
-              }),
-            }
-
-            return newPage
-          }
-        }
-
-        return {
-          ...page,
-          posts: page.posts.map((post) => {
-            if (post.id !== postId) {
-              return post
-            }
-
-            return updatePost(post, action)
-          }),
-        }
-      }),
+      pages: old.pages.map((page) => ({
+        ...page,
+        posts: updatePage(type, page.posts, params),
+      })),
       pageParams: old.pageParams,
     }
 
@@ -212,6 +196,7 @@ export async function clientAction(_: ClientActionFunctionArgs) {
   }
 
   queryClient.setQueriesData<FeedData>(['feed', 'home'], updater('home'))
+  queryClient.setQueriesData<FeedData>(['feed', 'user'], updater('user'))
   queryClient.setQueriesData<FeedData>(
     ['feed', 'all_posts'],
     updater('all_posts')
@@ -220,22 +205,28 @@ export async function clientAction(_: ClientActionFunctionArgs) {
     ['feed', 'all_campaigns'],
     updater('all_campaigns')
   )
-  queryClient.setQueriesData<FeedData>(['feed', 'user'], updater('user'))
 
   const result = await _.serverAction()
 
   if (
-    action === 'mute:add' ||
-    action === 'mute:remove' ||
-    action === 'block:add' ||
-    action === 'block:remove' ||
-    action === 'follow:add' ||
-    action === 'follow:remove'
+    [
+      'mute:add',
+      'mute:remove',
+      'block:add',
+      'block:remove',
+      'follow:add',
+      'follow:remove',
+    ].indexOf(params.action) !== -1
   ) {
-    await queryClient.invalidateQueries({
-      queryKey: ['feed', 'home'],
-      refetchType: 'all',
-    })
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: ['feed', 'home'],
+        refetchType: 'all',
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ['feed'],
+      }),
+    ])
   }
 
   return result

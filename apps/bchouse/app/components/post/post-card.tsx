@@ -35,10 +35,7 @@ import { $path } from 'remix-routes'
 import { useDebounce } from 'usehooks-ts'
 import { Avatar } from '~/components/avatar'
 import { useLayoutLoaderData } from '~/routes/_app/route'
-import {
-  PostActionType,
-  usePostActionSubmit,
-} from '~/routes/api.post.$postId.$authorId.action.$action'
+import { PostActionType } from '~/routes/api.post.$postId.$authorId.action.$action'
 import { Network } from '~/utils/bchUtils'
 import { classNames } from '~/utils/classNames'
 import { prettyPrintSats } from '~/utils/prettyPrintSats'
@@ -127,12 +124,26 @@ const AvatarHeader = function ({ item }: { item: PostCardModel }) {
   )
 }
 
-type PostCardMenuItem = {
-  icon: React.JSXElementConstructor<any>
-  content: React.ReactNode
-  action: PostActionType
-  className?: string
-}
+type PostCardMenuItem =
+  | {
+      type: 'button'
+      key: string
+      icon: React.JSXElementConstructor<any>
+      content: React.ReactNode
+      action: PostActionType
+      className?: string
+    }
+  | {
+      type: 'toggle'
+      key: string
+      value: boolean
+      props: (toggled: boolean) => {
+        icon: React.JSXElementConstructor<any>
+        content: React.ReactNode
+        action: PostActionType
+        className?: string
+      }
+    }
 
 PostCard.ItemMenu = function () {
   const post = usePost()
@@ -149,6 +160,8 @@ PostCard.ItemMenu = function () {
         ? [
             {
               icon: TrashIcon,
+              key: 'delete',
+              type: 'button',
               content: `Delete`,
               action: 'post:remove',
               className: 'text-red-500',
@@ -157,11 +170,19 @@ PostCard.ItemMenu = function () {
         : []
 
     const baseItems: PostCardMenuItem[] = [
-      { icon: CodeBracketIcon, content: `Embed Tweet`, action: 'embed' },
+      {
+        type: 'button',
+        key: 'embed',
+        icon: CodeBracketIcon,
+        content: `Embed Tweet`,
+        action: 'embed',
+      },
     ]
 
     if (!isCurrentUser) {
       baseItems.push({
+        type: 'button',
+        key: 'report',
         icon: FlagIcon,
         content: `Report @${post.person.handle}`,
         action: 'report',
@@ -172,11 +193,16 @@ PostCard.ItemMenu = function () {
       ? []
       : [
           {
-            icon: post.isFollowed ? UserMinusIcon : UserPlusIcon,
-            content: `${post.isFollowed ? 'Unfollow' : 'Follow'} @${
-              post.person.handle
-            }`,
-            action: post.isFollowed ? 'follow:remove' : 'follow:add',
+            type: 'toggle',
+            key: 'follow',
+            value: !!post.isFollowed,
+            props: (isFollowed) => ({
+              icon: isFollowed ? UserMinusIcon : UserPlusIcon,
+              content: `${isFollowed ? 'Unfollow' : 'Follow'} @${
+                post.person.handle
+              }`,
+              action: isFollowed ? 'follow:remove' : 'follow:add',
+            }),
           },
           // {
           //   icon: ClipboardDocumentListIcon,
@@ -184,18 +210,26 @@ PostCard.ItemMenu = function () {
           //   action: 'list:add',
           // },
           {
-            icon: SpeakerXMarkIcon,
-            content: `${post.isMuted ? 'Unmute' : 'Mute'} @${
-              post.person.handle
-            }`,
-            action: post.isMuted ? 'mute:remove' : 'mute:add',
+            type: 'toggle',
+            key: 'mute',
+            value: !!post.isMuted,
+            props: (isMuted) => ({
+              icon: SpeakerXMarkIcon,
+              content: `${isMuted ? 'Unmute' : 'Mute'} @${post.person.handle}`,
+              action: isMuted ? 'mute:remove' : 'mute:add',
+            }),
           },
           {
-            icon: NoSymbolIcon,
-            content: `${post.isBlocked ? 'Unblock' : 'Block'} @${
-              post.person.handle
-            }`,
-            action: post.isBlocked ? 'block:remove' : 'block:add',
+            type: 'toggle',
+            key: 'block',
+            value: !!post.isBlocked,
+            props: (isBlocked) => ({
+              icon: NoSymbolIcon,
+              content: `${isBlocked ? 'Unblock' : 'Block'} @${
+                post.person.handle
+              }`,
+              action: isBlocked ? 'block:remove' : 'block:add',
+            }),
           },
         ]
 
@@ -203,8 +237,6 @@ PostCard.ItemMenu = function () {
       ? baseItems
       : Array.prototype.concat(currentUserItems, loggedInItems, baseItems)
   }, [post])
-
-  const submitAction = usePostActionSubmit()
 
   return (
     <Menu>
@@ -226,21 +258,13 @@ PostCard.ItemMenu = function () {
         {menuItems.map((item, i) => {
           return (
             <Menu.Item key={i}>
-              {({ active }) => (
-                <button
-                  className={classNames(
-                    `${active && 'bg-blue-500/20'}`,
-                    item.className,
-                    'w-full py-3 text-[15px] px-4 flex text-left gap-4 font-semibold text-primary-text'
-                  )}
-                  onClick={(e) => {
-                    submitAction(post.id, post.publishedById, item.action)
-                    e.stopPropagation()
-                  }}
-                >
-                  <item.icon className="w-5 h-5" />
-                  {item.content}
-                </button>
+              {({ active, close }) => (
+                <MenuAction
+                  active={active}
+                  menuItem={item}
+                  post={post}
+                  close={close}
+                />
               )}
             </Menu.Item>
           )
@@ -249,6 +273,61 @@ PostCard.ItemMenu = function () {
     </Menu>
   )
 }
+
+const MenuAction = React.forwardRef<
+  HTMLButtonElement,
+  {
+    active: boolean
+    menuItem: PostCardMenuItem
+    post: PostCardModel
+    close: () => void
+  }
+>(({ active, menuItem, post, close }, ref) => {
+  const fetcher = useFetcher({ key: menuItem.key })
+  const props = useMemo(() => {
+    if (menuItem.type === 'button') {
+      return menuItem
+    }
+
+    const currentProps = menuItem.props(menuItem.value)
+    if (fetcher.state === 'idle') {
+      return currentProps
+    }
+
+    //Return optimistic props
+    return fetcher.formAction?.indexOf(currentProps.action) !== -1
+      ? menuItem.props(!menuItem.value)
+      : currentProps
+  }, [menuItem, fetcher.state])
+
+  return (
+    <button
+      ref={ref}
+      className={classNames(
+        `${active && 'bg-blue-500/20'}`,
+        props.className,
+        'w-full py-3 text-[15px] px-4 flex text-left gap-4 font-semibold text-primary-text'
+      )}
+      onClick={(e) => {
+        e.stopPropagation()
+        fetcher.submit(null, {
+          action: $path('/api/post/:postId/:authorId/action/:action', {
+            action: props.action,
+            authorId: post.publishedById,
+            postId: post.id,
+          }),
+          method: 'POST',
+          navigate: false,
+        })
+
+        close()
+      }}
+    >
+      <props.icon className="w-5 h-5" />
+      {props.content}
+    </button>
+  )
+})
 
 function UserPopoverLink<T extends React.ElementType>({
   id,
@@ -641,38 +720,5 @@ function ViewCounts({ item }: { item: PostCardModel }) {
       <ChartBarIcon className="w-5 h-5" />
       {item.viewCount && <span>{item.viewCount}</span>}
     </span>
-  )
-}
-
-function FollowButton({ item }: { item: PostCardModel }, active: boolean) {
-  return (
-    <Menu.Item>
-      {({ active }) => (
-        <>
-          {console.log('active', active)}
-          <input type="hidden" name="profileId" value={item.publishedById} />
-          <button
-            type="submit"
-            name="_action"
-            value={item.isCurrentUserFollowing ? 'unfollow' : 'follow'}
-            className={classNames(
-              `${active && 'bg-blue-500/20'}`,
-              'w-full py-3 text-[15px] px-4 flex text-left gap-4 font-semibold text-primary-text'
-            )}
-            onClick={(e) => {
-              e.stopPropagation()
-            }}
-          >
-            {item.isCurrentUserFollowing ? (
-              <UserMinusIcon className="w-5 h-5" title="Unfollow" />
-            ) : (
-              <UserPlusIcon className="w-5 h-5" title="Follow" />
-            )}
-            {item.isCurrentUserFollowing ? 'Unfollow' : 'Follow'} @
-            {item.person.handle}
-          </button>
-        </>
-      )}
-    </Menu.Item>
   )
 }

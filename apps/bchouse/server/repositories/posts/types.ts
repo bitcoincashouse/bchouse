@@ -36,5 +36,7 @@ export type KyselyPostDbModel = {
     wasTipped: boolean
   }
   isFollowed?: boolean
+  isMuted?: boolean
+  isBlocked?: boolean
   deleted?: boolean
 }

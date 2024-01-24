@@ -534,6 +534,8 @@ function postToViewModel(
         wasReposted: false,
         wasLiked: false,
         isFollowed: false,
+        isMuted: false,
+        isBlocked: false,
         campaignId: post.campaignId,
         person: {
           name: '',
@@ -586,6 +588,8 @@ function postToViewModel(
         wasReposted: post._computed.wasReposted,
         wasLiked: post._computed.wasLiked,
         isFollowed: post.isFollowed,
+        isMuted: post.isMuted,
+        isBlocked: post.isBlocked,
         embed: post.embed,
         person: {
           name: post.publishedBy.fullName || post.publishedBy.username,
