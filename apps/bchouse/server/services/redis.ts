@@ -40,6 +40,15 @@ declare module 'ioredis' {
       postKey: string,
       followersKey: string
     ): Promise<string>
+    unfollowUser(
+      homeTimelineKey: string,
+      unfollowedUserId: string
+    ): Promise<number>
+    removeNotification(
+      userDetailsKey: string,
+      activitySortedSetKey: string,
+      member: string
+    ): Promise<string>
   }
 
   interface ChainableCommander {
@@ -51,6 +60,15 @@ declare module 'ioredis' {
     removePostFromFollowersTimeline(
       postKey: string,
       followersKey: string
+    ): Promise<string>
+    unfollowUser(
+      homeTimelineKey: string,
+      unfollowedUserId: string
+    ): Promise<number>
+    removeNotification(
+      userDetailsKey: string,
+      activitySortedSetKey: string,
+      member: string
     ): Promise<string>
   }
 }
@@ -78,6 +96,24 @@ export class RedisService extends Redis {
     `,
     })
 
+    this.defineCommand('removeNotification', {
+      numberOfKeys: 3,
+      lua: `
+      local userDetailsKey = KEYS[1]
+      local activitySortedSetKey = KEYS[2]
+      local member = KEYS[3]
+
+      local lastViewedNotifications = redis.call('HGET', userDetailsKey, 'lastViewedNotifications')
+      local activityAdded = redis.call('ZSCORE', activitySortedSetKey, member)
+            
+      if activityAdded and (not lastViewedNotifications or math.abs(activityAdded) > tonumber(lastViewedNotifications)) then
+        redis.call('HINCRBY', userDetailsKey, 'notificationCount', -1)
+      end
+      
+      return "OK"
+      `,
+    })
+
     this.defineCommand('removePostFromFollowersTimeline', {
       numberOfKeys: 2,
       lua: `
@@ -92,6 +128,38 @@ export class RedisService extends Redis {
       end
       
       return "OK"
+    `,
+    })
+
+    this.defineCommand('unfollowUser', {
+      numberOfKeys: 2,
+      lua: `
+      local homeTimelineKey = KEYS[1]
+      local unfollowedUserId = KEYS[2]
+      local elementsToRemoveKey = "temp:unfollow:" .. homeTimelineKey .. ":" .. unfollowedUserId
+
+      local cursor = 0
+      local results = {}
+
+      repeat
+          local result = redis.call('ZSCAN', homeTimelineKey, cursor)
+          local elements = result[2]
+
+          cursor = tonumber(result[1])
+      
+          for i = 1, #elements, 2 do
+              local postKey = elements[i]
+              local postId, publishedById, repostedById = string.match(postKey, "([^:]*):([^:]*):?([^:]*)")
+              if repostedById == unfollowedUserId or (publishedById == unfollowedUserId and repostedById == "") then
+                redis.call('ZADD', elementsToRemoveKey, 0, postKey)
+              end
+          end
+      until cursor == 0
+
+      local count = redis.call('ZCARD', elementsToRemoveKey)
+      redis.call('ZDIFFSTORE', homeTimelineKey, 2, homeTimelineKey, elementsToRemoveKey)
+      redis.call('DEL', elementsToRemoveKey)
+      return count
     `,
     })
   }
@@ -578,44 +646,13 @@ export class RedisService extends Redis {
     } as UserProfile
   }
 
-  async addUserToHomeTimeline(params: {
-    followerId: string
-    followedId: string
-  }) {
-    //Add followed user's user timeline to follower's home timeline
-    const followedUserTimelineKey = getTimelineKey(params.followedId, 'user')
-    const followerUserTimelineKey = getTimelineKey(params.followerId, 'home')
-    const followedPostMembersWithScores = await this.zrange(
-      followedUserTimelineKey,
-      0,
-      -1,
-      'WITHSCORES'
-    )
-    const followedPostScoresWithMembers = []
-    for (let i = 0; i < followedPostMembersWithScores.length; i += 2) {
-      followedPostScoresWithMembers.push(
-        parseInt(followedPostMembersWithScores[i + 1] as string),
-        followedPostMembersWithScores[i] as string
-      )
-    }
-
-    await this.zadd(followerUserTimelineKey, ...followedPostScoresWithMembers)
-  }
-
   async removeUserFromHomeTimeline(params: {
     followerId: string
     followedId: string
   }) {
     //Add followed user's user timeline to follower's home timeline
-    const followedUserTimelineKey = getTimelineKey(params.followedId, 'user')
     const followerHomeTimelineKey = getTimelineKey(params.followerId, 'home')
-    const followedPostMembers = await this.zrange(
-      followedUserTimelineKey,
-      0,
-      -1
-    )
-
-    await this.zrem(followerHomeTimelineKey, ...followedPostMembers)
+    await this.unfollowUser(followerHomeTimelineKey, params.followedId)
   }
 
   async addMute(userId: string, mutedUserId: string) {
@@ -673,33 +710,10 @@ export class RedisService extends Redis {
     const likeOrRepostKey = getPostEmbeddedKey(postId, publishedById)
     const { userDetailsKey } = getKeys(publishedById)
 
-    const lastViewedNotificationsStr = await this.hget(
-      userDetailsKey,
-      'lastViewedNotifications'
-    )
-    const lastViewedNotifications = lastViewedNotificationsStr
-      ? moment.unix(Number(lastViewedNotificationsStr))
-      : undefined
-    const likeAddedStr = await this.zscore(likesKey, likeOrRepostKey)
-    const likeAdded = likeAddedStr
-      ? moment.unix(Math.abs(Number(likeAddedStr)))
-      : undefined
-
     await PipelineHandler(this.pipeline())(
+      (p) => p.removeNotification(userDetailsKey, likesKey, likeOrRepostKey),
       (p) => p.zrem(likesKey, likeOrRepostKey),
-      (p) => p.hincrby(getPostKey(postId, publishedById), 'likeCount', -1),
-      (p) => {
-        //If like was added after user last viewed (user hasn't viewed the notification) decrement the notification count
-        if (
-          likeAdded &&
-          publishedById !== userId &&
-          (!lastViewedNotifications || likeAdded > lastViewedNotifications)
-        ) {
-          return p.hincrby(userDetailsKey, 'notificationCount', -1)
-        }
-
-        return undefined
-      }
+      (p) => p.hincrby(getPostKey(postId, publishedById), 'likeCount', -1)
     )
   }
 
@@ -723,72 +737,45 @@ export class RedisService extends Redis {
     const likeOrRepostKey = getPostEmbeddedKey(postId, publishedById)
     const { userDetailsKey } = getKeys(publishedById)
 
-    const lastViewedNotificationsStr = await this.hget(
-      userDetailsKey,
-      'lastViewedNotifications'
-    )
-    const lastViewedNotifications = lastViewedNotificationsStr
-      ? moment.unix(Number(lastViewedNotificationsStr))
-      : undefined
-    const repostAddedStr = await this.zscore(retweetsKey, likeOrRepostKey)
-    const repostAdded = repostAddedStr
-      ? moment.unix(Math.abs(Number(repostAddedStr)))
-      : undefined
-
     await PipelineHandler(this.pipeline())(
-      (p) => p.zrem(retweetsKey, likeOrRepostKey),
+      (p) => p.removeNotification(userDetailsKey, retweetsKey, likeOrRepostKey),
       (p) => p.hincrby(getPostKey(postId, publishedById), 'repostCount', -1),
-      (p) => {
-        //If repost was added after user last viewed (user hasn't viewed the notification) decrement the notification count
-        if (
-          repostAdded &&
-          publishedById !== userId &&
-          (!lastViewedNotifications || repostAdded > lastViewedNotifications)
-        ) {
-          return p.hincrby(userDetailsKey, 'notificationCount', -1)
-        }
-
-        return undefined
-      }
+      (p) => p.zrem(retweetsKey, likeOrRepostKey)
     )
   }
 
   async addFollow(params: { followerId: string; followedId: string }) {
-    const { userDetailsKey, followersKey } = getKeys(params.followedId)
-    await Promise.all([
-      this.zadd(followersKey, -moment().unix(), params.followerId),
-      this.hincrby(userDetailsKey, 'notificationCount', 1),
-      this.addUserToHomeTimeline(params),
-    ])
+    const { userDetailsKey, followersKey, userTimelineKey, repliesKey } =
+      getKeys(params.followedId)
+    const { homeTimelineKey } = getKeys(params.followerId)
+
+    await PipelineHandler(this.pipeline())(
+      (p) => p.zadd(followersKey, -moment().unix(), params.followerId),
+      (p) => p.hincrby(userDetailsKey, 'notificationCount', 1),
+      //Add posts (posts, replies, retweets to follower's home timeline)
+      (p) =>
+        p.zunionstore(
+          homeTimelineKey,
+          3,
+          homeTimelineKey,
+          userTimelineKey,
+          repliesKey
+        ),
+      //Trim home timeline to 800 items
+      (p) => this.zremrangebyrank(homeTimelineKey, 800, -1)
+    )
   }
 
   async removeFollow(params: { followerId: string; followedId: string }) {
     const { userDetailsKey, followersKey } = getKeys(params.followedId)
+    const followerHomeTimelineKey = getTimelineKey(params.followerId, 'home')
 
-    //Get followAdded before removing
-    const followAddedStr = await this.zscore(followersKey, params.followerId)
-
-    await Promise.all([
-      this.zrem(followersKey, params.followerId),
-      this.hget(userDetailsKey, 'lastViewedNotifications').then(
-        async (lastViewedNotificationsStr) => {
-          const lastViewedNotifications = lastViewedNotificationsStr
-            ? moment.unix(Number(lastViewedNotificationsStr)).toDate()
-            : undefined
-          const followAdded = followAddedStr
-            ? moment.unix(Math.abs(Number(followAddedStr))).toDate()
-            : undefined
-
-          if (
-            followAdded &&
-            (!lastViewedNotifications || followAdded > lastViewedNotifications)
-          ) {
-            await this.hincrby(userDetailsKey, 'notificationCount', -1)
-          }
-        }
-      ),
-      await this.removeUserFromHomeTimeline(params),
-    ])
+    await PipelineHandler(this.pipeline())(
+      (p) =>
+        p.removeNotification(userDetailsKey, followersKey, params.followerId),
+      (p) => p.zrem(followersKey, params.followerId),
+      (p) => p.unfollowUser(followerHomeTimelineKey, params.followedId)
+    )
   }
 
   async addTip(tip: {
@@ -803,15 +790,17 @@ export class RedisService extends Redis {
     const { tipsKey = undefined } = tip.tipUserId ? getKeys(tip.tipUserId) : {}
     const { userDetailsKey } = getKeys(tip.publishedById)
 
-    return await Promise.all([
-      tipsKey
-        ? this.zadd(tipsKey, -moment(tip.createdAt).unix(), embeddedPostKey)
-        : Promise.resolve(),
-      this.hincrby(postKey, 'tipAmount', tip.tipAmount),
-      tip.publishedById !== tip.tipUserId
-        ? this.hincrby(userDetailsKey, 'notificationCount', 1)
-        : null,
-    ])
+    await PipelineHandler(this.pipeline())(
+      (p) =>
+        tipsKey
+          ? p.zadd(tipsKey, -moment(tip.createdAt).unix(), embeddedPostKey)
+          : undefined,
+      (p) => p.hincrby(postKey, 'tipAmount', tip.tipAmount),
+      (p) =>
+        tip.publishedById !== tip.tipUserId
+          ? p.hincrby(userDetailsKey, 'notificationCount', 1)
+          : undefined
+    )
   }
 
   async addPost(post: {
