@@ -202,6 +202,9 @@ function postToViewModel(post: KyselyPostDbModel) {
     tipAmount: post._count.tipAmount,
     wasTipped: post._computed.wasTipped,
     embed: post.embed,
+    isBlocked: post.isBlocked,
+    isMuted: post.isMuted,
+    isFollowed: post.isFollowed,
 
     //TODO: Resolve mentions, hashtags, and media links
     mediaUrls: post.mediaUrls || [],

@@ -152,6 +152,9 @@ export type PostTypeNotification = {
       isThread: boolean
       wasTipped: boolean
     }
+    isFollowed: boolean
+    isBlocked: boolean
+    isMuted: boolean
     content: unknown
     embed: string | null
   }
