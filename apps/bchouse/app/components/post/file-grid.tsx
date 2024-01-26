@@ -1,9 +1,12 @@
 import { XMarkIcon } from '@heroicons/react/20/solid'
 import { PaintBrushIcon } from '@heroicons/react/24/outline'
+import { useNavigate } from '@remix-run/react'
 import React, { Fragment, useMemo, useState } from 'react'
+import { $path } from 'remix-routes'
 import { Aspect, ImageProxy } from '../image-proxy'
 import { classNames } from '../utils'
 import { MediaCropper } from './media-cropper'
+import { PostCardModel } from './types'
 import { Media } from './useFileActions'
 
 export function Input({
@@ -116,6 +119,7 @@ export function Input({
 export function View({
   urls,
   showFullLength,
+  post,
 }: {
   showFullLength?: boolean
   urls: {
@@ -123,6 +127,7 @@ export function View({
     height: number
     width: number
   }[]
+  post: PostCardModel
 }) {
   const aspectRatio = useMemo(() => {
     if (urls.length === 1) {
@@ -133,6 +138,7 @@ export function View({
   }, [urls])
 
   const [padding, setPadding] = useState(aspectRatio)
+  const navigate = useNavigate()
 
   return (
     <>
@@ -177,6 +183,26 @@ export function View({
                 <ImageProxy
                   mediaKey={key}
                   className="object-cover w-full"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigate(
+                      {
+                        pathname: $path(
+                          '/profile/:username/status/:statusId/photo/:index',
+                          {
+                            username: post.person.handle,
+                            statusId: post.id,
+                            index: i + 1,
+                          }
+                        ),
+                      },
+                      {
+                        state: {
+                          delta: 1,
+                        },
+                      }
+                    )
+                  }}
                   onImageLoaded={(width, height) => {
                     if (urls.length === 1) {
                       const aspect = Number((height / width) * 100).toFixed(2)
@@ -192,6 +218,26 @@ export function View({
                   aspectRatio={aspect}
                   focus={'center'}
                   className="object-cover w-full"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigate(
+                      {
+                        pathname: $path(
+                          '/profile/:username/status/:statusId/photo/:index',
+                          {
+                            username: post.person.handle,
+                            statusId: post.id,
+                            index: i + 1,
+                          }
+                        ),
+                      },
+                      {
+                        state: {
+                          delta: 1,
+                        },
+                      }
+                    )
+                  }}
                 />
               )}
             </div>

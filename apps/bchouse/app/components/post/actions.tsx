@@ -203,7 +203,7 @@ export function CommentsButton({ item }: { item: PostCardModel }) {
 }
 
 export function RepostButton({ item }: { item: PostCardModel }) {
-  const fetcher = useFetcher()
+  const fetcher = useFetcher({ key: 'repost:' + item.id })
   useInvalidateFeedPage(fetcher, item.id)
 
   const checkAuth = useAuthGuardCheck()
@@ -261,7 +261,7 @@ export function RepostButton({ item }: { item: PostCardModel }) {
 }
 
 export function LikeButton({ item }: { item: PostCardModel }) {
-  const fetcher = useFetcher()
+  const fetcher = useFetcher({ key: 'like:' + item.id })
   useInvalidateFeedPage(fetcher, item.id)
   const checkAuth = useAuthGuardCheck()
 

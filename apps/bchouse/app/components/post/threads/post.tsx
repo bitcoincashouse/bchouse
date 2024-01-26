@@ -12,9 +12,11 @@ export const Post = React.memo(
     currentUser,
     mainPostId,
     actionButton,
+    showImagesMainPost = true,
   }: {
     mainPostId: string
     post: PostCardModel
+    showImagesMainPost?: boolean
     currentUser?: {
       username: string
       avatarUrl: string | undefined
@@ -93,7 +95,9 @@ export const Post = React.memo(
                 </Link>
               </div>
               <PostCard.Content className="text-[18px]" showFullLength />
-              <PostCard.MediaItems showFullLength />
+              {showImagesMainPost ? (
+                <PostCard.MediaItems showFullLength />
+              ) : null}
             </PostCard>
           ) : (
             <PostCard

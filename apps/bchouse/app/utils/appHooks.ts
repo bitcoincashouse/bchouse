@@ -35,6 +35,7 @@ declare global {
     showFullscreen?: boolean
     showHeader?: boolean
     title?: string
+    containerClassName?: string
   }
 }
 
@@ -49,12 +50,17 @@ export function usePageDisplay() {
       .map((match) => match.handle?.title)
       .filter(Boolean)
       .pop()
+    const containerClassName = Array.from(matches)
+      .reverse()
+      .find((match) => !!match.handle?.containerClassName)
+      ?.handle?.containerClassName
 
     return {
       fullscreen: showFullScreen,
       header: showHeader,
       title,
       showFooter,
+      containerClassName,
     }
   }, [matches])
 }

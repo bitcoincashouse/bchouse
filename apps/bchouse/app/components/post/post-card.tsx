@@ -42,6 +42,7 @@ import { prettyPrintSats } from '~/utils/prettyPrintSats'
 import { BitcoinIcon } from '../icons/BitcoinIcon'
 import { useTipPostModal } from '../tip-modal'
 import { UserPopover, useUserPopover } from '../user-popover'
+import { classnames } from '../utils/classnames'
 import { useAuthGuardCheck } from '../utils/useAuthGuardCheck'
 import { View as FileGridView } from './file-grid'
 import Iframely from './iframely'
@@ -57,6 +58,17 @@ const usePost = () => {
 
   return post
 }
+
+export const PostProvider = ({
+  item,
+  children,
+}: {
+  item: PostCardModel
+  children: React.ReactNode
+}) => {
+  return <PostContext.Provider value={item}>{children}</PostContext.Provider>
+}
+
 export function PostCard({
   item,
   children,
@@ -483,7 +495,11 @@ PostCard.MediaItems = function ({
       {' '}
       {!!item.mediaUrls.length ? (
         <div className="overflow-hidden relative">
-          <FileGridView urls={item.mediaUrls} showFullLength={showFullLength} />
+          <FileGridView
+            urls={item.mediaUrls}
+            showFullLength={showFullLength}
+            post={item}
+          />
         </div>
       ) : item.embed ? (
         // portalNode ? (
@@ -500,11 +516,16 @@ PostCard.MediaItems = function ({
   )
 }
 
-PostCard.Actions = function () {
+PostCard.Actions = function ({ className }: { className?: string }) {
   const item = usePost()
 
   return (
-    <div className="mt-2 sm:mt-3 text-base text-gray-400 flex flex-row gap-8">
+    <div
+      className={classnames(
+        'mt-2 sm:mt-3 text-base text-gray-400 flex flex-row gap-8',
+        className
+      )}
+    >
       <CommentsButton item={item} />
       <RepostButton item={item} />
       <LikeButton item={item} />
@@ -587,7 +608,7 @@ function CommentsButton({ item }: { item: PostCardModel }) {
 }
 
 function RepostButton({ item }: { item: PostCardModel }) {
-  const fetcher = useFetcher()
+  const fetcher = useFetcher({ key: 'repost:' + item.id })
 
   const submittedAction =
     fetcher.state !== 'idle'
@@ -649,7 +670,7 @@ function RepostButton({ item }: { item: PostCardModel }) {
 }
 
 function LikeButton({ item }: { item: PostCardModel }) {
-  const fetcher = useFetcher()
+  const fetcher = useFetcher({ key: 'like:' + item.id })
 
   const submittedAction =
     fetcher.state !== 'idle'

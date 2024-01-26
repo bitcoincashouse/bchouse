@@ -31,6 +31,8 @@ import SidebarNavigation, {
 } from '~/components/navigation/sidebar-navigation'
 import { PledgeFundraiserModal } from '~/components/pledge-modal'
 import { TipPostModal } from '~/components/tip-modal'
+import { classnames } from '~/components/utils/classnames'
+import { usePageDisplay } from '~/utils/appHooks'
 import { logoUrl } from '~/utils/constants'
 import { LayoutLoaderData } from './route'
 
@@ -111,6 +113,8 @@ export const AppShell: React.FC<
     [layoutData]
   )
 
+  const { containerClassName } = usePageDisplay()
+
   if (layoutData.landingPage) {
     return (
       <div>
@@ -138,7 +142,9 @@ export const AppShell: React.FC<
           <div className={`absolute top-0 left-0 right-0 h-64`}></div>
         )}
 
-        <div className="sidebar-container flex">
+        <div
+          className={classnames('sidebar-container flex', containerClassName)}
+        >
           <div className="hidden non-mobile:flex flex-col items-end relative flex-grow">
             <div className="w-[88px] xl:w-[275px]">
               <div className="fixed w-[88px] xl:w-[275px] h-full flex pt-4 xl:pt-0">

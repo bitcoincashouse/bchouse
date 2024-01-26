@@ -206,6 +206,9 @@ importers:
       express:
         specifier: ^4.18.2
         version: 4.18.2
+      framer-motion:
+        specifier: ^11.0.3
+        version: 11.0.3(react-dom@18.2.0)(react@18.2.0)
       http-graceful-shutdown:
         specifier: ^3.1.13
         version: 3.1.13
@@ -297,8 +300,8 @@ importers:
         specifier: ^10.1.0
         version: 10.1.0
       remix-routes:
-        specifier: ^1.4.4
-        version: 1.5.1
+        specifier: ^1.6.1
+        version: 1.6.1
       remix-typedjson:
         specifier: ^0.4.1
         version: 0.4.1(@remix-run/react@2.4.1)(@remix-run/server-runtime@2.4.1)(react@18.2.0)
@@ -1608,6 +1611,20 @@ packages:
   /@emotion/hash@0.9.1:
     resolution: {integrity: sha512-gJB6HLm5rYwSLI6PQa+X1t5CFGrv1J1TWG+sOyMCeKz2ojaj6Fnl/rZEspogG+cvqbt4AE/2eIyD2QfLKTBNlQ==}
     dev: true
+
+  /@emotion/is-prop-valid@0.8.8:
+    resolution: {integrity: sha512-u5WtneEAr5IDG2Wv65yhunPSMLIpuKsbuOktRojfrEiEvRyC85LgPMZI63cr7NUqT8ZIGdSVg8ZKGxIug4lXcA==}
+    requiresBuild: true
+    dependencies:
+      '@emotion/memoize': 0.7.4
+    dev: false
+    optional: true
+
+  /@emotion/memoize@0.7.4:
+    resolution: {integrity: sha512-Ja/Vfqe3HpuzRsG1oBtWTHk2PGZ7GR+2Vz5iYGelAw8dx32K0y7PjVuxK6z1nMpZOqAFsRUPCkK1YjJ56qJlgw==}
+    requiresBuild: true
+    dev: false
+    optional: true
 
   /@ericcornelissen/bash-parser@0.5.2:
     resolution: {integrity: sha512-4pIMTa1nEFfMXitv7oaNEWOdM+zpOZavesa5GaiWTgda6Zk32CFGxjUp/iIaN0PwgUW1yTq/fztSjbpE8SLGZQ==}
@@ -8771,6 +8788,24 @@ packages:
     resolution: {integrity: sha512-n2aZ9tNfYDwaHhvFTkhFErqOMIb8uyzSQ+vGJBjZyanAKZVbGUQ1sngfk9FdkBw7G26O7AgNjLcecLffD1c7eg==}
     dev: true
 
+  /framer-motion@11.0.3(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-6x2poQpIWBdbZwLd73w6cKZ1I9IEPIU94C6/Swp1Zt3LJ+sB5bPe1E2wC6EH5hSISXNkMJ4afH7AdwS7MrtkWw==}
+    peerDependencies:
+      react: ^18.0.0
+      react-dom: ^18.0.0
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-dom:
+        optional: true
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+      tslib: 2.6.2
+    optionalDependencies:
+      '@emotion/is-prop-valid': 0.8.8
+    dev: false
+
   /fresh@0.5.2:
     resolution: {integrity: sha512-zJ2mQYM18rEFOudeV4GShTGIQ7RbzA7ozbU9I/XBpm7kqgMywgmylMwXHxZJmkVoYkna9d2pVXVXPdYTP9ej8Q==}
     engines: {node: '>= 0.6'}
@@ -13176,6 +13211,18 @@ packages:
 
   /remix-routes@1.5.1:
     resolution: {integrity: sha512-2wA7ZBIS79djwDQisG7SeEZ7Rlsc9ITMm6tZGsAuyWatbNDWTyX7rKIg7lCl3Cmua8irihLcpsLeXudovvL74g==}
+    hasBin: true
+    dependencies:
+      chokidar: 3.5.3
+      ejs: 3.1.9
+      meow: 9.0.0
+      mkdirp: 1.0.4
+      slash: 3.0.0
+      typescript-remix-routes-plugin: 1.0.1
+    dev: false
+
+  /remix-routes@1.6.1:
+    resolution: {integrity: sha512-Ayu5w4JFMNPmHSSGsimzSF3X1HxRzAmdd3fgwm8pCQ/nmdNzd40AUIKG1heOjnw9tAkBTj5psXlJzUtwjbw3Rg==}
     hasBin: true
     dependencies:
       chokidar: 3.5.3

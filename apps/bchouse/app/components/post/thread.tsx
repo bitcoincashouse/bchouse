@@ -8,6 +8,7 @@ import { PostCardModel } from './types'
 
 export const Thread: React.FC<{
   mainPost: PostCardModel
+  showImagesMainPost?: boolean
   initialPosts: Extract<FeedResponse, { posts: any }>['posts']
   nextCursor?: string | undefined
   previousCursor?: string | undefined
@@ -63,6 +64,7 @@ export const Thread: React.FC<{
                     <Post
                       key={post.key}
                       mainPostId={mainPostId}
+                      showImagesMainPost={props.showImagesMainPost}
                       post={post}
                       currentUser={currentUser}
                     />
