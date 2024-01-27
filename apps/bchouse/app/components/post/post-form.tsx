@@ -114,6 +114,7 @@ const PostForm: React.FC<PostFormProps> = ({
     submitPost,
     postId: newPostId,
     submissionState,
+    postError,
   } = useSubmitPost()
 
   const { setReferenceElement, close: closeWalletConnect } = useWalletConnect()
@@ -226,7 +227,7 @@ const PostForm: React.FC<PostFormProps> = ({
   }
 
   useEffect(() => {
-    if (isDoneSubmitting) {
+    if (isDoneSubmitting && !postError) {
       clearPostForm()
     }
   }, [isDoneSubmitting])
@@ -247,7 +248,6 @@ const PostForm: React.FC<PostFormProps> = ({
         <fetcher.Form
           ref={formRef}
           method="POST"
-          action={$path('/api/post')}
           onSubmit={onSubmit}
           className={classNames(
             formClassName,
@@ -389,6 +389,7 @@ const PostForm: React.FC<PostFormProps> = ({
             </div>
           </div>
         </fetcher.Form>
+        {postError && <div className="text-red-600">{postError.message}</div>}
       </div>
       {openWalletConnect ? (
         <SetupFundraiserModal

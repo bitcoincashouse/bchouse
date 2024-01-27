@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { JSONContent } from '@tiptap/core'
 import { isValidAddress } from 'bchaddrjs'
 import { serialize } from 'object-to-formdata'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { $path } from 'remix-routes'
 import { typedjson, useTypedFetcher } from 'remix-typedjson'
 import { z } from 'zod'
@@ -109,6 +109,15 @@ export function useSubmitPost(
     | undefined
 ) {
   const fetcher = useTypedFetcher<typeof action>()
+  const [postError, setPostError] = useState<Error | undefined>(undefined)
+
+  useEffect(() => {
+    if (typeof fetcher.data === 'object' && fetcher.data.error) {
+      setPostError(new Error(fetcher.data.error.toString()))
+    } else {
+      setPostError(undefined)
+    }
+  }, [fetcher.data])
 
   async function submitPost(
     body: JSONContent,
@@ -132,10 +141,15 @@ export function useSubmitPost(
       .filter((node) => node.type === 'media')
       .map((node) => node.attrs?.src as string)
 
-    const { postImages, galleryImages } = await uploadImages(
+    const { postImages, galleryImages, imageUploadError } = await uploadImages(
       postImageUrls,
       galleryImageUrls
     )
+
+    if (imageUploadError) {
+      setPostError(imageUploadError)
+      return
+    }
 
     //Add placeholders in content for simpler verification server side
     const contentJson = serializeForServer(body, postImages)
@@ -184,6 +198,7 @@ export function useSubmitPost(
     postId: typeof fetcher.data === 'string' ? fetcher.data : undefined,
     fetcher,
     submitPost,
+    postError,
   }
 }
 
@@ -197,6 +212,8 @@ async function uploadImages(
     type: 'post',
     count: totalImageCount,
   })
+
+  let error: Error | undefined
 
   const results = totalImageCount
     ? ((await (
@@ -220,10 +237,16 @@ async function uploadImages(
     const uploadRequestForm = serialize(form.fields)
     uploadRequestForm.append('file', file)
 
-    await fetch(form.url, {
-      method: 'POST',
-      body: uploadRequestForm,
-    })
+    try {
+      const response = await fetch(form.url, {
+        method: 'POST',
+        body: uploadRequestForm,
+      })
+      if (!response.ok) throw new Error('Failed to upload image.')
+      error = undefined
+    } catch (err) {
+      error = new Error('Failed to upload image.')
+    }
 
     return { url: imageUrl, id: key }
   }
@@ -236,5 +259,6 @@ async function uploadImages(
   return {
     galleryImages: galleryImageResults,
     postImages: postImageResults,
+    imageUploadError: error,
   }
 }
