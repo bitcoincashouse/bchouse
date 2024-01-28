@@ -2,7 +2,6 @@ import { ActionArgs, json } from '@remix-run/node'
 import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import { logger } from '~/utils/logger'
-import { queryClient } from '~/utils/query-client'
 
 export const action = async (_: ActionArgs) => {
   const { userId } = await _.context.authService.getAuthOptional(_)
@@ -66,6 +65,8 @@ export function clearTipPaymentRequestQuery(params: {
   postId: string
   amount: number
 }) {
+  const queryClient = window.queryClient
+
   return queryClient.invalidateQueries({
     queryKey: ['tipPaymentRequest', params],
   })
@@ -75,6 +76,8 @@ export function queryTipPaymentRequest(params: {
   postId: string
   amount: number
 }) {
+  const queryClient = window.queryClient
+
   return queryClient.fetchQuery(
     ['tipPaymentRequest', params],
     () => fetchTipPaymentRequest(params),

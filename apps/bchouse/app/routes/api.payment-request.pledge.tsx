@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import { logger } from '~/utils/logger'
 import { getPledgeSession } from '~/utils/pledgeCookie.server'
-import { queryClient } from '~/utils/query-client'
 
 export const action = async (_: ActionArgs) => {
   const { userId } = await _.context.authService.getAuthOptional(_)
@@ -91,6 +90,7 @@ export function clearPaymentRequestQuery(params: {
   address: string
   campaignId: string
 }) {
+  const queryClient = window.queryClient
   return queryClient.invalidateQueries({
     queryKey: ['paymentRequest', params],
   })
@@ -101,6 +101,7 @@ export function queryPaymentRequest(params: {
   address: string
   campaignId: string
 }) {
+  const queryClient = window.queryClient
   return queryClient.fetchQuery(
     ['paymentRequest', params],
     () => fetchPaymentRequest(params),

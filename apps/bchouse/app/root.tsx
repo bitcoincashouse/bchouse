@@ -14,15 +14,14 @@ import {
 } from '@remix-run/react'
 import { metaV1 } from '@remix-run/v1-meta'
 import { withSentry } from '@sentry/remix'
-import { QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Buffer } from 'buffer-polyfill'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { UseDataFunctionReturn, useTypedLoaderData } from 'remix-typedjson'
 import stylesheet from '~/styles/tailwind.css'
 import { ErrorDisplay } from './components/pages/error'
 import { Document } from './document'
 import moment from './utils/moment'
-import { queryClient } from './utils/query-client'
 import { getThemeSession } from './utils/themeCookie.server'
 
 if (typeof window !== 'undefined') {
@@ -93,10 +92,20 @@ export const ErrorBoundary = withSentry(
 declare global {
   interface Window {
     env: UseDataFunctionReturn<typeof loader>
+    queryClient: QueryClient
   }
 }
 
 const App = function () {
+  const [queryClient] = useState(() => {
+    const queryClient = new QueryClient()
+    if (typeof window !== 'undefined') {
+      window.queryClient = queryClient
+    }
+
+    return queryClient
+  })
+
   const env = useTypedLoaderData<typeof loader>()
   const navigate = useNavigate()
   const location = useLocation()

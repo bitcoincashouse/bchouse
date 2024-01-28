@@ -5,7 +5,6 @@ import { $path } from 'remix-routes'
 import { typedjson } from 'remix-typedjson'
 import { z } from 'zod'
 import { PostCardModel } from '~/components/post/types'
-import { queryClient } from '~/utils/query-client'
 import { zx } from '~/utils/zodix'
 
 const postActionSchema = z.object({
@@ -209,6 +208,8 @@ export async function clientAction(_: ClientActionFunctionArgs) {
 
     return newResult
   }
+
+  const queryClient = window.queryClient
 
   queryClient.setQueriesData<FeedData>(['feed', 'home'], updater('home'))
   queryClient.setQueriesData<FeedData>(['feed', 'user'], updater('user'))
