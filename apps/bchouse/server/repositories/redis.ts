@@ -1,8 +1,13 @@
+import { sql } from 'kysely'
 import { jsonBuildObject } from 'kysely/helpers/mysql'
 import { Network, db } from '../db/index'
+import { ActivityData } from '../services/redis/activity'
+import moment from '../utils/moment'
 import { paginate } from './paginate'
 import { selectors } from './posts/selectors'
 import { Cursor } from './types'
+import { Notification } from './user/types'
+
 export async function getRedisUserProfilePaginated(params?: {
   limit?: number
   cursor: Cursor | undefined
@@ -55,6 +60,227 @@ export async function getRedisUserProfilePaginated(params?: {
       fromTimestamp: lastResult.createdAt,
     })
   )
+}
+
+export async function getRedisUserNotifications(params: {
+  id: string | null
+}): Promise<ActivityData[]> {
+  const { id } = params
+  // We want to select all
+  // mentions, likes, replies, reposts, follows, accepted invites, and donations
+
+  if (!id) return []
+
+  const repliesQuery = db
+    .selectFrom('Post as post')
+    .innerJoin('User as publishedBy', 'publishedBy.id', 'post.publishedById')
+    .innerJoin('Post as parentPost', 'parentPost.id', 'post.parentPostId')
+    .where(({ and, cmpr, ref }) =>
+      and([
+        cmpr('parentPost.publishedById', '=', id),
+        cmpr('post.publishedById', '!=', id),
+        cmpr('post.createdAt', '>', moment().subtract(60, 'days').toDate()),
+      ])
+    )
+    .select([
+      'post.id',
+      'post.publishedById as sourceUserId',
+      'post.createdAt',
+      'parentPost.id as targetPostId',
+      sql`'REPLY'`.$castTo<Notification['type']>().as('notificationType'),
+    ])
+
+  const tipsQuery = db
+    .selectFrom('TipRequest as tr')
+    .innerJoin('TipPayment as tp', 'tp.tipId', 'tr.id')
+    .innerJoin('Post as tippedPost', 'tippedPost.id', 'tr.postId')
+    .where(({ and, cmpr, ref }) =>
+      and([
+        cmpr('tippedPost.publishedById', '=', id),
+        cmpr('tr.userId', '!=', id),
+        cmpr('tp.createdAt', '>', moment().subtract(60, 'days').toDate()),
+      ])
+    )
+    .select([
+      'tr.id',
+      sql`NULLIF(tr.userId, 'anonymous')`.$castTo<string>().as('sourceUserId'),
+      'tp.createdAt',
+      'tr.postId as targetPostId',
+      sql`'TIP'`.$castTo<Notification['type']>().as('notificationType'),
+    ])
+
+  const likesQuery = db
+    .selectFrom('Likes as like')
+    .innerJoin('Post as likedPost', 'likedPost.id', 'like.postId')
+    .innerJoin('User as likedBy', 'likedBy.id', 'like.userId')
+    .where(({ and, cmpr, ref }) =>
+      and([
+        cmpr('likedPost.publishedById', '=', id),
+        cmpr('like.userId', '!=', id),
+        cmpr('like.createdAt', '>', moment().subtract(60, 'days').toDate()),
+      ])
+    )
+    .select([
+      'like.id',
+      'like.userId as sourceUserId',
+      'like.createdAt',
+      'like.postId as targetPostId',
+      sql`'LIKE'`.$castTo<Notification['type']>().as('notificationType'),
+    ])
+
+  const repostsQuery = db
+    .selectFrom('Reposts as repost')
+    .innerJoin('Post as repostedPost', 'repostedPost.id', 'repost.postId')
+    .innerJoin('User as repostedBy', 'repostedBy.id', 'repost.userId')
+    .where(({ and, cmpr, ref }) =>
+      and([
+        cmpr('repostedPost.publishedById', '=', id),
+        cmpr('repost.userId', '!=', id),
+        cmpr('repost.createdAt', '>', moment().subtract(60, 'days').toDate()),
+      ])
+    )
+    .select([
+      'repost.id',
+      'repost.userId as sourceUserId',
+      'repost.createdAt',
+      'repostedPost.id as targetPostId',
+      sql`'REPOST'`.$castTo<Notification['type']>().as('notificationType'),
+    ])
+
+  const quotedQuery = db
+    .selectFrom('Post as quotePost')
+    .innerJoin('Post as quotedPost', 'quotedPost.id', 'quotePost.quotePostId')
+    .innerJoin('User as quotedBy', 'quotedBy.id', 'quotePost.publishedById')
+    .where(({ and, cmpr, ref }) =>
+      and([
+        cmpr('quotedPost.publishedById', '=', id),
+        cmpr('quotePost.publishedById', '!=', id),
+        cmpr(
+          'quotePost.createdAt',
+          '>',
+          moment().subtract(60, 'days').toDate()
+        ),
+      ])
+    )
+    .select([
+      'quotePost.id',
+      'quotePost.publishedById as sourceUserId',
+      'quotePost.createdAt',
+      'quotedPost.id as targetPostId',
+      sql`'QUOTE'`.$castTo<Notification['type']>().as('notificationType'),
+    ])
+
+  const followsQuery = db
+    .selectFrom('Follows as follow')
+    .innerJoin('User as followed', 'followed.id', 'follow.followedId')
+    .innerJoin('User as followedBy', 'followedBy.id', 'follow.followerId')
+    .where(({ and, cmpr }) =>
+      and([
+        cmpr('followed.id', '=', id),
+        cmpr('follow.createdAt', '>', moment().subtract(60, 'days').toDate()),
+      ])
+    )
+    .select([
+      'follow.id',
+      'follow.followerId as sourceUserId',
+      'follow.createdAt',
+      sql`''`.$castTo<string>().as('targetPostId'),
+      sql`'FOLLOW'`.$castTo<Notification['type']>().as('notificationType'),
+    ])
+
+  const mentionsQuery = db
+    .selectFrom('Mention as mention')
+    .innerJoin('Post as post', 'post.id', 'mention.postId')
+    .innerJoin('User as publishedBy', 'publishedBy.id', 'post.publishedById')
+    .where(({ and, cmpr, ref }) =>
+      and([
+        cmpr('mention.mention_user_id', '=', id),
+        cmpr('post.publishedById', '!=', id),
+        cmpr('post.createdAt', '>', moment().subtract(60, 'days').toDate()),
+      ])
+    )
+    .select([
+      'post.id',
+      'post.publishedById as sourceUserId',
+      'post.createdAt',
+      sql`''`.$castTo<string>().as('targetPostId'),
+      sql`'MENTION'`.$castTo<Notification['type']>().as('notificationType'),
+    ])
+
+  const [notifications] = await Promise.all([
+    db
+      .selectFrom(
+        repliesQuery
+          .union(tipsQuery)
+          .union(likesQuery)
+          .union(repostsQuery)
+          .union(quotedQuery)
+          .union(followsQuery)
+          .union(mentionsQuery)
+          .as('n')
+      )
+      .select([
+        'n.id',
+        'n.sourceUserId',
+        'n.createdAt',
+        'n.targetPostId',
+        'n.notificationType',
+      ])
+      .orderBy('n.createdAt desc')
+      .execute(),
+  ])
+
+  return notifications
+    .map((notification): ActivityData | undefined => {
+      const timestamp = moment(notification.createdAt).unix()
+      if (notification.notificationType === 'FOLLOW') {
+        return {
+          type: 'follow',
+          actorId: notification.sourceUserId,
+          timestamp,
+        }
+      } else if (
+        notification.notificationType === 'LIKE' ||
+        notification.notificationType === 'REPOST' ||
+        notification.notificationType === 'TIP'
+      ) {
+        return {
+          type: notification.notificationType.toLowerCase() as
+            | 'like'
+            | 'repost'
+            | 'tip',
+          actorId: notification.sourceUserId,
+          object: {
+            postId: notification.targetPostId,
+          },
+          timestamp,
+        }
+      } else if (notification.notificationType === 'MENTION') {
+        return {
+          type: 'mention',
+          actorId: notification.sourceUserId,
+          data: {
+            postId: notification.id,
+          },
+          timestamp,
+        }
+      } else if (notification.notificationType === 'REPLY') {
+        return {
+          type: 'reply',
+          actorId: notification.sourceUserId,
+          data: {
+            postId: notification.id,
+          },
+          object: {
+            postId: notification.targetPostId,
+          },
+          timestamp,
+        }
+      }
+
+      return undefined
+    })
+    .filter(Boolean)
 }
 
 export async function getRedisUserFollowersPaginated(params: {

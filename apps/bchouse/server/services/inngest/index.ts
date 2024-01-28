@@ -19,6 +19,7 @@ import {
   getRedisUserLikedPostsPaginated,
   getRedisUserMediaPostsPaginated,
   getRedisUserMutesPaginated,
+  getRedisUserNotifications,
   getRedisUserPostsPaginated,
   getRedisUserProfilePaginated,
   getRedisUserReplyPostsPaginated,
@@ -293,62 +294,78 @@ export class InngestService {
               redisService.setRedisStatus('building')
             })
 
-            //Fetch every user
-            await Promise.all([
-              step.run('fetch users', () => {
-                return mapPaginatedQuery(
-                  (cursor) =>
-                    getRedisUserProfilePaginated({
-                      limit: 25,
-                      cursor,
-                    }),
-                  (users) => {
-                    return Promise.all([
-                      Promise.all(
-                        //All users actions
-                        //Per user actions
-                        users.map((user) =>
-                          Promise.all([
-                            cacheUserDetails(user),
-                            cacheUserFollowers(user),
-                            cacheUserHomeTimeline(user),
-                            cacheUserTimeline(user),
-                            cacheUserReposts(user),
-                            cacheUserCampaignPosts(user),
-                            cacheUserLikedPosts(user),
-                            cacheUserReplyPosts(user),
-                            cacheUserMediaPosts(user),
-                            cacheUserTippedPosts(user),
-                            cacheUserMutes(user),
-                            cacheUserBlocking(user),
-                            cacheUserBlockedBy(user),
-                          ])
-                        )
-                      ),
-                    ])
-                  }
-                )
-              }),
+            const types: NonNullable<Exclude<typeof event.data.types, 'all'>> =
+              !event.data.types || event.data.types == 'all'
+                ? (['users', 'posts'] as const)
+                : event.data.types
 
-              //Fetch all posts (with counts, like count, etc.)
-              step.run('fetch posts', () => {
-                return mapPaginatedQuery(
-                  (cursor) =>
-                    getRedisPostsPaginated({
-                      limit: 25,
-                      cursor,
-                    }),
-                  (posts) => {
-                    return Promise.all([
-                      //All posts actions
-                      cachePosts(posts),
-                      //Per post actions
-                      Promise.all(posts.map((post) => Promise.all([]))),
-                    ])
-                  }
-                )
-              }),
-            ])
+            const tasks: Array<Promise<any>> = []
+
+            //Fetch every user
+            if (types.includes('users')) {
+              tasks.push(
+                step.run('fetch users', () => {
+                  return mapPaginatedQuery(
+                    (cursor) =>
+                      getRedisUserProfilePaginated({
+                        limit: 25,
+                        cursor,
+                      }),
+                    (users) => {
+                      return Promise.all([
+                        Promise.all(
+                          //All users actions
+                          //Per user actions
+                          users.map((user) =>
+                            Promise.all([
+                              cacheUserDetails(user),
+                              cacheUserNotifications(user),
+                              // cacheUserFollowers(user),
+                              // cacheUserHomeTimeline(user),
+                              // cacheUserTimeline(user),
+                              // cacheUserReposts(user),
+                              // cacheUserCampaignPosts(user),
+                              // cacheUserLikedPosts(user),
+                              // cacheUserReplyPosts(user),
+                              // cacheUserMediaPosts(user),
+                              // cacheUserTippedPosts(user),
+                              // cacheUserMutes(user),
+                              // cacheUserBlocking(user),
+                              // cacheUserBlockedBy(user),
+                            ])
+                          )
+                        ),
+                      ])
+                    }
+                  )
+                })
+              )
+            }
+
+            if (types.includes('posts')) {
+              tasks.push(
+                //Fetch all posts (with counts, like count, etc.)
+                step.run('fetch posts', () => {
+                  return mapPaginatedQuery(
+                    (cursor) =>
+                      getRedisPostsPaginated({
+                        limit: 25,
+                        cursor,
+                      }),
+                    (posts) => {
+                      return Promise.all([
+                        //All posts actions
+                        cachePosts(posts),
+                        //Per post actions
+                        Promise.all(posts.map((post) => Promise.all([]))),
+                      ])
+                    }
+                  )
+                })
+              )
+            }
+
+            await Promise.all(tasks)
 
             await step.run('set redis built status', () => {
               redisService.setRedisStatus('built')
@@ -423,6 +440,11 @@ async function cachePosts(posts: Post[]) {
 
 async function cacheUserDetails(user: User) {
   return redisService.updateUser(user)
+}
+
+async function cacheUserNotifications(user: User) {
+  const notifications = await getRedisUserNotifications({ id: user.id })
+  return redisService.updateUserNotifications(user.id, notifications)
 }
 
 async function cacheUserFollowers(user: User) {

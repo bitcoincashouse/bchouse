@@ -1,5 +1,5 @@
-import { Kysely, sql } from 'kysely'
-import { DB } from '../../db/index'
+import { sql } from 'kysely'
+import { db } from '../../db/index'
 import moment from '../../utils/moment'
 import { selectors } from '../posts/selectors'
 import { Notification, PostTypeNotification } from './types'
@@ -12,10 +12,9 @@ export type NotificationType =
   | 'FOLLOW'
   | 'TIP'
 
-export async function getUserMentions(
-  db: Kysely<DB>,
-  params: { id: string | null }
-): Promise<PostTypeNotification[]> {
+export async function getUserMentions(params: {
+  id: string | null
+}): Promise<PostTypeNotification[]> {
   const { id } = params
   // We want to select all
   // mentions, likes, replies, reposts, follows, accepted invites, and donations
@@ -126,10 +125,9 @@ export async function getUserMentions(
     })
 }
 
-export async function getUserNotifications(
-  db: Kysely<DB>,
-  params: { id: string | null }
-): Promise<Notification[]> {
+export async function getUserNotifications(params: {
+  id: string | null
+}): Promise<Notification[]> {
   const { id } = params
   // We want to select all
   // mentions, likes, replies, reposts, follows, accepted invites, and donations

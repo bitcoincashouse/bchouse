@@ -1,15 +1,15 @@
-import { ArrowPathIcon, HeartIcon } from '@heroicons/react/20/solid'
-import { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { ArrowPathIcon, HeartIcon, UserIcon } from '@heroicons/react/20/solid'
+import { LoaderArgs } from '@remix-run/node'
 import { Link, useNavigate } from '@remix-run/react'
-import { useEffect } from 'react'
 import { $path } from 'remix-routes'
-import { typedjson, useTypedFetcher, useTypedLoaderData } from 'remix-typedjson'
+import { useTypedLoaderData } from 'remix-typedjson'
 import { Avatar } from '~/components/avatar'
-import { ClientOnly } from '~/components/client-only'
 import { BitcoinIcon } from '~/components/icons/BitcoinIcon'
-import { PostCard } from '~/components/post/post-card'
+import { PostCard, PostProvider } from '~/components/post/post-card'
 import { classnames } from '~/components/utils/classnames'
+import { Activity } from '~/server/services/redis/activity'
 import { classNames } from '~/utils/classNames'
+import moment from '~/utils/moment'
 import { useNotificationsLoaderData } from './_app.notifications'
 
 export const loader = async (_: LoaderArgs) => {
@@ -21,33 +21,56 @@ export const loader = async (_: LoaderArgs) => {
   }
 }
 
-export const action = async (_: ActionArgs) => {
-  const { userId } = await _.context.authService.getAuth(_)
-  const updated = await _.context.userService.updateLastViewedNotifications(
-    userId
-  )
-  return typedjson(updated)
-}
-
 export default function Index() {
   const { notifications } = useTypedLoaderData<typeof loader>()
   const currentUser = useNotificationsLoaderData()
   const navigate = useNavigate()
-
   return (
     <div className="flex flex-col">
       <ul className="flex flex-col divide-y divide-gray-100 dark:divide-gray-700 border-b border-gray-100 dark:border-gray-600">
-        {notifications.map(({ notification, message }) => {
+        {notifications.map((notification) => {
+          const sourceUsername = (
+            <Link
+              to={'/profile/' + notification.users[0]?.username}
+              key={notification.users[0]?.id}
+              className="font-semibold text-primary-text hover:underline"
+            >
+              {notification.users[0]?.displayName}
+            </Link>
+          )
+
+          const otherUsersBody =
+            notification.users.length > 1 ? (
+              <>
+                {' '}
+                and{' '}
+                {notification.users.length > 2 ? (
+                  `${notification.users.length - 1} others`
+                ) : (
+                  <Link
+                    to={'/profile/' + notification.users[1]?.username}
+                    className="font-semibold text-primary-text hover:underline"
+                  >
+                    {notification.users[1]?.displayName}
+                  </Link>
+                )}{' '}
+              </>
+            ) : (
+              ' '
+            )
+          const notificationAction = typeToAction[notification.type]
+
           return (
             <li key={notification.key}>
-              <div className="flex flex-row items-center hover:bg-hover transition-all ease-in-out duration-300 cursor-pointer pl-2">
-                <div
-                  className={classnames(
-                    'w-2 h-2 rounded-full',
-                    !notification.viewed ? 'bg-blue-500' : ''
-                  )}
-                ></div>
-                {notification.type === 'REPLY' ? (
+              <div
+                className={classnames(
+                  'flex flex-row items-center hover:bg-hover transition-all ease-in-out duration-300 cursor-pointer pl-2',
+                  !notification.viewed
+                    ? 'bg-blue-600/10 dark:bg-blue-500/10'
+                    : ''
+                )}
+              >
+                {notification.type === 'reply' ? (
                   <PostCard item={notification.post} className="w-full">
                     <div>
                       <div className="flex">
@@ -74,7 +97,7 @@ export default function Index() {
                     <PostCard.MediaItems />
                     <PostCard.Actions />
                   </PostCard>
-                ) : notification.type === 'MENTION' ? (
+                ) : notification.type === 'mention' ? (
                   <PostCard item={notification.post} className="w-full">
                     <div>
                       <div className="flex">
@@ -82,9 +105,6 @@ export default function Index() {
                         <div className="ml-auto">
                           <PostCard.ItemMenu />
                         </div>
-                      </div>
-                      <div className="-mt-1 text-sm text-secondary-text">
-                        <span className="text-[15px]">Mentioned you</span>
                       </div>
                     </div>
                     <PostCard.Content />
@@ -101,38 +121,72 @@ export default function Index() {
                   >
                     <div className={classNames('relative py-4 px-4')}>
                       <div className="relative">
-                        <div className="relative flex items-center">
+                        <div className="relative flex">
                           <>
                             <div className="relative mr-2">
-                              {notification.type === 'FOLLOW' ||
-                              (notification.type === 'TIP' &&
-                                notification.user.avatarUrl) ? (
-                                // TODO: show several followers in a row
-                                <Avatar
-                                  className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-8 ring-transparent"
-                                  src={notification.user.avatarUrl || ''}
-                                  alt=""
-                                />
-                              ) : (
-                                <>
-                                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 ring-8 ring-transparent p-2">
-                                    {notification.type === 'LIKE' ? (
-                                      <HeartIcon className="h-8 w-8 text-rose-600" />
-                                    ) : null}
+                              <>
+                                <div className="flex w-10 items-center justify-center rounded-full">
+                                  {notification.type === 'like' ? (
+                                    <HeartIcon className="h-8 w-8 text-rose-600" />
+                                  ) : null}
 
-                                    {notification.type === 'TIP' ? (
-                                      <BitcoinIcon className="h-8 w-8 text-[#0ac18e]-600" />
-                                    ) : null}
+                                  {notification.type === 'tip' ? (
+                                    <BitcoinIcon className="h-8 w-8 text-[#0ac18e] fill-[#0ac18e]" />
+                                  ) : null}
 
-                                    {notification.type === 'REPOST' ? (
-                                      <ArrowPathIcon className="h-8 w-8 text-green-600" />
-                                    ) : null}
-                                  </div>
-                                </>
-                              )}
+                                  {notification.type === 'repost' ? (
+                                    <ArrowPathIcon className="h-8 w-8 text-green-600" />
+                                  ) : null}
+
+                                  {notification.type === 'follow' ? (
+                                    <UserIcon className="h-8 w-8 text-blue-600" />
+                                  ) : null}
+                                </div>
+                              </>
                             </div>
-                            <div className="min-w-0 flex-1 relative">
-                              {message}
+                            <div className="flex flex-col gap-2">
+                              <div className="flex flex-row gap-2">
+                                {notification.users.map((user) => {
+                                  // TODO: show several followers in a row
+                                  return (
+                                    <Link
+                                      onClick={(e) => e.stopPropagation()}
+                                      key={user.id}
+                                      to={$path('/profile/:username', {
+                                        username: user.username,
+                                      })}
+                                    >
+                                      <Avatar
+                                        className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-400 ring-8 ring-transparent"
+                                        src={user.avatarUrl || ''}
+                                        alt=""
+                                      />
+                                    </Link>
+                                  )
+                                })}
+                              </div>
+                              <div>
+                                {sourceUsername}
+                                {otherUsersBody}
+                                {notificationAction}
+                                <div>
+                                  <span className="text-xs">
+                                    {' '}
+                                    {moment
+                                      .utc(notification.createdAt)
+                                      .fromNow()}
+                                  </span>
+                                </div>
+                              </div>
+                              {notification.post ? (
+                                <div>
+                                  <PostProvider item={notification.post}>
+                                    <div className="w-full">
+                                      <PostCard.Content className="text-gray-400" />
+                                    </div>
+                                  </PostProvider>
+                                </div>
+                              ) : null}
                             </div>
                           </>
                         </div>
@@ -144,24 +198,19 @@ export default function Index() {
             </li>
           )
         })}
-        <ClientOnly>{() => <UpdateLastViewed />}</ClientOnly>
       </ul>
     </div>
   )
 }
 
-function UpdateLastViewed() {
-  const updateLastViewed = useTypedFetcher<typeof action>()
-
-  useEffect(() => {
-    updateLastViewed.submit(
-      {},
-      {
-        method: 'POST',
-        encType: 'application/json',
-      }
-    )
-  }, [])
-
-  return null
+const typeToAction: Record<Activity['activity']['type'], string> = {
+  //Single or multiple
+  // DONATION: 'donated to your campaign',
+  follow: 'followed you',
+  like: 'liked your post',
+  repost: 'reposted your post',
+  tip: 'tipped your post',
+  //Always single
+  mention: 'mentioned you in a post',
+  reply: 'replied to your post',
 }

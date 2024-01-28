@@ -7,6 +7,7 @@ import {
   getAllCampaignsKey,
   getAllPostsKey,
   getKeys,
+  getNotificationKeys,
   getPostEmbeddedKey,
   getPostKey,
 } from './keys.js'
@@ -280,6 +281,42 @@ export function incrementParentReplies(post: {
   }
 }
 
+export function addToMentionedUsersNotification(post: {
+  id: string
+  publishedById: string
+  createdAt: Date
+  mentions: {
+    userId: string
+  }[]
+}) {
+  return post.mentions.map((mention) => {
+    if (mention.userId === post.publishedById) {
+      return (p: ChainableCommander) => undefined
+    }
+
+    const mentionedUserKey = getKeys(mention.userId).userDetailsKey
+    const timestamp = moment(post.createdAt).unix()
+    const { notificationActivityKey, notificationGroupKey, notificationsKey } =
+      getNotificationKeys(mention.userId, {
+        type: 'mention',
+        actorId: post.publishedById,
+        data: {
+          postId: post.id,
+        },
+        timestamp,
+      })
+
+    return (p: ChainableCommander) =>
+      p.addNotification(
+        mentionedUserKey,
+        notificationsKey,
+        notificationGroupKey,
+        timestamp,
+        notificationActivityKey
+      )
+  })
+}
+
 export function incrementParentNotification(post: {
   id: string
   publishedById: string
@@ -289,16 +326,33 @@ export function incrementParentNotification(post: {
     publishedById: string
   }
 }) {
-  const parentPostKey =
-    post.parentPost && post.parentPost.publishedById !== post.publishedById
-      ? getKeys(post.parentPost.publishedById).userDetailsKey
-      : undefined
-
-  return (p: ChainableCommander) => {
-    return parentPostKey
-      ? p.hincrby(parentPostKey, 'notificationCount', 1)
-      : undefined
+  if (!post.parentPost || post.parentPost.publishedById == post.publishedById) {
+    return (p: ChainableCommander) => undefined
   }
+
+  const { userDetailsKey } = getKeys(post.parentPost.publishedById)
+  const timestamp = moment(post.createdAt).unix()
+  const { notificationActivityKey, notificationGroupKey, notificationsKey } =
+    getNotificationKeys(post.parentPost.publishedById, {
+      type: 'reply',
+      actorId: post.publishedById,
+      data: {
+        postId: post.parentPost.id,
+      },
+      object: {
+        postId: post.parentPost.id,
+      },
+      timestamp,
+    })
+
+  return (p: ChainableCommander) =>
+    p.addNotification(
+      userDetailsKey,
+      notificationsKey,
+      notificationGroupKey,
+      timestamp,
+      notificationActivityKey
+    )
 }
 
 export function addToRepliesTimeline(post: {

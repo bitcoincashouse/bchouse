@@ -168,13 +168,13 @@ export class UserRepo implements IUserRepo {
   async getUserNotifications(params: {
     id: string | null
   }): Promise<Notification[]> {
-    return getUserNotifications(db, params)
+    return getUserNotifications(params)
   }
 
   async getUserMentions(params: {
     id: string | null
   }): Promise<PostTypeNotification[]> {
-    return getUserMentions(db, params)
+    return getUserMentions(params)
   }
 
   async updateUser(params: {

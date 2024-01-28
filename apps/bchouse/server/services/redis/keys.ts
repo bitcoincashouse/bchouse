@@ -1,3 +1,5 @@
+import { ActivityData, ActivityFactory } from './activity'
+
 export const getPostKey = (postId: string, publishedById: string) =>
   `post:details:${postId}:user:${publishedById}:`
 
@@ -67,5 +69,33 @@ export const getKeys = (currentUserId: string) => {
     mutesKey: `mutes:user:${currentUserId}`,
     userBlockingKey: `user:blocking:${currentUserId}`,
     userBlockedByKey: `user:blocked_by:${currentUserId}`,
+    userNotificationsKey: `notifications:user:${currentUserId}`,
   }
+}
+
+export const getNotificationKeys = (
+  userId: string,
+  activityData: ActivityData
+) => {
+  const { userNotificationsKey: notificationsKey } = getKeys(userId)
+
+  //TODO: Likes, replies, etc. need ids so notificatiions can store a reference
+  const activity = ActivityFactory.create(activityData)
+  const notificationGroupKey = `${notificationsKey}:${activity.toGroupKey()}`
+
+  return {
+    notificationsKey,
+    notificationGroupKey,
+    notificationActivityKey: activity.toKey(),
+  }
+}
+
+export const parseNotificationGroup = ({
+  groupKey,
+  activityKeys,
+}: {
+  groupKey: string
+  activityKeys: string[]
+}) => {
+  return ActivityFactory.parseGroup(groupKey, activityKeys)
 }

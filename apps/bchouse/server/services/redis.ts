@@ -1,4 +1,4 @@
-import Redis, { ChainableCommander } from 'ioredis'
+import Redis from 'ioredis'
 import { z } from 'zod'
 import { logger } from '../../app/utils/logger.js'
 import { Network } from '../db/types.js'
@@ -10,11 +10,13 @@ import { detectAddressNetwork } from '../utils/bchUtils.js'
 import moment from '../utils/moment.js'
 import { serializeCursor } from '../utils/serializeCursor.js'
 import { type Doc } from '../utils/tiptapSchema.js'
+import { ActivityData, ActivityFactory } from './redis/activity.js'
 import {
   FeedKeys,
   getAllCampaignsKey,
   getAllPostsKey,
   getKeys,
+  getNotificationKeys,
   getPostEmbeddedKey,
   getPostKey,
   getTimelineKey,
@@ -44,11 +46,18 @@ declare module 'ioredis' {
       homeTimelineKey: string,
       unfollowedUserId: string
     ): Promise<number>
+    addNotification(
+      userDetailsKey: string,
+      notificationsKey: string,
+      score: number,
+      member: string
+    ): Promise<void>
     removeNotification(
       userDetailsKey: string,
-      activitySortedSetKey: string,
+      notificationsKey: string,
+      score: number,
       member: string
-    ): Promise<string>
+    ): Promise<void>
   }
 
   interface ChainableCommander {
@@ -65,11 +74,18 @@ declare module 'ioredis' {
       homeTimelineKey: string,
       unfollowedUserId: string
     ): Promise<number>
+    addNotification(
+      userDetailsKey: string,
+      notificationsKey: string,
+      score: number,
+      member: string
+    ): Promise<void>
     removeNotification(
       userDetailsKey: string,
-      activitySortedSetKey: string,
+      notificationsKey: string,
+      score: number,
       member: string
-    ): Promise<string>
+    ): Promise<void>
   }
 }
 
@@ -96,24 +112,6 @@ export class RedisService extends Redis {
     `,
     })
 
-    this.defineCommand('removeNotification', {
-      numberOfKeys: 3,
-      lua: `
-      local userDetailsKey = KEYS[1]
-      local activitySortedSetKey = KEYS[2]
-      local member = KEYS[3]
-
-      local lastViewedNotifications = redis.call('HGET', userDetailsKey, 'lastViewedNotifications')
-      local activityAdded = redis.call('ZSCORE', activitySortedSetKey, member)
-            
-      if activityAdded and (not lastViewedNotifications or math.abs(activityAdded) > tonumber(lastViewedNotifications)) then
-        redis.call('HINCRBY', userDetailsKey, 'notificationCount', -1)
-      end
-      
-      return "OK"
-      `,
-    })
-
     this.defineCommand('removePostFromFollowersTimeline', {
       numberOfKeys: 2,
       lua: `
@@ -129,6 +127,40 @@ export class RedisService extends Redis {
       
       return "OK"
     `,
+    })
+
+    this.defineCommand('addNotification', {
+      numberOfKeys: 2,
+      lua: `
+        local userDetailsKey = KEYS[1]
+        local notificationsKey = KEYS[2]
+        local score = math.abs(ARGV[1])
+        local member = ARGV[2]
+
+        redis.call('ZADD', notificationsKey, score, member)
+        
+        local lastViewedNotifications = redis.call('HGET', userDetailsKey, 'lastViewedNotifications')
+        if not lastViewedNotifications or score > tonumber(lastViewedNotifications) then
+          redis.call('HINCRBY', userDetailsKey, 'notificationCount', 1)
+        end
+      `,
+    })
+
+    this.defineCommand('removeNotification', {
+      numberOfKeys: 2,
+      lua: `
+        local userDetailsKey = KEYS[1]
+        local notificationsKey = KEYS[2]
+        local score = math.abs(ARGV[1])
+        local member = ARGV[2]
+
+        local lastViewedNotifications = redis.call('HGET', userDetailsKey, 'lastViewedNotifications')
+        if score and (not lastViewedNotifications or score > tonumber(lastViewedNotifications)) then
+          redis.call('HINCRBY', userDetailsKey, 'notificationCount', -1)
+        end
+
+        redis.call('ZREM', notificationsKey, member)
+      `,
     })
 
     this.defineCommand('unfollowUser', {
@@ -221,6 +253,24 @@ export class RedisService extends Redis {
     }
 
     this.hset(userDetailsKey, profile)
+  }
+
+  async updateUserNotifications(userId: string, notifications: ActivityData[]) {
+    await Promise.all(
+      notifications.map(async (notification) => {
+        const { userDetailsKey } = getKeys(userId)
+
+        const { notificationActivityKey, notificationsKey } =
+          getNotificationKeys(userId, notification)
+
+        return this.addNotification(
+          userDetailsKey,
+          notificationsKey,
+          notification.timestamp,
+          notificationActivityKey
+        )
+      })
+    )
   }
 
   async updateUserFollowers(
@@ -695,13 +745,32 @@ export class RedisService extends Redis {
     const likeOrRepostKey = getPostEmbeddedKey(postId, publishedById)
     const { userDetailsKey } = getKeys(publishedById)
 
+    const timestamp = moment().unix()
+
+    const { notificationsKey, notificationActivityKey } = getNotificationKeys(
+      publishedById,
+      {
+        type: 'like',
+        actorId: userId,
+        timestamp,
+        object: {
+          postId,
+        },
+      }
+    )
+
     await PipelineHandler(this.pipeline())(
-      (p) => p.zadd(likesKey, -moment().unix(), likeOrRepostKey),
-      (p) => p.hincrby(getPostKey(postId, publishedById), 'likeCount', 1),
       (p) =>
         publishedById !== userId
-          ? p.hincrby(userDetailsKey, 'notificationCount', 1)
-          : undefined
+          ? p.addNotification(
+              userDetailsKey,
+              notificationsKey,
+              timestamp,
+              notificationActivityKey
+            )
+          : undefined,
+      (p) => p.zadd(likesKey, -timestamp, likeOrRepostKey),
+      (p) => p.hincrby(getPostKey(postId, publishedById), 'likeCount', 1)
     )
   }
 
@@ -710,24 +779,65 @@ export class RedisService extends Redis {
     const likeOrRepostKey = getPostEmbeddedKey(postId, publishedById)
     const { userDetailsKey } = getKeys(publishedById)
 
-    await PipelineHandler(this.pipeline())(
-      (p) => p.removeNotification(userDetailsKey, likesKey, likeOrRepostKey),
-      (p) => p.zrem(likesKey, likeOrRepostKey),
-      (p) => p.hincrby(getPostKey(postId, publishedById), 'likeCount', -1)
+    const likeScore = await this.zscore(likesKey, likeOrRepostKey)
+    const { notificationsKey, notificationActivityKey } = getNotificationKeys(
+      publishedById,
+      {
+        type: 'like',
+        actorId: userId,
+        timestamp: Math.abs(Number(likeScore)),
+        object: {
+          postId,
+        },
+      }
     )
+
+    if (likeScore) {
+      await PipelineHandler(this.pipeline())(
+        (p) =>
+          publishedById !== userId
+            ? p.removeNotification(
+                userDetailsKey,
+                notificationsKey,
+                Math.abs(Number(likeScore)),
+                notificationActivityKey
+              )
+            : undefined,
+        (p) => p.zrem(likesKey, likeOrRepostKey),
+        (p) => p.hincrby(getPostKey(postId, publishedById), 'likeCount', -1)
+      )
+    }
   }
 
   async addRepost(postId: string, publishedById: string, userId: string) {
     let { retweetsKey } = getKeys(userId)
     const likeOrRepostKey = getPostEmbeddedKey(postId, publishedById)
     const { userDetailsKey } = getKeys(publishedById)
+    const timestamp = moment().unix()
+
+    const { notificationsKey, notificationActivityKey } = getNotificationKeys(
+      publishedById,
+      {
+        type: 'repost',
+        actorId: userId,
+        timestamp,
+        object: {
+          postId,
+        },
+      }
+    )
 
     await PipelineHandler(this.pipeline())(
-      (p) => p.zadd(retweetsKey, -moment().unix(), likeOrRepostKey),
+      (p) => p.zadd(retweetsKey, -timestamp, likeOrRepostKey),
       (p) => p.hincrby(getPostKey(postId, publishedById), 'repostCount', 1),
       (p) =>
         publishedById !== userId
-          ? p.hincrby(userDetailsKey, 'notificationCount', 1)
+          ? p.addNotification(
+              userDetailsKey,
+              notificationsKey,
+              timestamp,
+              notificationActivityKey
+            )
           : undefined
     )
   }
@@ -737,11 +847,34 @@ export class RedisService extends Redis {
     const likeOrRepostKey = getPostEmbeddedKey(postId, publishedById)
     const { userDetailsKey } = getKeys(publishedById)
 
-    await PipelineHandler(this.pipeline())(
-      (p) => p.removeNotification(userDetailsKey, retweetsKey, likeOrRepostKey),
-      (p) => p.hincrby(getPostKey(postId, publishedById), 'repostCount', -1),
-      (p) => p.zrem(retweetsKey, likeOrRepostKey)
+    const repostScore = await this.zscore(retweetsKey, likeOrRepostKey)
+    const { notificationsKey, notificationActivityKey } = getNotificationKeys(
+      publishedById,
+      {
+        type: 'repost',
+        actorId: userId,
+        timestamp: Math.abs(Number(repostScore)),
+        object: {
+          postId,
+        },
+      }
     )
+
+    if (repostScore) {
+      await PipelineHandler(this.pipeline())(
+        (p) =>
+          publishedById !== userId
+            ? p.removeNotification(
+                userDetailsKey,
+                notificationsKey,
+                Math.abs(Number(repostScore)),
+                notificationActivityKey
+              )
+            : undefined,
+        (p) => p.hincrby(getPostKey(postId, publishedById), 'repostCount', -1),
+        (p) => p.zrem(retweetsKey, likeOrRepostKey)
+      )
+    }
   }
 
   async addFollow(params: { followerId: string; followedId: string }) {
@@ -749,9 +882,24 @@ export class RedisService extends Redis {
       getKeys(params.followedId)
     const { homeTimelineKey } = getKeys(params.followerId)
 
+    const timestamp = moment().unix()
+    const { notificationsKey, notificationActivityKey } = getNotificationKeys(
+      params.followedId,
+      {
+        type: 'follow',
+        actorId: params.followerId,
+        timestamp,
+      }
+    )
+
     await PipelineHandler(this.pipeline())(
-      (p) => p.zadd(followersKey, -moment().unix(), params.followerId),
-      (p) => p.hincrby(userDetailsKey, 'notificationCount', 1),
+      (p) =>
+        p.addNotification(
+          userDetailsKey,
+          notificationsKey,
+          timestamp,
+          notificationActivityKey
+        ),
       //Add posts (posts, replies, retweets to follower's home timeline)
       (p) =>
         p.zunionstore(
@@ -767,15 +915,32 @@ export class RedisService extends Redis {
   }
 
   async removeFollow(params: { followerId: string; followedId: string }) {
-    const { userDetailsKey, followersKey } = getKeys(params.followedId)
+    const { followersKey, userDetailsKey } = getKeys(params.followedId)
     const followerHomeTimelineKey = getTimelineKey(params.followerId, 'home')
 
-    await PipelineHandler(this.pipeline())(
-      (p) =>
-        p.removeNotification(userDetailsKey, followersKey, params.followerId),
-      (p) => p.zrem(followersKey, params.followerId),
-      (p) => p.unfollowUser(followerHomeTimelineKey, params.followedId)
+    const followScore = await this.zscore(followersKey, params.followerId)
+    const { notificationsKey, notificationActivityKey } = getNotificationKeys(
+      params.followedId,
+      {
+        type: 'follow',
+        actorId: params.followerId,
+        timestamp: Math.abs(Number(followScore)),
+      }
     )
+
+    if (followScore) {
+      await PipelineHandler(this.pipeline())(
+        (p) =>
+          p.removeNotification(
+            userDetailsKey,
+            notificationsKey,
+            Math.abs(Number(followScore)),
+            notificationActivityKey
+          ),
+        (p) => p.zrem(followersKey, params.followerId),
+        (p) => p.unfollowUser(followerHomeTimelineKey, params.followedId)
+      )
+    }
   }
 
   async addTip(tip: {
@@ -790,16 +955,30 @@ export class RedisService extends Redis {
     const { tipsKey = undefined } = tip.tipUserId ? getKeys(tip.tipUserId) : {}
     const { userDetailsKey } = getKeys(tip.publishedById)
 
+    const timestamp = moment(tip.createdAt).unix()
+    const { notificationsKey, notificationActivityKey } = getNotificationKeys(
+      tip.publishedById,
+      {
+        type: 'tip',
+        actorId: tip.tipUserId || 'Anonymmous',
+        object: {
+          postId: tip.id,
+        },
+        timestamp,
+      }
+    )
+
     await PipelineHandler(this.pipeline())(
       (p) =>
-        tipsKey
-          ? p.zadd(tipsKey, -moment(tip.createdAt).unix(), embeddedPostKey)
-          : undefined,
+        tipsKey ? p.zadd(tipsKey, -timestamp, embeddedPostKey) : undefined,
       (p) => p.hincrby(postKey, 'tipAmount', tip.tipAmount),
       (p) =>
-        tip.publishedById !== tip.tipUserId
-          ? p.hincrby(userDetailsKey, 'notificationCount', 1)
-          : undefined
+        p.addNotification(
+          userDetailsKey,
+          notificationsKey,
+          timestamp,
+          notificationActivityKey
+        )
     )
   }
 
@@ -847,15 +1026,7 @@ export class RedisService extends Redis {
       postCache.addToAllPostsTimeline(post),
       postCache.addToCampaignTimeline(post),
       postCache.addToUserCampaignTimeline(post),
-      ...post.mentions.map((mention) => {
-        const mentionedUserKey = getKeys(mention.userId).userDetailsKey
-
-        return (p: ChainableCommander) => {
-          return mentionedUserKey && mention.userId !== post.publishedById
-            ? p.hincrby(mentionedUserKey, 'notificationCount', 1)
-            : undefined
-        }
-      })
+      ...postCache.addToMentionedUsersNotification(post)
     )
   }
 
@@ -1146,6 +1317,306 @@ export class RedisService extends Redis {
         })
       )
     ).filter((p) => !p.deleted && !p.isBlocked) as PostCardModel[]
+  }
+
+  async getNotifications(userId: string, markSeen: boolean) {
+    const { userDetailsKey, userNotificationsKey } = getKeys(userId)
+
+    const notificationsData = await this.zrevrange(
+      userNotificationsKey,
+      0,
+      100,
+      'WITHSCORES'
+    )
+
+    const notificationGroups = new Map<
+      string,
+      { key: string; type: ActivityData['type']; activities: ActivityData[] }
+    >()
+    for (let i = 0; i < notificationsData.length; i += 2) {
+      const member = notificationsData[i]
+      const score = notificationsData[i + 1]
+      if (!member || !score) {
+        continue
+      }
+
+      const activityData = ActivityFactory.parseKey(member, Number(score))
+      if (!activityData) {
+        continue
+      }
+
+      const activity = ActivityFactory.create(activityData)
+      if (!activity) {
+        continue
+      }
+
+      const group = activity.toGroupKey()
+      const existingGroup = notificationGroups.get(group)
+      if (existingGroup) {
+        //activities are presorted: so push to top of group
+        notificationGroups.set(group, {
+          key: group,
+          type: existingGroup.type,
+          activities: [...existingGroup.activities, activityData],
+        })
+      } else {
+        notificationGroups.set(group, {
+          key: group,
+          type: activityData.type,
+          activities: [activityData],
+        })
+      }
+    }
+
+    const lastViewedNotifications = Number(
+      (await this.hget(userDetailsKey, 'lastViewedNotifications')) || 0
+    )
+
+    if (markSeen) {
+      await PipelineHandler(this.pipeline())(
+        (p) =>
+          this.hset(userDetailsKey, 'lastViewedNotifications', moment().unix()),
+        (p) => this.hset(userDetailsKey, 'notificationCount', 0)
+      )
+    }
+
+    const userIds = new Set<string>()
+    const postIds = new Map<string, string>()
+
+    notificationGroups.forEach((activityGroup) => {
+      activityGroup.activities.forEach((activity) => {
+        userIds.add(activity.actorId)
+
+        if (
+          activity.type === 'like' ||
+          activity.type === 'repost' ||
+          activity.type === 'tip'
+        ) {
+          //Get all info on liked/reposted/tipped post
+          postIds.set(activity.object.postId, userId)
+          userIds.add(activity.actorId)
+        } else if (activity.type === 'mention' || activity.type === 'reply') {
+          //Get all info on post mentioning for
+          postIds.set(activity.data.postId, activity.actorId)
+          userIds.add(activity.actorId)
+        } else if (activityGroup.type === 'follow') {
+          userIds.add(activity.actorId)
+        }
+      })
+    })
+
+    const { users, posts } = await this.getNotificationData(
+      postIds,
+      userIds,
+      userId
+    )
+
+    const currentUser = users.get(userId)
+
+    if (!currentUser) return []
+
+    return Array.from(notificationGroups.values())
+      .map((activityGroup) => {
+        // console.log(activityGroup)
+        const notificationsFrom = new Set<string>()
+        activityGroup.activities.forEach((activity) => {
+          notificationsFrom.add(activity.actorId)
+        })
+
+        if (activityGroup.type === 'follow') {
+          const latestActivity = activityGroup.activities[0]
+          if (!latestActivity) return undefined
+          const createdAt = moment.unix(latestActivity.timestamp).toDate()
+          const wasSeen = latestActivity.timestamp <= lastViewedNotifications
+
+          const linkedPostAuthor = users.get(latestActivity.actorId)
+
+          if (!linkedPostAuthor) {
+            return
+          }
+
+          return {
+            key: activityGroup.key,
+            href:
+              notificationsFrom.size === 1
+                ? `/profile/${linkedPostAuthor.username}/`
+                : `/profile/${currentUser.username}/followers`,
+            createdAt,
+            type: activityGroup.type,
+            users: Array.from(notificationsFrom)
+              .map((u) => users.get(u))
+              .filter(Boolean),
+            viewed: wasSeen,
+          }
+        } else if (
+          activityGroup.type === 'reply' ||
+          activityGroup.type === 'mention'
+        ) {
+          const latestActivity = activityGroup.activities[0]
+          if (
+            !latestActivity ||
+            (latestActivity.type !== 'reply' &&
+              latestActivity.type !== 'mention')
+          )
+            return undefined
+          const createdAt = moment.unix(latestActivity.timestamp).toDate()
+          const wasSeen = latestActivity.timestamp <= lastViewedNotifications
+
+          const linkedPostAuthor = users.get(latestActivity.actorId)
+          const viewPost = posts.get(latestActivity.data.postId)
+
+          if (!linkedPostAuthor || !viewPost || viewPost.deleted) {
+            return
+          }
+
+          return {
+            key: activityGroup.key,
+            href: `/profile/${linkedPostAuthor.username}/status/${latestActivity.data.postId}`,
+            createdAt,
+            type: activityGroup.type,
+            users: Array.from(notificationsFrom)
+              .map((u) => users.get(u))
+              .filter(Boolean),
+            viewed: wasSeen,
+            post: viewPost,
+          }
+        } else if (
+          activityGroup.type === 'like' ||
+          activityGroup.type === 'repost' ||
+          activityGroup.type === 'tip'
+        ) {
+          const latestActivity = activityGroup.activities[0]
+          if (
+            !latestActivity ||
+            (latestActivity.type !== 'like' &&
+              latestActivity.type !== 'repost' &&
+              latestActivity.type !== 'tip')
+          )
+            return undefined
+          const createdAt = moment.unix(latestActivity.timestamp).toDate()
+          const wasSeen = latestActivity.timestamp <= lastViewedNotifications
+          const viewPost = posts.get(latestActivity.object.postId)
+
+          if (!viewPost || viewPost.deleted) {
+            return
+          }
+
+          return {
+            key: activityGroup.key,
+            href: `/profile/${currentUser.username}/status/${latestActivity.object.postId}`,
+            createdAt,
+            type: activityGroup.type,
+            users: Array.from(notificationsFrom)
+              .map((u) => users.get(u))
+              .filter(Boolean),
+            viewed: wasSeen,
+            post: viewPost,
+          }
+        }
+
+        return
+      })
+      .filter(Boolean)
+  }
+
+  async getNotificationData(
+    postIds: Map<string, string>,
+    userIds: Set<string>,
+    currentUserId: string
+  ) {
+    const allUserIds = new Set(userIds)
+
+    allUserIds.add(currentUserId)
+
+    const postIdsArr: { id: string; publishedById: string }[] = []
+
+    for (let [id, publishedById] of postIds.entries()) {
+      postIdsArr.push({ id, publishedById })
+      allUserIds.add(publishedById)
+    }
+
+    const userIdsArr = Array.from(allUserIds)
+
+    const usersMap = new Map<string, RedisAuthor>()
+    const postsMap = new Map<string, PostCardModel>()
+
+    await PipelineHandler(this.pipeline())(
+      ...userIdsArr.map((id) => postCache.getPostAuthor({ publishedById: id }))
+    ).then((users) =>
+      users.forEach((user: RedisAuthor) => usersMap.set(user.id, user))
+    )
+
+    await Promise.all(
+      postIdsArr.map(async ({ id: postId, publishedById }) => {
+        const embeddedKey = getPostEmbeddedKey(postId, publishedById)
+
+        return await PipelineHandler(this.pipeline())(
+          postCache.getPost({ postId, publishedById }),
+          postCache.getIsLikedByCurrentUser({
+            currentUserId,
+            postId,
+            publishedById,
+          }),
+          postCache.getIsRetweetedByCurrentUser({
+            currentUserId,
+            postId,
+            publishedById,
+          }),
+          postCache.getIsTippedByCurrentUser({
+            currentUserId,
+            postId,
+            publishedById,
+          }),
+          postCache.getIsFollowedByCurrentUser({
+            currentUserId,
+            publishedById,
+          }),
+          postCache.getIsMutedByCurrentUser({
+            currentUserId,
+            publishedById,
+          }),
+          postCache.getIsBlockedByCurrentUser({
+            currentUserId,
+            publishedById,
+          })
+        ).then(
+          async ([
+            post,
+            isLikedByCurrentUser,
+            isRepostedByCurrentUser,
+            isTippedByCurrentUser,
+
+            isFollowedByCurrentUser,
+            isMutedByCurrentUser,
+            isBlockedByCurrentUser,
+          ]) => {
+            if (!post.id) return undefined
+
+            return mapRedisPostToPostCard(embeddedKey, {
+              post,
+              author: usersMap.get(publishedById),
+
+              isLikedByCurrentUser,
+              isRepostedByCurrentUser,
+              isTippedByCurrentUser,
+
+              isFollowedByCurrentUser,
+              isMutedByCurrentUser,
+              isBlockedByCurrentUser,
+
+              repostedBy: undefined,
+              repostedById: undefined,
+
+              parentAuthor: undefined,
+            }) as PostCardModel
+          }
+        )
+      })
+    ).then((posts) =>
+      posts.forEach((post) => post && postsMap.set(post.id, post))
+    )
+
+    return { posts: postsMap, users: usersMap }
   }
 }
 
@@ -1477,4 +1948,12 @@ async function oldGetPostPage(
   }
 
   return postIds
+}
+
+type RedisAuthor = {
+  id: string
+  username: string
+  avatarUrl: string
+  displayName: string
+  bchAddress?: string | null
 }

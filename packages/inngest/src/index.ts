@@ -28,7 +28,11 @@ export type ExpiredCampaignEvent = {
   }
 }
 
-export type RebuildRedisEvent = {}
+export type RebuildRedisEvent = {
+  data: {
+    types?: Array<'posts' | 'users'> | 'all'
+  }
+}
 
 export type DonationCheckEvent = {
   data: {
