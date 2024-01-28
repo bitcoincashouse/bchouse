@@ -70,13 +70,6 @@ export const action = async (_: ActionArgs) => {
   return typedjson({})
 }
 
-function updatePost(
-  post: PostCardModel,
-  action: z.infer<typeof postActionSchema>['action']
-) {
-  return post
-}
-
 type FeedData =
   | {
       pages: {
@@ -154,6 +147,10 @@ function updatePage(
     })
   }
 
+  if (action === 'post:remove') {
+    return posts.filter((post) => post.id !== postId)
+  }
+
   if (
     action === 'repost:add' ||
     action === 'repost:remove' ||
@@ -161,7 +158,7 @@ function updatePage(
     action === 'like:remove'
   ) {
     return posts.map((post) => {
-      if (post.id !== params.postId) return post
+      if (post.id !== postId) return post
 
       if (action === 'repost:add' || action === 'repost:remove') {
         const wasReposted = action === 'repost:add'
