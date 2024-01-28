@@ -2,6 +2,7 @@ import moment from '~/server/utils/moment'
 
 export type Activity =
   | ReactionActivity
+  | TipActivity
   | ReplyActivity
   | MentionActivity
   | FollowActivity
@@ -11,7 +12,7 @@ export type ActivityData = Activity['activity']
 export class ReactionActivity {
   constructor(
     readonly activity: {
-      type: 'like' | 'repost' | 'tip'
+      type: 'like' | 'repost'
       actorId: string
       object: {
         postId: string
@@ -27,12 +28,61 @@ export class ReactionActivity {
   static parseKey(key: string, timestamp: number) {
     try {
       const [type, actorId, postId] = key.split(':')
-      return type === 'like' || type === 'repost' || type === 'tip'
+      return type === 'like' || type === 'repost'
         ? {
-            type: type as 'like' | 'repost' | 'tip',
+            type: type as 'like' | 'repost',
             actorId: actorId as string,
             object: {
               postId: postId as string,
+            },
+            timestamp,
+          }
+        : undefined
+    } catch (err) {
+      console.log(err, key)
+      return undefined
+    }
+  }
+
+  toGroupKey() {
+    const aggDate = moment
+      .unix(Math.abs(this.activity.timestamp))
+      .format('YYYY-MM-DD')
+    return `${this.activity.type}_${aggDate}_${this.activity.object.postId}`
+  }
+}
+
+export class TipActivity {
+  constructor(
+    readonly activity: {
+      type: 'tip'
+      actorId: string
+      object: {
+        postId: string
+      }
+      data: {
+        tipAmount: number
+      }
+      timestamp: number
+    }
+  ) {}
+
+  toKey() {
+    return `${this.activity.type}:${this.activity.actorId}:${this.activity.object.postId}:${this.activity.data.tipAmount}`
+  }
+
+  static parseKey(key: string, timestamp: number) {
+    try {
+      const [type, actorId, postId, tipAmount] = key.split(':')
+      return type === 'tip'
+        ? {
+            type: type as 'tip',
+            actorId: actorId as string,
+            object: {
+              postId: postId as string,
+            },
+            data: {
+              tipAmount: Number(tipAmount as string),
             },
             timestamp,
           }
@@ -176,12 +226,10 @@ export class FollowActivity {
 
 export class ActivityFactory {
   static create(activityData: ActivityData) {
-    if (
-      activityData.type === 'like' ||
-      activityData.type === 'repost' ||
-      activityData.type === 'tip'
-    ) {
+    if (activityData.type === 'like' || activityData.type === 'repost') {
       return new ReactionActivity(activityData)
+    } else if (activityData.type === 'tip') {
+      return new TipActivity(activityData)
     } else if (activityData.type === 'mention') {
       return new MentionActivity(activityData)
     } else if (activityData.type === 'reply') {
@@ -196,8 +244,11 @@ export class ActivityFactory {
   static parseKey(key: string, timestamp: number) {
     const [type] = key?.split(':') || []
 
-    if (type === 'like' || type === 'repost' || type === 'tip') {
+    if (type === 'like' || type === 'repost') {
       return ReactionActivity.parseKey(key, timestamp)
+    }
+    if (type === 'tip') {
+      return TipActivity.parseKey(key, timestamp)
     } else if (type === 'mention') {
       return MentionActivity.parseKey(key, timestamp)
     } else if (type === 'reply') {

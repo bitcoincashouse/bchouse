@@ -85,17 +85,6 @@ export const getNotificationKeys = (
 
   return {
     notificationsKey,
-    notificationGroupKey,
     notificationActivityKey: activity.toKey(),
   }
-}
-
-export const parseNotificationGroup = ({
-  groupKey,
-  activityKeys,
-}: {
-  groupKey: string
-  activityKeys: string[]
-}) => {
-  return ActivityFactory.parseGroup(groupKey, activityKeys)
 }

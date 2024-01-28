@@ -964,6 +964,9 @@ export class RedisService extends Redis {
         object: {
           postId: tip.id,
         },
+        data: {
+          tipAmount: tip.tipAmount,
+        },
         timestamp,
       }
     )
@@ -1482,15 +1485,12 @@ export class RedisService extends Redis {
           }
         } else if (
           activityGroup.type === 'like' ||
-          activityGroup.type === 'repost' ||
-          activityGroup.type === 'tip'
+          activityGroup.type === 'repost'
         ) {
           const latestActivity = activityGroup.activities[0]
           if (
             !latestActivity ||
-            (latestActivity.type !== 'like' &&
-              latestActivity.type !== 'repost' &&
-              latestActivity.type !== 'tip')
+            (latestActivity.type !== 'like' && latestActivity.type !== 'repost')
           )
             return undefined
           const createdAt = moment.unix(latestActivity.timestamp).toDate()
@@ -1511,6 +1511,34 @@ export class RedisService extends Redis {
               .filter(Boolean),
             viewed: wasSeen,
             post: viewPost,
+          }
+        } else if (activityGroup.type === 'tip') {
+          const latestActivity = activityGroup.activities[0]
+          if (!latestActivity || latestActivity.type !== 'tip') return undefined
+
+          const totalAmount = activityGroup.activities.reduce(
+            (sum, tip) => (tip.type === 'tip' ? sum + tip.data.tipAmount : sum),
+            0
+          )
+          const createdAt = moment.unix(latestActivity.timestamp).toDate()
+          const wasSeen = latestActivity.timestamp <= lastViewedNotifications
+          const viewPost = posts.get(latestActivity.object.postId)
+
+          if (!viewPost || viewPost.deleted) {
+            return
+          }
+
+          return {
+            key: activityGroup.key,
+            href: `/profile/${currentUser.username}/status/${latestActivity.object.postId}`,
+            createdAt,
+            type: activityGroup.type,
+            users: Array.from(notificationsFrom)
+              .map((u) => users.get(u))
+              .filter(Boolean),
+            viewed: wasSeen,
+            post: viewPost,
+            totalAmount,
           }
         }
 

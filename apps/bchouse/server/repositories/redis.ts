@@ -88,6 +88,7 @@ export async function getRedisUserNotifications(params: {
       'post.createdAt',
       'parentPost.id as targetPostId',
       sql`'REPLY'`.$castTo<Notification['type']>().as('notificationType'),
+      sql`''`.$castTo<string>().as('data'),
     ])
 
   const tipsQuery = db
@@ -107,6 +108,7 @@ export async function getRedisUserNotifications(params: {
       'tp.createdAt',
       'tr.postId as targetPostId',
       sql`'TIP'`.$castTo<Notification['type']>().as('notificationType'),
+      sql`CONVERT(tp.satoshis,char)`.$castTo<string>().as('data'),
     ])
 
   const likesQuery = db
@@ -126,6 +128,7 @@ export async function getRedisUserNotifications(params: {
       'like.createdAt',
       'like.postId as targetPostId',
       sql`'LIKE'`.$castTo<Notification['type']>().as('notificationType'),
+      sql`''`.$castTo<string>().as('data'),
     ])
 
   const repostsQuery = db
@@ -145,6 +148,7 @@ export async function getRedisUserNotifications(params: {
       'repost.createdAt',
       'repostedPost.id as targetPostId',
       sql`'REPOST'`.$castTo<Notification['type']>().as('notificationType'),
+      sql`''`.$castTo<string>().as('data'),
     ])
 
   const quotedQuery = db
@@ -168,6 +172,7 @@ export async function getRedisUserNotifications(params: {
       'quotePost.createdAt',
       'quotedPost.id as targetPostId',
       sql`'QUOTE'`.$castTo<Notification['type']>().as('notificationType'),
+      sql`''`.$castTo<string>().as('data'),
     ])
 
   const followsQuery = db
@@ -186,6 +191,7 @@ export async function getRedisUserNotifications(params: {
       'follow.createdAt',
       sql`''`.$castTo<string>().as('targetPostId'),
       sql`'FOLLOW'`.$castTo<Notification['type']>().as('notificationType'),
+      sql`''`.$castTo<string>().as('data'),
     ])
 
   const mentionsQuery = db
@@ -205,6 +211,7 @@ export async function getRedisUserNotifications(params: {
       'post.createdAt',
       sql`''`.$castTo<string>().as('targetPostId'),
       sql`'MENTION'`.$castTo<Notification['type']>().as('notificationType'),
+      sql`''`.$castTo<string>().as('data'),
     ])
 
   const [notifications] = await Promise.all([
@@ -225,6 +232,7 @@ export async function getRedisUserNotifications(params: {
         'n.createdAt',
         'n.targetPostId',
         'n.notificationType',
+        'n.data',
       ])
       .orderBy('n.createdAt desc')
       .execute(),
@@ -241,17 +249,27 @@ export async function getRedisUserNotifications(params: {
         }
       } else if (
         notification.notificationType === 'LIKE' ||
-        notification.notificationType === 'REPOST' ||
-        notification.notificationType === 'TIP'
+        notification.notificationType === 'REPOST'
       ) {
         return {
           type: notification.notificationType.toLowerCase() as
             | 'like'
-            | 'repost'
-            | 'tip',
+            | 'repost',
           actorId: notification.sourceUserId,
           object: {
             postId: notification.targetPostId,
+          },
+          timestamp,
+        }
+      } else if (notification.notificationType === 'TIP') {
+        return {
+          type: notification.notificationType.toLowerCase() as 'tip',
+          actorId: notification.sourceUserId,
+          object: {
+            postId: notification.targetPostId,
+          },
+          data: {
+            tipAmount: Number(notification.data),
           },
           timestamp,
         }

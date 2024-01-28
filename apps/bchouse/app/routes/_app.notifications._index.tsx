@@ -10,6 +10,7 @@ import { classnames } from '~/components/utils/classnames'
 import { Activity } from '~/server/services/redis/activity'
 import { classNames } from '~/utils/classNames'
 import moment from '~/utils/moment'
+import { prettyPrintSats } from '~/utils/prettyPrintSats'
 import { useNotificationsLoaderData } from './_app.notifications'
 
 export const loader = async (_: LoaderArgs) => {
@@ -58,7 +59,12 @@ export default function Index() {
             ) : (
               ' '
             )
-          const notificationAction = typeToAction[notification.type]
+
+          const notificationAction =
+            typeToAction[notification.type] +
+            (notification.type === 'tip'
+              ? ' ' + prettyPrintSats(notification.totalAmount).join('')
+              : '')
 
           return (
             <li key={notification.key}>
