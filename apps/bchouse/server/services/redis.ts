@@ -256,10 +256,11 @@ export class RedisService extends Redis {
   }
 
   async updateUserNotifications(userId: string, notifications: ActivityData[]) {
+    const { userDetailsKey, userNotificationsKey } = getKeys(userId)
+    await this.del(userNotificationsKey)
+
     await Promise.all(
       notifications.map(async (notification) => {
-        const { userDetailsKey } = getKeys(userId)
-
         const { notificationActivityKey, notificationsKey } =
           getNotificationKeys(userId, notification)
 
