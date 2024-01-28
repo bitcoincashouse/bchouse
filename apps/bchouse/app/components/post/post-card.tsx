@@ -271,12 +271,14 @@ PostCard.ItemMenu = function () {
           return (
             <Menu.Item key={i}>
               {({ active, close }) => (
-                <MenuAction
-                  active={active}
-                  menuItem={item}
-                  post={post}
-                  close={close}
-                />
+                <div>
+                  <MenuAction
+                    active={active}
+                    menuItem={item}
+                    post={post}
+                    close={close}
+                  />
+                </div>
               )}
             </Menu.Item>
           )
