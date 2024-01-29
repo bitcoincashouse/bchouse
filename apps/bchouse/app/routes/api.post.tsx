@@ -111,14 +111,6 @@ export function useSubmitPost(
   const fetcher = useTypedFetcher<typeof action>()
   const [postError, setPostError] = useState<Error | undefined>(undefined)
 
-  useEffect(() => {
-    if (typeof fetcher.data === 'object' && fetcher.data.error) {
-      setPostError(new Error(fetcher.data.error.toString()))
-    } else {
-      setPostError(undefined)
-    }
-  }, [fetcher.data])
-
   async function submitPost(
     body: JSONContent,
     galleryImageUrls: string[],
@@ -134,45 +126,46 @@ export function useSubmitPost(
           audienceType: AudienceType
         }
   ) {
-    if (!body?.content?.length) return
+    try {
+      if (!body?.content?.length) return
 
-    //Media nodes are top level nodes
-    const postImageUrls = body.content
-      .filter((node) => node.type === 'media')
-      .map((node) => node.attrs?.src as string)
+      //Media nodes are top level nodes
+      const postImageUrls = body.content
+        .filter((node) => node.type === 'media')
+        .map((node) => node.attrs?.src as string)
 
-    const { postImages, galleryImages, imageUploadError } = await uploadImages(
-      postImageUrls,
-      galleryImageUrls
-    )
+      const { postImages, galleryImages } = await uploadImages(
+        postImageUrls,
+        galleryImageUrls
+      )
 
-    if (imageUploadError) {
-      setPostError(imageUploadError)
-      return
+      //Add placeholders in content for simpler verification server side
+      const contentJson = serializeForServer(body, postImages)
+      const galleryIds = galleryImages.map(({ id }) => id).join(',')
+      const createPostParams: CreatePostParams =
+        'parentPost' in options
+          ? {
+              mediaIds: galleryIds,
+              comment: JSON.stringify(contentJson) as any,
+              parentPost: options.parentPost,
+            }
+          : {
+              mediaIds: galleryIds,
+              comment: JSON.stringify(contentJson) as any,
+              audienceType: options.audienceType,
+              ...(options.monetization && {
+                monetization: options.monetization,
+              }),
+            }
+
+      fetcher.submit(JSON.stringify(createPostParams), {
+        method: 'POST',
+        encType: 'application/json',
+        action: $path('/api/post'),
+      })
+    } catch (err) {
+      setPostError(err as Error)
     }
-
-    //Add placeholders in content for simpler verification server side
-    const contentJson = serializeForServer(body, postImages)
-    const galleryIds = galleryImages.map(({ id }) => id).join(',')
-    const createPostParams: CreatePostParams =
-      'parentPost' in options
-        ? {
-            mediaIds: galleryIds,
-            comment: JSON.stringify(contentJson) as any,
-            parentPost: options.parentPost,
-          }
-        : {
-            mediaIds: galleryIds,
-            comment: JSON.stringify(contentJson) as any,
-            audienceType: options.audienceType,
-            ...(options.monetization && { monetization: options.monetization }),
-          }
-
-    fetcher.submit(JSON.stringify(createPostParams), {
-      method: 'POST',
-      encType: 'application/json',
-      action: $path('/api/post'),
-    })
   }
 
   const isSubmitting =
@@ -182,12 +175,17 @@ export function useSubmitPost(
   const queryClient = useQueryClient()
 
   useEffect(() => {
-    if (isDone) {
+    if (isDone && !postError) {
       queryClient.invalidateQueries({ queryKey: ['feed'] })
       queryClient.invalidateQueries({ queryKey: ['thread'] })
       options?.onSubmitted?.()
     }
   }, [isDone])
+
+  const loaderError =
+    typeof fetcher.data === 'object' && 'error' in fetcher.data
+      ? fetcher.data.error
+      : undefined
 
   return {
     submissionState: isSubmitting
@@ -198,7 +196,7 @@ export function useSubmitPost(
     postId: typeof fetcher.data === 'string' ? fetcher.data : undefined,
     fetcher,
     submitPost,
-    postError,
+    postError: loaderError || postError,
   }
 }
 
@@ -212,8 +210,6 @@ async function uploadImages(
     type: 'post',
     count: totalImageCount,
   })
-
-  let error: Error | undefined
 
   const results = totalImageCount
     ? ((await (
@@ -237,16 +233,12 @@ async function uploadImages(
     const uploadRequestForm = serialize(form.fields)
     uploadRequestForm.append('file', file)
 
-    try {
-      const response = await fetch(form.url, {
-        method: 'POST',
-        body: uploadRequestForm,
-      })
-      if (!response.ok) throw new Error('Failed to upload image.')
-      error = undefined
-    } catch (err) {
-      error = new Error('Failed to upload image.')
-    }
+    const response = await fetch(form.url, {
+      method: 'POST',
+      body: uploadRequestForm,
+    })
+
+    if (!response.ok) throw new Error('Error uploading image')
 
     return { url: imageUrl, id: key }
   }
@@ -259,6 +251,5 @@ async function uploadImages(
   return {
     galleryImages: galleryImageResults,
     postImages: postImageResults,
-    imageUploadError: error,
   }
 }

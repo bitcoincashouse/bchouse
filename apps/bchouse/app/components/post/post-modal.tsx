@@ -196,7 +196,7 @@ export const PostModal: React.FC<{
   const isDoneSubmitting = submissionState === 'done'
 
   useEffect(() => {
-    if (isDoneSubmitting) {
+    if (isDoneSubmitting && !postError) {
       clearPostForm()
     }
   }, [isDoneSubmitting])
