@@ -339,7 +339,7 @@ export function incrementParentNotification(post: {
       type: 'reply',
       actorId: post.publishedById,
       data: {
-        postId: post.parentPost.id,
+        postId: post.id,
       },
       object: {
         postId: post.parentPost.id,
