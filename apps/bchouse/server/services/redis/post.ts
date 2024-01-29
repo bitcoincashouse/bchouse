@@ -296,21 +296,22 @@ export function addToMentionedUsersNotification(post: {
 
     const mentionedUserKey = getKeys(mention.userId).userDetailsKey
     const timestamp = moment(post.createdAt).unix()
-    const { notificationActivityKey, notificationGroupKey, notificationsKey } =
-      getNotificationKeys(mention.userId, {
+    const { notificationActivityKey, notificationsKey } = getNotificationKeys(
+      mention.userId,
+      {
         type: 'mention',
         actorId: post.publishedById,
         data: {
           postId: post.id,
         },
         timestamp,
-      })
+      }
+    )
 
     return (p: ChainableCommander) =>
       p.addNotification(
         mentionedUserKey,
         notificationsKey,
-        notificationGroupKey,
         timestamp,
         notificationActivityKey
       )
@@ -332,8 +333,9 @@ export function incrementParentNotification(post: {
 
   const { userDetailsKey } = getKeys(post.parentPost.publishedById)
   const timestamp = moment(post.createdAt).unix()
-  const { notificationActivityKey, notificationGroupKey, notificationsKey } =
-    getNotificationKeys(post.parentPost.publishedById, {
+  const { notificationActivityKey, notificationsKey } = getNotificationKeys(
+    post.parentPost.publishedById,
+    {
       type: 'reply',
       actorId: post.publishedById,
       data: {
@@ -343,13 +345,13 @@ export function incrementParentNotification(post: {
         postId: post.parentPost.id,
       },
       timestamp,
-    })
+    }
+  )
 
   return (p: ChainableCommander) =>
     p.addNotification(
       userDetailsKey,
       notificationsKey,
-      notificationGroupKey,
       timestamp,
       notificationActivityKey
     )
