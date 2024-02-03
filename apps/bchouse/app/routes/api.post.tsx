@@ -127,6 +127,7 @@ export function useSubmitPost(
         }
   ) {
     try {
+      setPostError(undefined)
       if (!body?.content?.length) return
 
       //Media nodes are top level nodes
