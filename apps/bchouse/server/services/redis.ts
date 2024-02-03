@@ -893,6 +893,7 @@ export class RedisService extends Redis {
     )
 
     await PipelineHandler(this.pipeline())(
+      (p) => p.zadd(followersKey, -moment().unix(), params.followerId),
       (p) =>
         p.addNotification(
           userDetailsKey,
