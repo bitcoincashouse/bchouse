@@ -376,7 +376,7 @@ const PostForm: React.FC<PostFormProps> = ({
                 footer={
                   <button
                     type="submit"
-                    disabled={!hasContent}
+                    disabled={isSubmitting || !hasContent}
                     className={classNames(
                       !hasContent ? 'opacity-50' : '',
                       'ml-auto inline-flex items-center justify-center rounded-full border border-transparent bg-primary-btn-400 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-primary-btn-600 focus:outline-none focus:ring-2 focus:ring-primary-btn-500 focus:ring-offset-2'
