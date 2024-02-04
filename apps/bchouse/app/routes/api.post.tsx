@@ -97,7 +97,12 @@ export const action = async (_: ActionArgs) => {
     return typedjson(newPostId)
   } catch (err) {
     logger.error(err)
-    return typedjson({ error: err })
+
+    return typedjson({
+      error: {
+        message: 'Error submitting post. Please try again.',
+      },
+    })
   }
 }
 
