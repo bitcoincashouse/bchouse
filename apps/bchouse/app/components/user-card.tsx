@@ -18,6 +18,8 @@ type BaseUserCardProps = {
   header?: React.ReactNode
   onClick?: MouseEventHandler
   noLinks?: boolean
+  aboutClassName?: string
+  followButtonClassName?: string
 }
 
 type UserCardProps = BaseUserCardProps & {
@@ -104,6 +106,8 @@ export const BaseUserCard: React.FC<BaseUserCardProps> = ({
 export const UserCard: React.FC<UserCardProps> = ({
   user,
   containerClass = 'py-4 px-4',
+  aboutClassName,
+  followButtonClassName,
 }) => {
   const navigate = useNavigate()
 
@@ -117,13 +121,13 @@ export const UserCard: React.FC<UserCardProps> = ({
       header={
         !user.isCurrentUser ? (
           <div className="ml-auto">
-            <FollowButton user={user} />
+            <FollowButton user={user} className={followButtonClassName} />
           </div>
         ) : null
       }
     >
       <div className="mt-2 text-base text-secondary-text whitespace-pre-wrap">
-        <p>{user.about}</p>
+        <p className={aboutClassName}>{user.about}</p>
       </div>
     </BaseUserCard>
   )

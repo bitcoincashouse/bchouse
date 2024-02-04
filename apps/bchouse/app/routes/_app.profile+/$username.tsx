@@ -23,6 +23,7 @@ import { PostForm } from '~/components/post/post-form'
 import { useAppLoaderData } from '../../utils/appHooks'
 import { layoutHandle } from '../_app/route'
 import { ActiveCampaignsWidget } from '../api.campaigns.active.($username)'
+import { RelatedFollowSuggestions } from '../api.follow-suggestions.$userId'
 
 export const loader = async (_: LoaderArgs) => {
   const { hostname, pathname } = new URL(_.request.url)
@@ -56,16 +57,20 @@ export const loader = async (_: LoaderArgs) => {
 
 export const action = async (_: ActionArgs) => {
   try {
-    const { userId } = await _.context.authService.getAuth(_)
+    const { userId, sessionId } = await _.context.authService.getAuth(_)
     const { _action: action, profileId } = await zx.parseForm(_.request, {
       _action: z.enum(['follow', 'unfollow']),
       profileId: z.string().nonempty(),
     })
 
     if (action === 'follow') {
-      await _.context.profileService.addUserFollow(userId, profileId)
+      await _.context.profileService.addUserFollow(userId, sessionId, profileId)
     } else {
-      await _.context.profileService.removeUserFollow(userId, profileId)
+      await _.context.profileService.removeUserFollow(
+        userId,
+        sessionId,
+        profileId
+      )
     }
 
     return json(profileId)
@@ -453,6 +458,7 @@ export default function Index() {
           </>
         ) : null,
         <ActiveCampaignsWidget username={user.username} />,
+        <RelatedFollowSuggestions user={user.id} />,
       ]}
     ></StandardLayout>
   )

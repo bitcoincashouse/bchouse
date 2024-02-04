@@ -43,6 +43,8 @@
     "@algolia/autocomplete-core": "^1.13.0",
     "@algolia/autocomplete-js": "^1.10.0",
     "@algolia/autocomplete-theme-classic": "^1.10.0",
+    "@aws-sdk/client-personalize-events": "^3.504.0",
+    "@aws-sdk/client-personalize-runtime": "^3.504.0",
     "@babel/runtime": "^7.22.6",
     "@bchouse/cashconnect": "^1.0.0",
     "@bchouse/inngest": "^1.0.0",

@@ -1,4 +1,4 @@
-import { classNames } from '~/utils/classNames'
+import { classnames } from '../utils/classnames'
 
 export function Widget<T>({
   title,
@@ -11,6 +11,7 @@ export function Widget<T>({
   isLoadingMessage = 'Loading...',
   className,
   listClassName,
+  itemClassName,
 }: {
   title: string
   items: T[]
@@ -22,6 +23,7 @@ export function Widget<T>({
   isLoadingMessage?: string
   className?: string
   listClassName?: string
+  itemClassName?: string
 }) {
   const getKey =
     typeof keyProp === 'function'
@@ -31,7 +33,7 @@ export function Widget<T>({
   return (
     <section aria-labelledby="announcements-title">
       <div
-        className={classNames(
+        className={classnames(
           className,
           'overflow-hidden rounded-lg bg-gray-50 bg-secondary'
         )}
@@ -47,13 +49,16 @@ export function Widget<T>({
             {items.length ? (
               <ul
                 role="list"
-                className={classNames(
+                className={classnames(
                   '-my-5 divide-y divide-gray-200 px-6',
                   listClassName
                 )}
               >
                 {items.map((item) => (
-                  <li key={getKey(item)} className="py-4">
+                  <li
+                    key={getKey(item)}
+                    className={classnames('py-4', itemClassName)}
+                  >
                     {render(item)}
                   </li>
                 ))}

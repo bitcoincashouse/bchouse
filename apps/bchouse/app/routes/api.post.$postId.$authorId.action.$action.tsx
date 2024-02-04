@@ -33,7 +33,7 @@ const postActionSchema = z.object({
 export type PostActionType = z.infer<typeof postActionSchema>['action']
 
 export const action = async (_: ActionArgs) => {
-  const { userId } = await _.context.authService.getAuthOptional(_)
+  const { userId, sessionId } = await _.context.authService.getAuthOptional(_)
   const { action, postId, authorId } = zx.parseParams(
     _.params,
     postActionSchema
@@ -62,9 +62,9 @@ export const action = async (_: ActionArgs) => {
   } else if (action === 'block:remove') {
     await _.context.userService.removeBlock(userId, authorId)
   } else if (action === 'follow:add') {
-    await _.context.profileService.addUserFollow(userId, authorId)
+    await _.context.profileService.addUserFollow(userId, sessionId, authorId)
   } else if (action === 'follow:remove') {
-    await _.context.profileService.removeUserFollow(userId, authorId)
+    await _.context.profileService.removeUserFollow(userId, sessionId, authorId)
   }
 
   return typedjson({})

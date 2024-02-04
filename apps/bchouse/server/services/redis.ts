@@ -893,7 +893,6 @@ export class RedisService extends Redis {
     )
 
     await PipelineHandler(this.pipeline())(
-      (p) => p.zadd(followersKey, -moment().unix(), params.followerId),
       (p) =>
         p.addNotification(
           userDetailsKey,
@@ -911,7 +910,8 @@ export class RedisService extends Redis {
           repliesKey
         ),
       //Trim home timeline to 800 items
-      (p) => this.zremrangebyrank(homeTimelineKey, 800, -1)
+      (p) => this.zremrangebyrank(homeTimelineKey, 800, -1),
+      (p) => p.zadd(followersKey, -moment().unix(), params.followerId)
     )
   }
 
@@ -1546,6 +1546,34 @@ export class RedisService extends Redis {
         return
       })
       .filter(Boolean)
+  }
+
+  async getUsers(userIds: string[], currentUserId: string) {
+    return Promise.all(
+      userIds.map(async (userId) => {
+        const { userDetailsKey, followersKey } = getKeys(userId)
+
+        console.log({ followersKey })
+
+        return PipelineHandler(this.pipeline())(
+          (p) => p.hgetall(userDetailsKey),
+          (p) => (currentUserId ? p.zscore(followersKey, currentUserId) : false)
+        ).then(([user, isFollowing]) => {
+          return user?.id
+            ? {
+                id: user.id as string,
+                username: user.username as string,
+                about: user.about as string | null,
+                fullName: user.fullName as string | null,
+                avatarUrl: user.avatarUrl as string | null,
+                bchAddress: user.bchAddress as string | null,
+                isCurrentUser: user.id === currentUserId,
+                isCurrentUserFollowing: isFollowing,
+              }
+            : null
+        })
+      })
+    ).then((users) => users.filter(Boolean))
   }
 
   async getNotificationData(

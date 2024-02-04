@@ -5,6 +5,11 @@ import moment from '../../app/utils/moment'
 import { toDefault } from '../../app/utils/zod'
 import userRepo from '../repositories/user'
 import { MinimalProfile } from '../repositories/user/types'
+import {
+  getPersonalizedSuggestions,
+  getSimilarUsers,
+  sendPersonalizeFollowEvent,
+} from '../utils/personalize'
 import { AuthService } from './auth'
 import { setMediaPublic } from './images'
 import { RedisService } from './redis'
@@ -238,7 +243,7 @@ export class ProfileService {
     }
   }
 
-  async addUserFollow(userId: string, followedId: string) {
+  async addUserFollow(userId: string, sessionId: string, followedId: string) {
     await userRepo.followUser({
       userId: userId,
       followedId: followedId,
@@ -248,9 +253,22 @@ export class ProfileService {
       followedId,
       followerId: userId,
     })
+
+    await sendPersonalizeFollowEvent(
+      {
+        followedId,
+        followerId: userId,
+        event: 'follow',
+      },
+      sessionId
+    )
   }
 
-  async removeUserFollow(userId: string, followedId: string) {
+  async removeUserFollow(
+    userId: string,
+    sessionId: string,
+    followedId: string
+  ) {
     await userRepo.unfollowUser({
       userId: userId,
       followedId: followedId,
@@ -260,5 +278,72 @@ export class ProfileService {
       followedId,
       followerId: userId,
     })
+
+    await sendPersonalizeFollowEvent(
+      {
+        followedId,
+        followerId: userId,
+        event: 'unfollow',
+      },
+      sessionId
+    )
+  }
+
+  async getPersonalizedFollowSuggestions(currentUserId: string) {
+    const cacheKey = `suggestions:${currentUserId}:personalized_follows`
+    const cached = await this.redis.get(cacheKey)
+    const suggestedIds = cached
+      ? (JSON.parse(cached) as string[])
+      : await getPersonalizedSuggestions(currentUserId)
+
+    if (!cached) {
+      await this.redis.set(
+        cacheKey,
+        JSON.stringify(suggestedIds),
+        'EX',
+        60 * 5,
+        'NX'
+      )
+    }
+
+    const suggestedFollows = await this.redis.getUsers(
+      suggestedIds,
+      currentUserId
+    )
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log({ suggestedFollows, cached: !!cached })
+    }
+
+    return suggestedFollows
+  }
+
+  async getRelatedFollowSuggestions(userId: string, currentUserId: string) {
+    const cacheKey = `suggestions:${currentUserId}:related_users:${userId}`
+    const cached = await this.redis.get(cacheKey)
+    const suggestedIds = cached
+      ? (JSON.parse(cached) as string[])
+      : await getSimilarUsers(userId, currentUserId)
+
+    if (!cached) {
+      await this.redis.set(
+        cacheKey,
+        JSON.stringify(suggestedIds),
+        'EX',
+        60 * 5,
+        'NX'
+      )
+    }
+
+    const suggestedFollows = await this.redis.getUsers(
+      suggestedIds,
+      currentUserId
+    )
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log({ suggestedFollows, cached: !!cached })
+    }
+
+    return suggestedFollows
   }
 }

@@ -10,12 +10,14 @@ import { classnames } from './utils/classnames'
 
 export function FollowButton({
   user,
+  className,
 }: {
   user: {
     id: string
     isCurrentUser: boolean
     isCurrentUserFollowing: boolean
   }
+  className?: string
 }) {
   const fetcher = useTypedFetcher<typeof followAction>({
     key: 'follow:' + user.id,
@@ -94,7 +96,8 @@ export function FollowButton({
                 isFollowing && !isHovering && 'opacity-50',
                 isFollowing && isHovering
                   ? 'text-rose-900 ring-rose-300 hover:bg-rose-50'
-                  : 'text-primary-text ring-gray-300 hover:bg-hover'
+                  : 'text-primary-text ring-gray-300 hover:bg-hover',
+                className
               )}
             >
               {!isFollowing || !isHovering ? (

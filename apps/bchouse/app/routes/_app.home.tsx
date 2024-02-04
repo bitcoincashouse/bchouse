@@ -9,6 +9,7 @@ import { layoutHandle } from '~/routes/_app/route'
 import { useAppLoaderData } from '~/utils/appHooks'
 import { classNames } from '~/utils/classNames'
 import { ActiveCampaignsWidget } from './api.campaigns.active.($username)'
+import { PersonalizedFollowSuggestions } from './api.follow-suggestions.personalized'
 import { StatsWidget } from './api.stats'
 
 export const handle = {
@@ -200,6 +201,7 @@ export default function Index() {
           }}
         />,
         <ActiveCampaignsWidget />,
+        <PersonalizedFollowSuggestions />,
       ]}
     ></StandardLayout>
   )
