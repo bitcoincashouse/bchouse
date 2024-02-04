@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { JSONContent } from '@tiptap/core'
 import { isValidAddress } from 'bchaddrjs'
 import { serialize } from 'object-to-formdata'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { $path } from 'remix-routes'
 import { typedjson, useTypedFetcher } from 'remix-typedjson'
 import { z } from 'zod'
@@ -109,6 +109,7 @@ export function useSubmitPost(
     | undefined
 ) {
   const fetcher = useTypedFetcher<typeof action>()
+  const [postError, setPostError] = useState<Error | undefined>(undefined)
 
   async function submitPost(
     body: JSONContent,
@@ -125,40 +126,47 @@ export function useSubmitPost(
           audienceType: AudienceType
         }
   ) {
-    if (!body?.content?.length) return
+    try {
+      setPostError(undefined)
+      if (!body?.content?.length) return
 
-    //Media nodes are top level nodes
-    const postImageUrls = body.content
-      .filter((node) => node.type === 'media')
-      .map((node) => node.attrs?.src as string)
+      //Media nodes are top level nodes
+      const postImageUrls = body.content
+        .filter((node) => node.type === 'media')
+        .map((node) => node.attrs?.src as string)
 
-    const { postImages, galleryImages } = await uploadImages(
-      postImageUrls,
-      galleryImageUrls
-    )
+      const { postImages, galleryImages } = await uploadImages(
+        postImageUrls,
+        galleryImageUrls
+      )
 
-    //Add placeholders in content for simpler verification server side
-    const contentJson = serializeForServer(body, postImages)
-    const galleryIds = galleryImages.map(({ id }) => id).join(',')
-    const createPostParams: CreatePostParams =
-      'parentPost' in options
-        ? {
-            mediaIds: galleryIds,
-            comment: JSON.stringify(contentJson) as any,
-            parentPost: options.parentPost,
-          }
-        : {
-            mediaIds: galleryIds,
-            comment: JSON.stringify(contentJson) as any,
-            audienceType: options.audienceType,
-            ...(options.monetization && { monetization: options.monetization }),
-          }
+      //Add placeholders in content for simpler verification server side
+      const contentJson = serializeForServer(body, postImages)
+      const galleryIds = galleryImages.map(({ id }) => id).join(',')
+      const createPostParams: CreatePostParams =
+        'parentPost' in options
+          ? {
+              mediaIds: galleryIds,
+              comment: JSON.stringify(contentJson) as any,
+              parentPost: options.parentPost,
+            }
+          : {
+              mediaIds: galleryIds,
+              comment: JSON.stringify(contentJson) as any,
+              audienceType: options.audienceType,
+              ...(options.monetization && {
+                monetization: options.monetization,
+              }),
+            }
 
-    fetcher.submit(JSON.stringify(createPostParams), {
-      method: 'POST',
-      encType: 'application/json',
-      action: $path('/api/post'),
-    })
+      fetcher.submit(JSON.stringify(createPostParams), {
+        method: 'POST',
+        encType: 'application/json',
+        action: $path('/api/post'),
+      })
+    } catch (err) {
+      setPostError(err as Error)
+    }
   }
 
   const isSubmitting =
@@ -168,12 +176,17 @@ export function useSubmitPost(
   const queryClient = useQueryClient()
 
   useEffect(() => {
-    if (isDone) {
+    if (isDone && !postError) {
       queryClient.invalidateQueries({ queryKey: ['feed'] })
       queryClient.invalidateQueries({ queryKey: ['thread'] })
       options?.onSubmitted?.()
     }
   }, [isDone])
+
+  const loaderError =
+    typeof fetcher.data === 'object' && 'error' in fetcher.data
+      ? fetcher.data.error
+      : undefined
 
   return {
     submissionState: isSubmitting
@@ -184,6 +197,7 @@ export function useSubmitPost(
     postId: typeof fetcher.data === 'string' ? fetcher.data : undefined,
     fetcher,
     submitPost,
+    postError: loaderError || postError,
   }
 }
 
@@ -220,10 +234,12 @@ async function uploadImages(
     const uploadRequestForm = serialize(form.fields)
     uploadRequestForm.append('file', file)
 
-    await fetch(form.url, {
+    const response = await fetch(form.url, {
       method: 'POST',
       body: uploadRequestForm,
     })
+
+    if (!response.ok) throw new Error('Error uploading image')
 
     return { url: imageUrl, id: key }
   }

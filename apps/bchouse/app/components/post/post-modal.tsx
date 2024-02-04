@@ -113,6 +113,7 @@ export const PostModal: React.FC<{
     submitPost,
     postId: newPostId,
     submissionState,
+    postError,
   } = useSubmitPost()
 
   const { setReferenceElement, close: closeWalletConnect } = useWalletConnect()
@@ -195,7 +196,7 @@ export const PostModal: React.FC<{
   const isDoneSubmitting = submissionState === 'done'
 
   useEffect(() => {
-    if (isDoneSubmitting) {
+    if (isDoneSubmitting && !postError) {
       clearPostForm()
     }
   }, [isDoneSubmitting])
@@ -397,6 +398,9 @@ export const PostModal: React.FC<{
             }
           />
         </fetcher.Form>
+        {postError && (
+          <div className="text-red-600 p-2">{postError.message}</div>
+        )}
       </Modal>
       {openWalletConnect ? (
         <SetupFundraiserModal
