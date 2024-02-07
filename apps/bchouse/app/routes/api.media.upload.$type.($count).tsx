@@ -7,7 +7,8 @@ import { zx } from '~/utils/zodix'
  * URL: /api/media/upload?type=avatar|coverPhoto
  */
 export const action = async (_: LoaderArgs) => {
-  //TODO: Move to action?)
+  await _.context.ratelimit.limitByIp(_, 'api', true)
+
   const { userId } = await _.context.authService.getAuth(_)
   const params = zx.parseParams(
     _.params,

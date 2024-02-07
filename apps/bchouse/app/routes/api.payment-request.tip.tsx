@@ -4,6 +4,8 @@ import { z } from 'zod'
 import { logger } from '~/utils/logger'
 
 export const action = async (_: ActionArgs) => {
+  await _.context.ratelimit.limitByIp(_, 'api', true)
+
   const { userId } = await _.context.authService.getAuthOptional(_)
   const formData = await _.request.json()
 

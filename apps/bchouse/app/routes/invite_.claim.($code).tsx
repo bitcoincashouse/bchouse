@@ -9,6 +9,8 @@ import { logger } from '~/utils/logger'
 import { zx } from '~/utils/zodix'
 
 export const loader = async (_: LoaderArgs) => {
+  await _.context.ratelimit.limitByIp(_, 'api', true)
+
   const { code } = zx.parseParams(_.params, {
     code: z.string().optional(),
   })

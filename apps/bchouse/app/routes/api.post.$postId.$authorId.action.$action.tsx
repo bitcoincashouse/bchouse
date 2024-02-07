@@ -33,6 +33,8 @@ const postActionSchema = z.object({
 export type PostActionType = z.infer<typeof postActionSchema>['action']
 
 export const action = async (_: ActionArgs) => {
+  await _.context.ratelimit.limitByIp(_, 'api', true)
+
   const { userId, sessionId } = await _.context.authService.getAuthOptional(_)
   const { action, postId, authorId } = zx.parseParams(
     _.params,

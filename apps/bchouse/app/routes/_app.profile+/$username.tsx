@@ -1,7 +1,7 @@
-import { ActionArgs, LoaderArgs, json } from '@remix-run/node'
-import { NavLink, Outlet, useLocation } from '@remix-run/react'
+import { LoaderArgs } from '@remix-run/node'
+import { NavLink, Outlet } from '@remix-run/react'
 import { $path } from 'remix-routes'
-import { typedjson, useTypedFetcher, useTypedLoaderData } from 'remix-typedjson'
+import { useTypedLoaderData } from 'remix-typedjson'
 import { z } from 'zod'
 import { ActionsPanel } from '~/components/actions'
 import { StandardLayout } from '~/components/layouts/standard-layout'
@@ -18,29 +18,17 @@ import { Link } from '@remix-run/react'
 import { Avatar } from '~/components/avatar'
 import { FollowButton } from '~/components/follow-button'
 import { ImageProxy } from '~/components/image-proxy'
-import { LandingPage } from '~/components/landing'
 import { PostForm } from '~/components/post/post-form'
 import { useAppLoaderData } from '../../utils/appHooks'
-import { layoutHandle } from '../_app/route'
 import { ActiveCampaignsWidget } from '../api.campaigns.active.($username)'
 import { RelatedFollowSuggestions } from '../api.follow-suggestions.$userId'
 
 export const loader = async (_: LoaderArgs) => {
-  const { hostname, pathname } = new URL(_.request.url)
-  const mainDomain = process.env.APP_MAIN_DOMAIN as string
-  const mainAccount = process.env.APP_MAIN_USER as string
   const { userId } = await _.context.authService.getAuthOptional(_)
 
-  if (hostname !== mainDomain && pathname === '/') {
-    return { isLandingPage: true as const, isLoggedIn: !!userId }
-  }
-
-  let username =
-    hostname === mainDomain
-      ? mainAccount
-      : zx.parseParams(_.params, {
-          username: z.string().nonempty(),
-        }).username
+  let { username } = zx.parseParams(_.params, {
+    username: z.string().nonempty(),
+  })
 
   //TODO: Use cache for basic user information
   const profile = await _.context.profileService.getBasicProfile(
@@ -48,35 +36,7 @@ export const loader = async (_: LoaderArgs) => {
     username
   )
 
-  return {
-    ...profile,
-    svg: null,
-    isLandingPage: false as const,
-  }
-}
-
-export const action = async (_: ActionArgs) => {
-  try {
-    const { userId, sessionId } = await _.context.authService.getAuth(_)
-    const { _action: action, profileId } = await zx.parseForm(_.request, {
-      _action: z.enum(['follow', 'unfollow']),
-      profileId: z.string().nonempty(),
-    })
-
-    if (action === 'follow') {
-      await _.context.profileService.addUserFollow(userId, sessionId, profileId)
-    } else {
-      await _.context.profileService.removeUserFollow(
-        userId,
-        sessionId,
-        profileId
-      )
-    }
-
-    return json(profileId)
-  } catch (err) {
-    return typedjson({ error: err })
-  }
+  return profile
 }
 
 declare global {
@@ -148,16 +108,6 @@ const tabs = [
 
 export default function Index() {
   const user = useTypedLoaderData<typeof loader>()
-  const location = useLocation()
-  const fetcher = useTypedFetcher<typeof action>()
-  const isSubmittingFollowAction =
-    fetcher.formData?.get('_action') === 'follow' &&
-    fetcher.state === 'submitting'
-  const layoutData = useAppLoaderData(layoutHandle)
-
-  if (user.isLandingPage) {
-    return <LandingPage isLoggedIn={user.isLoggedIn} />
-  }
 
   return (
     <StandardLayout
@@ -375,14 +325,14 @@ export default function Index() {
                   </div>
                 </div>
               </section>
-              <>
+              {/* <>
                 {user.svg ? (
                   <svg
                     className="flex p-4 sm:hidden"
                     dangerouslySetInnerHTML={{ __html: user.svg }}
                   ></svg>
                 ) : null}
-              </>
+              </> */}
               {user.isCurrentUser ? (
                 <div className="hidden sm:block border-b border-gray-100 dark:border-gray-600 px-4 py-6 sm:px-6">
                   <PostForm

@@ -18,7 +18,6 @@ import {
   UserGroupIcon,
   UserIcon,
 } from '@heroicons/react/24/outline'
-import { Outlet } from '@remix-run/react'
 import { useMemo } from 'react'
 import ReactDOM from 'react-dom'
 import { $path } from 'remix-routes' // <-- Import magical $path helper from remix-routes.
@@ -29,8 +28,6 @@ import { MobileNavigation } from '~/components/navigation/mobile-navigation'
 import SidebarNavigation, {
   NavigationItemProps,
 } from '~/components/navigation/sidebar-navigation'
-import { PledgeFundraiserModal } from '~/components/pledge-modal'
-import { TipPostModal } from '~/components/tip-modal'
 import { classnames } from '~/components/utils/classnames'
 import { usePageDisplay } from '~/utils/appHooks'
 import { logoUrl } from '~/utils/constants'
@@ -66,14 +63,14 @@ export const AppShell: React.FC<
           mobile: true,
           notificationCount: layoutData.anonymousView
             ? 0
-            : layoutData.profile.notificationCount,
+            : layoutData.profile?.notificationCount,
         },
         {
           name: 'Profile',
           href: layoutData.anonymousView
             ? $path('/auth/login/:rest?', {})
             : $path('/profile/:username', {
-                username: layoutData.profile.username,
+                username: layoutData.profile?.username,
               }),
           icon: UserIcon,
           activeIcon: UserIconSolid,
@@ -115,14 +112,6 @@ export const AppShell: React.FC<
 
   const { containerClassName } = usePageDisplay()
 
-  if (layoutData.landingPage) {
-    return (
-      <div>
-        <Outlet />
-      </div>
-    )
-  }
-
   return (
     <MobileMenuProvider>
       <div className="app-container relative flex flex-col h-screen min-h-screen sm:h-auto">
@@ -158,12 +147,11 @@ export const AppShell: React.FC<
           </div>
 
           <div id="view" className="relative flex-grow">
-            {children}
+            <div className="relative flex-grow w-full min-[720px]:w-[600px] min-[990px]:w-[920px] min-[1080px]:w-[990px]">
+              {children}
+            </div>
           </div>
         </div>
-
-        <TipPostModal isLoggedIn={!layoutData.anonymousView} />
-        <PledgeFundraiserModal isLoggedIn={!layoutData.anonymousView} />
 
         {/* Fixed position and invisible copy to offset body container */}
         {!layoutData.anonymousView && (

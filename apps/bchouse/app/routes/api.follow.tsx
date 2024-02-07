@@ -5,6 +5,8 @@ import { zx } from '~/utils/zodix'
 
 export const action = async (_: ActionArgs) => {
   try {
+    await _.context.ratelimit.limitByIp(_, 'api', true)
+
     const { userId, sessionId } = await _.context.authService.getAuth(_)
     const { _action: action, profileId } = await zx.parseForm(_.request, {
       _action: z.enum(['follow', 'unfollow']),

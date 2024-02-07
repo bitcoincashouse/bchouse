@@ -1421,7 +1421,6 @@ export class RedisService extends Redis {
 
     return Array.from(notificationGroups.values())
       .map((activityGroup) => {
-        // console.log(activityGroup)
         const notificationsFrom = new Set<string>()
         activityGroup.activities.forEach((activity) => {
           notificationsFrom.add(activity.actorId)
@@ -1552,8 +1551,6 @@ export class RedisService extends Redis {
     return Promise.all(
       userIds.map(async (userId) => {
         const { userDetailsKey, followersKey } = getKeys(userId)
-
-        console.log({ followersKey })
 
         return PipelineHandler(this.pipeline())(
           (p) => p.hgetall(userDetailsKey),

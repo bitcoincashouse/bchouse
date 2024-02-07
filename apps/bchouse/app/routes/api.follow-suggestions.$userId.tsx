@@ -13,6 +13,8 @@ import { useLayoutLoaderData } from './_app/route'
 
 export const loader = async (_: LoaderArgs) => {
   try {
+    await _.context.ratelimit.limitByIp(_, 'api', true)
+
     const { userId } = zx.parseParams(_.params, {
       userId: z.string(),
     })

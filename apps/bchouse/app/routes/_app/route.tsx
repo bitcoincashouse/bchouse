@@ -1,5 +1,4 @@
 import { WalletConnectProvider } from '@bchouse/cashconnect'
-import { getAuth } from '@clerk/remix/ssr.server'
 import { LoaderArgs } from '@remix-run/node'
 import {
   Link,
@@ -11,7 +10,6 @@ import {
 import { useMemo } from 'react'
 import {
   TypedJsonResponse,
-  redirect,
   typedjson,
   useTypedLoaderData,
 } from 'remix-typedjson'
@@ -19,10 +17,13 @@ import InfoAlert from '~/components/alert'
 import { ClientOnly } from '~/components/client-only'
 import { EditProfileModal } from '~/components/edit-profile-modal'
 import { ErrorDisplay } from '~/components/pages/error'
-import { PledgeModalProvider } from '~/components/pledge-modal'
+import {
+  PledgeFundraiserModal,
+  PledgeModalProvider,
+} from '~/components/pledge-modal'
 import { PostModal } from '~/components/post/post-modal'
 import { Post } from '~/components/post/types'
-import { TipPostModalProvider } from '~/components/tip-modal'
+import { TipPostModal, TipPostModalProvider } from '~/components/tip-modal'
 import { UserPopoverProvider } from '~/components/user-popover'
 import type { ProfileService } from '~/server/services/profile'
 import { useAppLoaderData, usePageDisplay } from '~/utils/appHooks'
@@ -46,10 +47,7 @@ type SignedInLoaderData = {
   showUpdateProfile: boolean
 } & Awaited<ReturnType<ProfileService['getHomeProfile']>>
 type AnonymousLoaderData = { anonymousView: true }
-type LoaderData = { landingPage: boolean } & (
-  | AnonymousLoaderData
-  | SignedInLoaderData
-)
+type LoaderData = AnonymousLoaderData | SignedInLoaderData
 
 export type LayoutLoaderData = LoaderData
 
@@ -62,37 +60,23 @@ export const layoutHandle = handle
 export const loader = async (
   _: LoaderArgs
 ): Promise<TypedJsonResponse<LoaderData>> => {
-  const { hostname, pathname } = new URL(_.request.url)
-  const mainDomain = process.env.APP_MAIN_DOMAIN as string
-  const auth = await getAuth(_).catch((err) => {})
-  const landingPage = hostname !== mainDomain && pathname === '/'
-  const profile =
-    auth?.userId &&
-    (await _.context.profileService
-      .getHomeProfile(auth.userId)
-      .catch(async () => {
-        if (!landingPage && hostname !== mainDomain) {
-          try {
-            await _.context.authService.forceLogout(auth)
-          } finally {
-            throw redirect('/auth/login')
-          }
-        }
-      }))
+  //Applies to entire application
+  await _.context.ratelimit.limitByIp(_, 'app', true)
 
+  const { userId } = await _.context.authService.getAuthOptional(_)
+  const profile =
+    !!userId && (await _.context.profileService.getHomeProfile(userId))
   const updateProfileSession = await getUpdateProfileSession(_.request)
 
   if (!profile) {
     return typedjson({
       anonymousView: true,
-      landingPage,
       showUpdateProfile: false,
     })
   } else {
     return typedjson({
-      landingPage,
-      anonymousView: false,
       ...profile,
+      anonymousView: false,
       showUpdateProfile:
         !profile.homeView.bchAddress && !updateProfileSession.getDismissed(),
     })
@@ -128,7 +112,9 @@ export const ErrorBoundary = () => {
 
   return (
     <AppShell showHeader={false} {...appData}>
-      <ErrorDisplay page="__index" />
+      <div>
+        <ErrorDisplay page="__index" />
+      </div>
     </AppShell>
   )
 }
@@ -148,7 +134,6 @@ export default function Index() {
           <ClientOnly>
             {() =>
               !applicationData.anonymousView &&
-              !applicationData.landingPage &&
               applicationData.showUpdateProfile ? (
                 <InfoAlert
                   target="_blank"
@@ -168,25 +153,26 @@ export default function Index() {
               ) : null
             }
           </ClientOnly>
-          <AppShell {...applicationData} showHeader={pageProps.header}>
-            <div className="relative flex-grow w-full min-[720px]:w-[600px] min-[990px]:w-[920px] min-[1080px]:w-[990px]">
-              <section className={classNames('relative admin-outlet')}>
-                <div>
-                  <div>
-                    <HeaderSection />
-                    {/* Body */}
-                    <div>
-                      <UserPopoverProvider>
-                        <Outlet />
-                      </UserPopoverProvider>
-                    </div>
-                  </div>
+          <TipPostModal isLoggedIn={!applicationData.anonymousView} />
+          <PledgeFundraiserModal isLoggedIn={!applicationData.anonymousView} />
 
-                  <FooterSection />
-                  <ModalSection />
+          <AppShell {...applicationData} showHeader={pageProps.header}>
+            <section className={classNames('relative admin-outlet')}>
+              <div>
+                <div>
+                  <HeaderSection />
+                  {/* Body */}
+                  <div>
+                    <UserPopoverProvider>
+                      <Outlet />
+                    </UserPopoverProvider>
+                  </div>
                 </div>
-              </section>
-            </div>
+
+                <FooterSection />
+                <ModalSection />
+              </div>
+            </section>
           </AppShell>
         </PledgeModalProvider>
       </TipPostModalProvider>

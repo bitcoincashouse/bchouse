@@ -7,6 +7,8 @@ import { Widget } from '~/components/layouts/widget'
 import { classNames } from '~/utils/classNames'
 
 export const loader = async (_: LoaderArgs) => {
+  await _.context.ratelimit.limitByIp(_, 'api', true)
+
   const { userCount, dailyActiveUserCount, weeklyActiveUserCount } =
     await _.context.userService.getUserCounts()
 

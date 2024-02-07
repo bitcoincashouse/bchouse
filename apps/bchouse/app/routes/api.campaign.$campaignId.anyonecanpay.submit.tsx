@@ -4,6 +4,8 @@ import { z } from 'zod'
 import { zx } from '~/utils/zodix'
 
 export const action = async (_: LoaderArgs) => {
+  await _.context.ratelimit.limitByIp(_, 'api', true)
+
   const { userId } = await _.context.authService.getAuthOptional(_)
 
   const { campaignId } = zx.parseParams(_.params, {

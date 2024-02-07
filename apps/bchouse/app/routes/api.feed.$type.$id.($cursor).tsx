@@ -6,6 +6,8 @@ import { zx } from '~/utils/zodix'
 
 export const loader = async (_: LoaderArgs) => {
   try {
+    await _.context.ratelimit.limitByIp(_, 'api', true)
+
     const { userId } = await _.context.authService.getAuthOptional(_)
 
     const { id, type, cursor } = zx.parseParams(_.params, {

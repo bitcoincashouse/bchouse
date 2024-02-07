@@ -11,6 +11,7 @@ import { InngestService } from './services/inngest'
 import { PledgeService } from './services/pledge'
 import { PostService } from './services/post'
 import { ProfileService } from './services/profile'
+import { ratelimit } from './services/rateLimiter'
 import { getRedis } from './services/redis'
 import { SearchService } from './services/search'
 import { UserService } from './services/user'
@@ -78,6 +79,7 @@ export async function getContext() {
     signal: abortController.signal,
     electrumService,
     bchouseUrl,
+    ratelimit,
     paygateUrl,
     bchNetwork,
     redisService: redis,

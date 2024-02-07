@@ -272,7 +272,6 @@ export class InngestService {
             event: 'image/size' as any,
           },
           async () => {
-            console.log('running')
             await saveMediaAspectRatios()
           }
         ),

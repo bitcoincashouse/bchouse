@@ -8,6 +8,8 @@ import { zx } from '~/utils/zodix'
 
 export const action = async (_: LoaderArgs) => {
   try {
+    await _.context.ratelimit.limitByIp(_, 'api', true)
+
     const { campaignId } = zx.parseParams(_.params, {
       campaignId: z.string(),
     })

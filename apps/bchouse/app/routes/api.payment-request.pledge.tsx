@@ -5,6 +5,8 @@ import { logger } from '~/utils/logger'
 import { getPledgeSession } from '~/utils/pledgeCookie.server'
 
 export const action = async (_: ActionArgs) => {
+  await _.context.ratelimit.limitByIp(_, 'api', true)
+
   const { userId } = await _.context.authService.getAuthOptional(_)
   const formData = await _.request.json()
 

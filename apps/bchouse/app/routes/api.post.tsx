@@ -69,6 +69,8 @@ const childPost = z.object({
 
 export const action = async (_: ActionArgs) => {
   try {
+    await _.context.ratelimit.limitByIp(_, 'api', true)
+
     const { userId } = await _.context.authService.getAuth(_)
     const formData = await _.request.json()
 

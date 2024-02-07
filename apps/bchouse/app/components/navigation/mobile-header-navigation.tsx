@@ -237,13 +237,13 @@ export const MobileHeaderNavigation: React.FC<AdminLayoutProps> = ({
                                 </div>
                                 <div className="flex flex-col gap-0.5 items-start">
                                   <span className="" aria-hidden="true">
-                                    {layoutData.profile.fullName}
+                                    {layoutData.profile?.fullName}
                                   </span>
                                   <span
                                     className="text-secondary-text"
                                     aria-hidden="true"
                                   >
-                                    @{layoutData.profile.username}
+                                    @{layoutData.profile?.username}
                                   </span>
                                 </div>
                               </div>

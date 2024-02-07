@@ -6,6 +6,8 @@ import { zx } from '~/utils/zodix'
 
 export const action = async (_: ActionArgs) => {
   try {
+    await _.context.ratelimit.limitByIp(_, 'api', true)
+
     const { secret } = await zx.parseForm(_.request, {
       secret: z.string(),
     })

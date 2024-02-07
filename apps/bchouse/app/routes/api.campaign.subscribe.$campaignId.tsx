@@ -10,6 +10,8 @@ import { logger } from '~/utils/logger'
 import { zx } from '~/utils/zodix'
 
 export async function loader(_: LoaderArgs) {
+  await _.context.ratelimit.limitByIp(_, 'api', true)
+
   const { campaignId } = zx.parseParams(_.params, {
     campaignId: z.string(),
   })

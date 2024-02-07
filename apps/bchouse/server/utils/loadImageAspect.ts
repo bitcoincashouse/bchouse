@@ -58,7 +58,6 @@ export async function saveMediaAspectRatios() {
         }
       }
 
-      console.log('Saving', media.length)
       return db.transaction().execute(async (trx) =>
         Promise.all(
           items.map(async (media) => {

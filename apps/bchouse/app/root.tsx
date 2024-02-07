@@ -83,7 +83,9 @@ export const ErrorBoundary = withSentry(
   ClerkErrorBoundary(function () {
     return (
       <Document specifiedTheme={null}>
-        <ErrorDisplay page={'root'} />
+        <div className="flex justify-center items-center">
+          <ErrorDisplay page={'root'} />
+        </div>
       </Document>
     )
   })

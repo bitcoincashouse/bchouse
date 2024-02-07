@@ -478,7 +478,6 @@ export class CampaignService {
     address,
     network,
   }: getInngestEvent<'pledge/check-spent'>['data']) {
-    console.log('checking anyonecanpaypledge spent')
     const cluster = this.electrumProviderService.getElectrumCluster(network)
     const isUnspent = await cluster.request(
       'blockchain.utxo.get_info',

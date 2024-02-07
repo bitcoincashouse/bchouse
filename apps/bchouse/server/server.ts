@@ -87,8 +87,10 @@ async function startup() {
       : createRequestHandler({
           build: build,
           mode: process.env.NODE_ENV,
-          async getLoadContext() {
-            return context
+          async getLoadContext(req: any) {
+            return Object.assign(context, {
+              ip: req.headers['Fly-Client-IP'] ?? req.socket.remoteAddress,
+            })
           },
         })
   )
@@ -132,8 +134,10 @@ async function startup() {
         return createRequestHandler({
           build: build,
           mode: 'development',
-          async getLoadContext() {
-            return context
+          async getLoadContext(req: any) {
+            return Object.assign(context, {
+              ip: req.headers['Fly-Client-IP'] ?? req.socket.remoteAddress,
+            })
           },
         })(req, res, next)
       } catch (error) {

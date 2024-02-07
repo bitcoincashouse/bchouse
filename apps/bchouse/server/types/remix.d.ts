@@ -1,10 +1,5 @@
-import type { Redis } from 'ioredis'
-import type { RouteMatch } from '@remix-run/react'
 import type { DataFunctionArgs } from '@remix-run/node'
-import type {
-  RouteMatch as RemixRouteMatch,
-  RouteHandle as RemixRouteHandle,
-} from '@remix-run/react'
+import type { RouteMatch } from '@remix-run/react'
 import type { Context } from '../getContext'
 
 declare module '@remix-run/node' {

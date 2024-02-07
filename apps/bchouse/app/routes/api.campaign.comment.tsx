@@ -4,6 +4,8 @@ import { logger } from '~/utils/logger'
 
 export const action = async (_: ActionArgs) => {
   try {
+    await _.context.ratelimit.limitByIp(_, 'api', true)
+
     const { name, comment, secret } = z
       .object({
         name: z.string().optional(),

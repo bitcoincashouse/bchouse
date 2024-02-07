@@ -14,6 +14,8 @@ import { prettyPrintSats } from '~/utils/prettyPrintSats'
 import { zx } from '~/utils/zodix'
 
 export const loader = async (_: LoaderArgs) => {
+  await _.context.ratelimit.limitByIp(_, 'api', true)
+
   const { username } = zx.parseParams(_.params, {
     username: z.string().optional(),
   })

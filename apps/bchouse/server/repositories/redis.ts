@@ -964,10 +964,6 @@ export async function getRedisPostsPaginated(params: {
   ).then(({ results, nextCursor }) => {
     return {
       results: results.map((post) => {
-        if (post.id === '347a6297-16fb-451f-8705-eb6270d6b706') {
-          console.log(post, Boolean(post.deleted))
-        }
-
         return {
           id: post.id,
           publishedById: post.publishedById,
