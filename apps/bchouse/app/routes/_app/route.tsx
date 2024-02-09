@@ -187,7 +187,7 @@ export default function Index() {
             }
           )
         }
-      }, 5000)
+      }, 60 * 60 * 1000)
     }
 
     return () => clearInterval(interval)
