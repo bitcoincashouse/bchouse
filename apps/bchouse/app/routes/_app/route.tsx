@@ -7,10 +7,11 @@ import {
   useLocation,
   useSearchParams,
 } from '@remix-run/react'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import {
   TypedJsonResponse,
   typedjson,
+  useTypedFetcher,
   useTypedLoaderData,
 } from 'remix-typedjson'
 import InfoAlert from '~/components/alert'
@@ -126,6 +127,57 @@ export default function Index() {
   const config = useWalletConnectConfig()
 
   const updateProfileFetcher = useDismissUpdateProfileBanner()
+  const fetcher = useTypedFetcher()
+
+  const isVisible = useRef(true)
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      isVisible.current = document.visibilityState === 'visible'
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange, {
+      passive: true,
+    })
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [])
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout
+
+    if (!applicationData.anonymousView) {
+      fetcher.submit(
+        {
+          id: applicationData.profile.id,
+        },
+        {
+          action: `/api/update-last-active`,
+          method: 'POST',
+          encType: 'application/json',
+        }
+      )
+
+      interval = setInterval(() => {
+        if (isVisible.current) {
+          fetcher.submit(
+            {
+              id: applicationData.profile.id,
+            },
+            {
+              action: `/api/update-last-active`,
+              method: 'POST',
+              encType: 'application/json',
+            }
+          )
+        }
+      }, 60 * 60 * 1000)
+    }
+
+    return () => clearInterval(interval)
+  }, [applicationData.anonymousView])
 
   return (
     <WalletConnectProvider config={config}>
