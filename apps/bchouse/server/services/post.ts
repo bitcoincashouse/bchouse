@@ -365,6 +365,10 @@ export class PostService {
     }
   }
 
+  async reportPost(userId: string, postId: string) {
+    await postRepo.reportPost({ userId, postId })
+  }
+
   async getPostWithChildren(currentUserId: string | null, postId: string) {
     const [parentPosts, postModel, childPosts] = await Promise.all([
       postRepo.getPostParents({ id: postId, currentUserId }),

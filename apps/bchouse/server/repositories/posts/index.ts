@@ -9,6 +9,7 @@ import { getAllUserLikes, getUserLikes } from './getUserLikes'
 import { getUserMedia } from './getUserMedia'
 import { getUserReplies } from './getUserReplies'
 import { likePost } from './likePost'
+import { reportPost } from './reportPost'
 import { repost } from './repost'
 import { unlikePost } from './unlikePost'
 import { unrepostPost } from './unrepostPost'
@@ -31,4 +32,5 @@ export default {
   unlikePost,
   repost,
   unrepostPost,
+  reportPost,
 }

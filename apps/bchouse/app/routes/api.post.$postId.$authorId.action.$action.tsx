@@ -63,6 +63,8 @@ export const action = async (_: ActionArgs) => {
     await _.context.userService.addBlock(userId, authorId)
   } else if (action === 'block:remove') {
     await _.context.userService.removeBlock(userId, authorId)
+  } else if (action === 'report') {
+    await _.context.postService.reportPost(userId, postId)
   } else if (action === 'follow:add') {
     await _.context.profileService.addUserFollow(userId, sessionId, authorId)
   } else if (action === 'follow:remove') {
