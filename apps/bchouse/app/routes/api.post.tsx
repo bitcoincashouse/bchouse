@@ -133,12 +133,15 @@ export function useSubmitPost(
   ) {
     try {
       setPostError(undefined)
-      if (!body?.content?.length) return
+      if (!body?.content?.length && !galleryImageUrls.length) return
 
       //Media nodes are top level nodes
-      const postImageUrls = body.content
-        .filter((node) => node.type === 'media')
-        .map((node) => node.attrs?.src as string)
+      let postImageUrls: string[] = []
+      if (body.content) {
+        postImageUrls = body.content
+          .filter((node) => node.type === 'media')
+          .map((node) => node.attrs?.src as string)
+      }
 
       const { postImages, galleryImages } = await uploadImages(
         postImageUrls,
