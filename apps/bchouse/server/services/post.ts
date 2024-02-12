@@ -7,7 +7,7 @@ import { logger } from '~/utils/logger'
 import { prettyPrintSats } from '~/utils/prettyPrintSats'
 import { InternalServerError } from '../../app/utils/withErrorHandler'
 import { db } from '../db'
-import { Network } from '../db/types'
+import { ManualAction, Network } from '../db/types'
 import postRepo from '../repositories/posts'
 import { getCampaignDonorPosts } from '../repositories/posts/getCampaignDonorPosts'
 import { KyselyPostDbModel } from '../repositories/posts/types'
@@ -149,6 +149,26 @@ export class PostService {
         this.redisService.removeFromTimeline(postId, userId),
         this.searchService.removePost(postId),
       ])
+    }
+  }
+
+  async postModerationAction(action: ManualAction, postId: string) {
+    await db
+      .insertInto('ManualReportAction')
+      .values({
+        postId,
+        action,
+      })
+      .executeTakeFirst()
+
+    //TODO: Add restore post function
+    if (action === 'REMOVE') {
+      const { publishedById } = await db
+        .selectFrom('Post')
+        .where('Post.id', '=', postId)
+        .select('publishedById')
+        .executeTakeFirstOrThrow()
+      await this.removePost(publishedById, postId)
     }
   }
 

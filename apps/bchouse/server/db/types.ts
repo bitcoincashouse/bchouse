@@ -4,6 +4,11 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   : ColumnType<T, T | undefined, T>
 export type Timestamp = ColumnType<Date, Date | string, Date | string>
 
+export const ManualAction = {
+  ALLOW: 'ALLOW',
+  REMOVE: 'REMOVE',
+} as const
+export type ManualAction = (typeof ManualAction)[keyof typeof ManualAction]
 export const PostAudience = {
   PUBLIC: 'PUBLIC',
   CIRCLE: 'CIRCLE',
@@ -149,6 +154,12 @@ export type Likes = {
   postId: string
   createdAt: Generated<Timestamp>
 }
+export type ManualReportAction = {
+  id: Generated<string>
+  action: ManualAction
+  postId: string
+  createdAt: Generated<Timestamp>
+}
 export type Media = {
   id: Generated<string>
   url: string
@@ -282,6 +293,7 @@ export type DB = {
   Invite: Invite
   InviteCode: InviteCode
   Likes: Likes
+  ManualReportAction: ManualReportAction
   Media: Media
   Mention: Mention
   Mute: Mute

@@ -184,8 +184,9 @@ model Post {
   quotePost   Post?   @relation("quote_tweets", fields: [quotePostId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   reports         ReportedPosts[]
-  ancestorPaths   PostPaths[]     @relation("descendants")
-  descendantPaths PostPaths[]     @relation("ancestors")
+  ancestorPaths   PostPaths[]          @relation("descendants")
+  descendantPaths PostPaths[]          @relation("ancestors")
+  actionsOnPost   ManualReportAction[]
 
   @@index([publishedById])
   @@index([parentPostId])
@@ -203,6 +204,22 @@ model PostPaths {
   @@id([ancestorId, descendantId])
   @@index([ancestorId])
   @@index([descendantId])
+}
+
+enum ManualAction {
+  ALLOW
+  REMOVE
+}
+
+model ManualReportAction {
+  id        String       @id @default(dbgenerated("(uuid())"))
+  action    ManualAction
+  postId    String
+  createdAt DateTime     @default(now())
+
+  post Post @relation(fields: [postId], references: [id])
+
+  @@index([postId])
 }
 
 model ReportedPosts {
