@@ -27,18 +27,15 @@ export function useUpdateLastActive(isEnabled: boolean) {
 
   isEnabledRef.current = isEnabled
 
-  const updateLastActiveCallback = useThrottleCallback(
-    React.useCallback(() => {
-      if (isEnabledRef.current && isVisibleRef.current) {
-        fetcher.submit({
-          action: $path('/api/update-last-active'),
-          method: 'POST',
-          encType: 'application/json',
-        })
-      }
-    }, []),
-    60 * 60 * 1000
-  )
+  const updateLastActiveCallback = useThrottleCallback(() => {
+    if (isEnabledRef.current && isVisibleRef.current) {
+      fetcher.submit({
+        action: $path('/api/update-last-active'),
+        method: 'POST',
+        encType: 'application/json',
+      })
+    }
+  }, 60 * 60 * 1000)
 
   React.useEffect(() => {
     const handleVisibilityChange = () => {
