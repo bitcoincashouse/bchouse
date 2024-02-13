@@ -1,15 +1,18 @@
 import { ActionArgs } from '@remix-run/node'
 import { FetcherWithComponents } from '@remix-run/react'
 import { useQueryClient } from '@tanstack/react-query'
-import { JSONContent } from '@tiptap/core'
+import { JSONContent, generateText } from '@tiptap/core'
 import { isValidAddress } from 'bchaddrjs'
 import { serialize } from 'object-to-formdata'
 import { useEffect, useState } from 'react'
 import { $path } from 'remix-routes'
 import { typedjson, useTypedFetcher } from 'remix-typedjson'
-import { z } from 'zod'
+import { ZodError, z } from 'zod'
 import { AudienceType } from '~/components/post/audience-dropdown'
-import { serializeForServer } from '~/components/post/tiptap-extensions'
+import {
+  getExtensions,
+  serializeForServer,
+} from '~/components/post/tiptap-extensions'
 import { Monetization } from '~/components/post/types'
 import { isFetcherDone } from '~/components/utils/isFetcherDone'
 import { MediaUploadResponse } from '~/routes/api.media.upload.$type.($count)'
@@ -67,12 +70,23 @@ const childPost = z.object({
   }),
 })
 
+const postSchema = topLevelPost.or(childPost).refine((post) => {
+  if (post.mediaIds.length) return true
+
+  const text = generateText(
+    post.comment as JSONContent,
+    getExtensions('Placeholder', () => {})
+  )
+
+  return !!text.length
+}, 'Post requires body or media')
+
 export const action = async (_: ActionArgs) => {
   try {
     const { userId } = await _.context.authService.getAuth(_)
     const formData = await _.request.json()
 
-    const form = topLevelPost.or(childPost).parse(formData)
+    const form = postSchema.parse(formData)
 
     const newPostId = await _.context.postService.addPost(
       userId,
@@ -98,9 +112,16 @@ export const action = async (_: ActionArgs) => {
   } catch (err) {
     logger.error(err)
 
+    let message = 'Error submitting post. Please try again.'
+
+    if (err instanceof ZodError) {
+      const errors = err.flatten().formErrors
+      if (errors.length === 1 && errors[0]) message = errors[0]
+    }
+
     return typedjson({
       error: {
-        message: 'Error submitting post. Please try again.',
+        message,
       },
     })
   }
