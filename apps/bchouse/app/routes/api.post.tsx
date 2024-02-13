@@ -1,15 +1,18 @@
 import { ActionArgs } from '@remix-run/node'
 import { FetcherWithComponents } from '@remix-run/react'
 import { useQueryClient } from '@tanstack/react-query'
-import { JSONContent } from '@tiptap/core'
+import { JSONContent, generateText } from '@tiptap/core'
 import { isValidAddress } from 'bchaddrjs'
 import { serialize } from 'object-to-formdata'
 import { useEffect, useState } from 'react'
 import { $path } from 'remix-routes'
 import { typedjson, useTypedFetcher } from 'remix-typedjson'
-import { z } from 'zod'
+import { ZodError, z } from 'zod'
 import { AudienceType } from '~/components/post/audience-dropdown'
-import { serializeForServer } from '~/components/post/tiptap-extensions'
+import {
+  getExtensions,
+  serializeForServer,
+} from '~/components/post/tiptap-extensions'
 import { Monetization } from '~/components/post/types'
 import { isFetcherDone } from '~/components/utils/isFetcherDone'
 import { MediaUploadResponse } from '~/routes/api.media.upload.$type.($count)'
@@ -67,6 +70,17 @@ const childPost = z.object({
   }),
 })
 
+const postSchema = topLevelPost.or(childPost).refine((post) => {
+  if (post.mediaIds.length) return true
+
+  const text = generateText(
+    post.comment as JSONContent,
+    getExtensions('Placeholder', () => {})
+  )
+
+  return !!text.length
+}, 'Post requires body or media')
+
 export const action = async (_: ActionArgs) => {
   try {
     await _.context.ratelimit.limitByIp(_, 'api', true)
@@ -74,7 +88,7 @@ export const action = async (_: ActionArgs) => {
     const { userId } = await _.context.authService.getAuth(_)
     const formData = await _.request.json()
 
-    const form = topLevelPost.or(childPost).parse(formData)
+    const form = postSchema.parse(formData)
 
     const newPostId = await _.context.postService.addPost(
       userId,
@@ -100,9 +114,16 @@ export const action = async (_: ActionArgs) => {
   } catch (err) {
     logger.error(err)
 
+    let message = 'Error submitting post. Please try again.'
+
+    if (err instanceof ZodError) {
+      const errors = err.flatten().formErrors
+      if (errors.length === 1 && errors[0]) message = errors[0]
+    }
+
     return typedjson({
       error: {
-        message: 'Error submitting post. Please try again.',
+        message,
       },
     })
   }
@@ -135,12 +156,15 @@ export function useSubmitPost(
   ) {
     try {
       setPostError(undefined)
-      if (!body?.content?.length) return
+      if (!body?.content?.length && !galleryImageUrls.length) return
 
       //Media nodes are top level nodes
-      const postImageUrls = body.content
-        .filter((node) => node.type === 'media')
-        .map((node) => node.attrs?.src as string)
+      let postImageUrls: string[] = []
+      if (body.content) {
+        postImageUrls = body.content
+          .filter((node) => node.type === 'media')
+          .map((node) => node.attrs?.src as string)
+      }
 
       const { postImages, galleryImages } = await uploadImages(
         postImageUrls,
