@@ -21,7 +21,6 @@ import { ImageProxy } from '~/components/image-proxy'
 import { PostForm } from '~/components/post/post-form'
 import { useAppLoaderData } from '../../utils/appHooks'
 import { ActiveCampaignsWidget } from '../api.campaigns.active.($username)'
-import { RelatedFollowSuggestions } from '../api.follow-suggestions.$userId'
 
 export const loader = async (_: LoaderArgs) => {
   const { userId } = await _.context.authService.getAuthOptional(_)
@@ -408,7 +407,7 @@ export default function Index() {
           </>
         ) : null,
         <ActiveCampaignsWidget username={user.username} />,
-        <RelatedFollowSuggestions user={user.id} />,
+        // <RelatedFollowSuggestions user={user.id} />,
       ]}
     ></StandardLayout>
   )
