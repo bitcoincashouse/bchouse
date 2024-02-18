@@ -29,11 +29,14 @@ export function useUpdateLastActive(isEnabled: boolean) {
 
   const updateLastActiveCallback = useThrottleCallback(() => {
     if (isEnabledRef.current && isVisibleRef.current) {
-      fetcher.submit({
-        action: $path('/api/update-last-active'),
-        method: 'POST',
-        encType: 'application/json',
-      })
+      fetcher.submit(
+        {},
+        {
+          action: $path('/api/update-last-active'),
+          method: 'POST',
+          encType: 'application/json',
+        }
+      )
     }
   }, 60 * 60 * 1000)
 
