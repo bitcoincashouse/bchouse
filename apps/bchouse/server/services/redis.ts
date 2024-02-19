@@ -1913,7 +1913,11 @@ async function getPostPage(
           }
 
           //Mostly applies to first run when not offset, skip until after timestamp OR greater than cursor id
-          if (cursor && cursor.score === score && postId <= cursor.member) {
+          if (
+            cursor &&
+            Math.abs(cursor.score) === score &&
+            postId <= cursor.member
+          ) {
             continue
           }
 
@@ -1943,9 +1947,7 @@ async function getPostPage(
   let nextCursor
 
   if (lastItem) {
-    const { postId } = parsePostEmbeddedKey(lastItem)
-
-    if (postId !== cursor?.fromId) {
+    if (lastItem !== cursor?.fromId) {
       const lastItemScore = (await redis.zscore(key, lastItem)) as string
 
       nextCursor = serializeCursor({
