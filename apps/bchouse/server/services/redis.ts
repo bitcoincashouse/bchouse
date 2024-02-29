@@ -1913,11 +1913,7 @@ async function getPostPage(
           }
 
           //Mostly applies to first run when not offset, skip until after timestamp OR greater than cursor id
-          if (
-            cursor &&
-            Math.abs(cursor.score) === score &&
-            postId <= cursor.member
-          ) {
+          if (cursor && cursor.score === score && postId <= cursor.member) {
             continue
           }
 
