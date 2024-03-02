@@ -1,29 +1,18 @@
 {
 	"include": [
-		"./app/**/*.ts",
-		"./app/**/*.tsx",
-    "./app/**/*.json",
-		"./server/**/*.ts",
-    "./server/**/*.tsx",
-		"./server/**/*.json",
-    "./server.ts",
-    "./test/**/*.ts",
-    "./test/**/*.tsx",
-    "./test/**/*.json",
-    "./remix.env.d.ts"
+		"src/**/*.ts",
+    "src/**/*.tsx",
 	],
   "exclude": ["../../**/node_modules", "**/.*/"],
   "compilerOptions": {
     //EMISSIONS
-    "declarationDir": "./dist/types",
     "declaration": true,
     "declarationMap": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "sourceMap": true,
     "removeComments": true,
-    // Remix takes care of building everything in `remix build`.
-    "noEmit": true,
+    "outDir": "./dist/",
 
     // ECMAS Module + ES2021 + Node-16LTS
     "target": "ES2022",
@@ -43,33 +32,15 @@
     "strictPropertyInitialization": false,
     
     //STRUCTURE
-    "composite": true,
-    "incremental": true,
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "isolatedModules": true,
-    "jsx": "react-jsx",
     "resolveJsonModule": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
-    "rootDir": ".",
+    "rootDir": "./src",
 		"paths": {
-			"~/*": ["./app/*"],
-			"~/server/*": ["./server/*"],
-			"~/test/*": ["./test/*"],
-      "@algolia/*": ["../../node_modules/@algolia/*/dist/esm"],
-      "usehooks-ts": ["../../node_modules/usehooks-ts/dist/esm"],
-		},
-  },
-  "references": [
-    {
-      "path": "../../packages/cashconnect"
-    }, 
-    {
-      "path": "../../packages/inngest"
-    },
-    {
-      "path": "../api"
-    }
-  ]
+			"~/*": ["./src/*"]
+		}
+  }
 }
