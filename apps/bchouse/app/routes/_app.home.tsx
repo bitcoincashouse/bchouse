@@ -200,7 +200,6 @@ export default function Index() {
           }}
         />,
         <ActiveCampaignsWidget />,
-        // <PersonalizedFollowSuggestions />,
       ]}
     ></StandardLayout>
   )
