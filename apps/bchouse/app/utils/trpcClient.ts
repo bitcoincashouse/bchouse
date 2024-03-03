@@ -2,12 +2,11 @@ import type { AppRouter } from '@bchouse/api'
 import { constants } from '@clerk/clerk-sdk-node'
 import { createTRPCClient, httpLink } from '@trpc/client'
 import { parse } from 'cookie'
-import { AddressPrefixType } from "@bchouse/utils"
 
 let apiUrl = ((process.env.API_URL as string) || '').replace(/\/$/, '')
 
 if (process.env.NODE_ENV !== 'production' && !apiUrl) {
-  apiUrl = 'localhost:3003'
+  apiUrl = 'http://localhost:3003'
 }
 
 export const getTrpc = (request: Request) =>
