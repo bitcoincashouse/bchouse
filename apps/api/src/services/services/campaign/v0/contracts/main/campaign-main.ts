@@ -1,5 +1,5 @@
+import { addressToBytecode, addressToHash160 } from '@bchouse/utils'
 import { Contract, NetworkProvider } from 'cashscript'
-import { addressToBytecode, addressToHash160 } from '~/services/utils/bchUtils'
 import { CampaignInfo, CampaignUtxo, ContractExecutor } from '../../../types'
 import { getMintingToken } from '../../utils'
 import mainCampaignContract from './contract.json'

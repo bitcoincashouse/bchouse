@@ -19,4 +19,7 @@ app.use(
 
 app.listen(3003)
 
+const test = ''
+export { test }
+
 export type AppRouter = typeof appRouter

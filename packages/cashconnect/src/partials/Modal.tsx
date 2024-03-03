@@ -1,7 +1,7 @@
+import { logger } from '@bchouse/utils'
 import { animate } from 'motion'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '~/utils/cn'
-import { logger } from '~/utils/logger'
 import { Backcard } from '../components/ModalBackcard'
 import { Toast } from '../components/ModalToast'
 import { ExplorerCtrl } from '../core/controllers/ExplorerCtrl'

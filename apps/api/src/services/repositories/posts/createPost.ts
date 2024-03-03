@@ -1,7 +1,7 @@
+import { moment } from '@bchouse/utils'
 import { sql } from 'kysely'
 import { v4 as uuid } from 'uuid'
 import { Network, db } from '../../db/index'
-import moment from '../../utils/moment'
 
 export async function createPost(params: {
   userId: string

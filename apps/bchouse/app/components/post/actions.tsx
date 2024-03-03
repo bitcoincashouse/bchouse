@@ -1,3 +1,4 @@
+import { Network, pluralize, prettyPrintSats } from '@bchouse/utils'
 import {
   ArrowPathRoundedSquareIcon,
   BookmarkIcon,
@@ -9,9 +10,6 @@ import { Fetcher, Link, useFetcher } from '@remix-run/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo } from 'react'
 import { $path } from 'remix-routes'
-import { Network } from '~/utils/bchUtils'
-import { pluralize } from '~/utils/pluralize'
-import { prettyPrintSats } from '~/utils/prettyPrintSats'
 import { BitcoinIcon } from '../icons/BitcoinIcon'
 import { useTipPostModal } from '../tip-modal'
 import { classNames } from '../utils'

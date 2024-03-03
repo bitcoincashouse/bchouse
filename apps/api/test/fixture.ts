@@ -1,4 +1,4 @@
-import moment from '~/server/utils/moment'
+import { moment } from '@bchouse/utils'
 
 export const fixture = {
   platform: {

@@ -1,7 +1,7 @@
+import { moment } from '@bchouse/utils'
 import { useMemo } from 'react'
 import { DateTimePicker } from '~/components/DatetimePicker'
 import { cn } from '~/utils/cn'
-import moment from '~/utils/moment'
 
 export function DateInput({
   onChange,

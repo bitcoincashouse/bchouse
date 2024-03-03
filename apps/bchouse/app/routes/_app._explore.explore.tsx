@@ -3,15 +3,22 @@ import { typedjson, useTypedLoaderData } from 'remix-typedjson'
 import { z } from 'zod'
 import { StandardPostCard } from '~/components/post/standard-post-card'
 import { PostCardModel } from '~/components/post/types'
+import { getTrpc } from '~/utils/trpcClient'
 import { zx } from '~/utils/zodix'
 import { useLayoutLoaderData } from './_app/route'
 
 export const loader = async (_: LoaderArgs) => {
-  const { userId } = await _.context.authService.getAuthOptional(_)
-
   const { q } = zx.parseQuery(_.request, {
     q: z.string().optional(),
   })
+
+  try {
+    const response = await getTrpc(_.request).explore.query({ q })
+  } catch (err) {
+    console.log(err)
+  }
+
+  const { userId } = await _.context.authService.getAuthOptional(_)
 
   if (!q) {
     return typedjson([] as PostCardModel[])

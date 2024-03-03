@@ -1,7 +1,7 @@
+import { logger } from '@bchouse/utils'
 import { LoaderArgs } from '@remix-run/node'
 import { UseDataFunctionReturn, typedjson } from 'remix-typedjson'
 import { z } from 'zod'
-import { logger } from '~/utils/logger'
 import { zx } from '~/utils/zodix'
 
 export const loader = async (_: LoaderArgs) => {

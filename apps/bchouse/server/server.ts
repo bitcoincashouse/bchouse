@@ -1,3 +1,4 @@
+import { logger } from '@bchouse/utils'
 import type { RequestHandler } from '@remix-run/express'
 import { createRequestHandler as expressCreateRequestHandler } from '@remix-run/express'
 import { broadcastDevReady, installGlobals } from '@remix-run/node'
@@ -11,7 +12,6 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { logger } from '../app/utils/logger'
 
 const createRequestHandler = wrapExpressCreateRequestHandler(
   expressCreateRequestHandler

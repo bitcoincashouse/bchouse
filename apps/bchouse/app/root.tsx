@@ -1,13 +1,15 @@
 import autocompleteCss from '@algolia/autocomplete-theme-classic/dist/theme.min.css'
+import { moment } from '@bchouse/utils'
 import { ClerkApp, ClerkErrorBoundary, useClerk } from '@clerk/remix'
 import { rootAuthLoader } from '@clerk/remix/ssr.server'
 import {
-  LoaderArgs,
+  LoaderFunctionArgs,
   type LinksFunction,
   type MetaFunction,
 } from '@remix-run/node'
 import {
   Outlet,
+  ShouldRevalidateFunctionArgs,
   useLocation,
   useNavigate,
   useRevalidator,
@@ -21,7 +23,6 @@ import { UseDataFunctionReturn, useTypedLoaderData } from 'remix-typedjson'
 import stylesheet from '~/styles/tailwind.css'
 import { ErrorDisplay } from './components/pages/error'
 import { Document } from './document'
-import moment from './utils/moment'
 import { getThemeSession } from './utils/themeCookie.server'
 
 if (typeof window !== 'undefined') {
@@ -58,7 +59,7 @@ export const meta: MetaFunction = (_) => {
   )
 }
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   return rootAuthLoader(_, async ({ request }) => {
     const { sessionId, userId, getToken } = request.auth
     const themeSession = await getThemeSession(request)
@@ -77,6 +78,10 @@ export const loader = async (_: LoaderArgs) => {
       TYPESENSE_PUBLIC_API_KEY: process.env.TYPESENSE_PUBLIC_API_KEY,
     }
   })
+}
+
+export const shouldRevalidate = async (_: ShouldRevalidateFunctionArgs) => {
+  return false
 }
 
 export const ErrorBoundary = withSentry(

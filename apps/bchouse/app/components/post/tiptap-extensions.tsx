@@ -1,3 +1,10 @@
+import {
+  Doc,
+  docSchema,
+  mediaSchema,
+  paragraphContentSchema,
+  paragraphSchema,
+} from '@bchouse/utils'
 import { JSONContent } from '@tiptap/core'
 import Bold from '@tiptap/extension-bold'
 import Document from '@tiptap/extension-document'
@@ -15,13 +22,6 @@ import { PluginKey } from '@tiptap/pm/state'
 import { Editor, ReactRenderer } from '@tiptap/react'
 import tippy, { Instance as TippyInstance } from 'tippy.js'
 import { z } from 'zod'
-import {
-  Doc,
-  docSchema,
-  mediaSchema,
-  paragraphContentSchema,
-  paragraphSchema,
-} from '~/server/utils/tiptapSchema'
 import { typesenseClient } from '~/utils/typesense.client'
 import { HashtagList, HashtagListRef } from './editor/hashtag-list'
 import { Media } from './editor/media'

@@ -1,11 +1,9 @@
+import { moment, prettyPrintSats } from '@bchouse/utils'
 import { HeartIcon } from '@heroicons/react/24/outline'
 import { useMemo } from 'react'
 import { useAllContributionsFetcher } from '~/routes/api.contribution-list.$campaignId'
-import moment from '~/utils/moment'
-import { prettyPrintSats } from '~/utils/prettyPrintSats'
 import { Avatar } from '../avatar'
 import { Contribution } from './types'
-
 export function AllContributions({
   campaignId,
   expires,

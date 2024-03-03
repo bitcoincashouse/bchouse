@@ -4,9 +4,9 @@ import {
   clerkClient,
 } from '@clerk/clerk-sdk-node'
 
+import { ApplicationError } from '@bchouse/utils'
 import { getAuth } from '@clerk/remix/ssr.server'
 import { DataFunctionArgs, redirect } from '@remix-run/node'
-import { ApplicationError } from '../../app/utils/applicationError.js'
 import {
   addUserInvite,
   createInviteCode,

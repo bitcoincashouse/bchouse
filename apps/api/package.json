@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@bchouse/inngest": "^1.0.0",
+    "@bchouse/utils": "^1.0.0",
     "@bitauth/libauth": "^2.0.0-alpha.8",
     "@clerk/clerk-sdk-node": "^4.12.10",
     "@planetscale/database": "^1.10.0",

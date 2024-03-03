@@ -9,7 +9,7 @@ import { RemixServer } from '@remix-run/react'
 import * as Sentry from '@sentry/remix'
 import isbot from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
-import { logger } from './utils/logger'
+import { logger } from '../../../packages/utils/src/logger'
 
 const ABORT_DELAY = 5_000
 

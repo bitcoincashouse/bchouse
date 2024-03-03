@@ -1,6 +1,6 @@
+import { moment } from '@bchouse/utils'
 import { MockNetworkProvider } from 'cashscript'
 import { describe } from 'vitest'
-import moment from '~/services/utils/moment'
 import { CampaignContract } from './index'
 
 function getInstance() {

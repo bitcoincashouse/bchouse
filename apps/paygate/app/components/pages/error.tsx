@@ -1,5 +1,5 @@
+import { logger } from '@bchouse/utils'
 import { Link, isRouteErrorResponse, useRouteError } from '@remix-run/react'
-import { logger } from '~/utils/logger'
 
 export const meta = () => ({
   charset: 'utf-8',

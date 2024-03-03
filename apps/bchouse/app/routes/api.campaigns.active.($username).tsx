@@ -1,3 +1,4 @@
+import { moment, prettyPrintSats } from '@bchouse/utils'
 import { LoaderArgs } from '@remix-run/node'
 import { Link } from '@remix-run/react'
 import { useQuery } from '@tanstack/react-query'
@@ -9,8 +10,6 @@ import { Widget } from '~/components/layouts/widget'
 import { ProgressBar } from '~/components/progress-bar'
 import { pluralize } from '~/components/utils'
 import { classNames } from '~/utils/classNames'
-import moment from '~/utils/moment'
-import { prettyPrintSats } from '~/utils/prettyPrintSats'
 import { zx } from '~/utils/zodix'
 
 export const loader = async (_: LoaderArgs) => {

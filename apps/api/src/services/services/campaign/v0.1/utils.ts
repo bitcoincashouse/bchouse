@@ -1,6 +1,6 @@
+import { addressToBytecode } from '@bchouse/utils'
 import { toBufferLE } from 'bigint-buffer'
 import { TokenDetails } from 'cashscript'
-import { addressToBytecode } from '~/services/utils/bchUtils'
 import { CampaignUtxo } from '../types'
 
 export function getMintingToken({ categoryId }: { categoryId: string }) {

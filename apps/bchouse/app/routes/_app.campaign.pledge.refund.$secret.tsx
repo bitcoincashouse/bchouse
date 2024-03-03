@@ -1,3 +1,4 @@
+import { prettyPrintSats } from '@bchouse/utils'
 import { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { Link } from '@remix-run/react'
 import { useMemo } from 'react'
@@ -5,7 +6,6 @@ import { typedjson, useTypedFetcher, useTypedLoaderData } from 'remix-typedjson'
 import { z } from 'zod'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { classnames } from '~/components/utils/classnames'
-import { prettyPrintSats } from '~/utils/prettyPrintSats'
 import { zx } from '~/utils/zodix'
 
 export const loader = async (_: LoaderArgs) => {

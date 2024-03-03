@@ -1,3 +1,4 @@
+import { moment, prettyPrintSats } from '@bchouse/utils'
 import { ArrowPathIcon, HeartIcon, UserIcon } from '@heroicons/react/20/solid'
 import { LoaderArgs } from '@remix-run/node'
 import { Link, useNavigate } from '@remix-run/react'
@@ -9,8 +10,6 @@ import { PostCard, PostProvider } from '~/components/post/post-card'
 import { classnames } from '~/components/utils/classnames'
 import { Activity } from '~/server/services/redis/activity'
 import { classNames } from '~/utils/classNames'
-import moment from '~/utils/moment'
-import { prettyPrintSats } from '~/utils/prettyPrintSats'
 import { useNotificationsLoaderData } from './_app.notifications'
 
 export const loader = async (_: LoaderArgs) => {

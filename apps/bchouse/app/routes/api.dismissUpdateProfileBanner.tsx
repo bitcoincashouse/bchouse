@@ -1,7 +1,7 @@
+import { logger } from '@bchouse/utils'
 import { ActionArgs, json } from '@remix-run/node'
 import { useMemo } from 'react'
 import { useTypedFetcher } from 'remix-typedjson'
-import { logger } from '~/utils/logger'
 import { getUpdateProfileSession } from '~/utils/updateProfileBannerCookie.server'
 
 export const action = async (_: ActionArgs) => {

@@ -1,10 +1,10 @@
 import { inngest, serve } from '@bchouse/inngest'
+import { moment } from '@bchouse/utils'
 import { createClerkClient } from '@clerk/clerk-sdk-node'
 import { db } from '~/services/db'
 import { savePledgePayment } from '~/services/repositories/pledge'
 import { saveTipPayment } from '~/services/repositories/tip'
 import { saveMediaAspectRatios } from '~/services/utils/loadImageAspect'
-import moment from '~/services/utils/moment'
 import {
   getCompletableCampaigns,
   getRefundableCampaigns,

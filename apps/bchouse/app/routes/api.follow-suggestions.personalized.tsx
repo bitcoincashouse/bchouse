@@ -1,3 +1,4 @@
+import { logger } from '@bchouse/utils'
 import { LoaderArgs } from '@remix-run/node'
 import { ClientLoaderFunctionArgs } from '@remix-run/react'
 import { useEffect } from 'react'
@@ -5,7 +6,6 @@ import { $path } from 'remix-routes'
 import { typedjson } from 'remix-typedjson'
 import { Widget } from '~/components/layouts/widget'
 import { UserCard } from '~/components/user-card'
-import { logger } from '~/utils/logger'
 import { useTypedFetcher } from '~/utils/useTypedFetcher'
 import { useLayoutLoaderData } from './_app/route'
 

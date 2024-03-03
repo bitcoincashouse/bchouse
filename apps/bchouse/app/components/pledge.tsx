@@ -1,10 +1,10 @@
+import { prettyPrintSats } from '@bchouse/utils'
 import { Link } from '@remix-run/react'
 import { useMemo } from 'react'
 import { $path } from 'remix-routes'
 import { classnames } from '~/components/utils/classnames'
 import { PledgeData } from '~/routes/_app.manage.pledges'
 import { usePledgeRefundFetcher } from '~/routes/api.pledge.refund'
-import { prettyPrintSats } from '~/utils/prettyPrintSats'
 
 export function Pledge({ pledge }: { pledge: PledgeData }) {
   const [amount, denomination] = useMemo(() => {

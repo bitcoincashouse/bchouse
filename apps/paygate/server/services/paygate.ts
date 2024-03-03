@@ -1,7 +1,6 @@
 import { PaymentInfo, inngest } from '@bchouse/inngest'
+import { Network, logger } from '@bchouse/utils'
 import { z } from 'zod'
-import { logger } from '~/utils/logger'
-import { Network } from '../../app/utils/bchUtils'
 import {
   createInvoice,
   getInvoice,

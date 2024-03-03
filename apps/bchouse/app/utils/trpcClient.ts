@@ -2,6 +2,7 @@ import type { AppRouter } from '@bchouse/api'
 import { constants } from '@clerk/clerk-sdk-node'
 import { createTRPCClient, httpLink } from '@trpc/client'
 import { parse } from 'cookie'
+import { AddressPrefixType } from "@bchouse/utils"
 
 let apiUrl = ((process.env.API_URL as string) || '').replace(/\/$/, '')
 

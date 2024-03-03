@@ -92,7 +92,7 @@ export const inngest = new Inngest({
 })
 
 export { serve } from 'inngest/remix'
-export * from './invoice'
+export * from './invoice.js'
 export type InngestEvent = GetEvents<typeof inngest>[keyof Events]
 export type getInngestEvent<T extends keyof Events> = GetEvents<
   typeof inngest

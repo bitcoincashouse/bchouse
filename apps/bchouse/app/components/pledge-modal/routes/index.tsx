@@ -13,11 +13,10 @@ import {
   WalletData,
   WalletProtocol,
 } from '@bchouse/cashconnect'
+import { Network, formatAddress, prettyPrintSats } from '@bchouse/utils'
 import { Link } from '@remix-run/react'
 import { useMemo } from 'react'
-import { Network, formatAddress } from '~/utils/bchUtils'
 import { bchLogo } from '~/utils/constants'
-import { prettyPrintSats } from '~/utils/prettyPrintSats'
 import { StepRoute } from '../../StepRoutes/step'
 import { usePersistedPledgeMachine } from '../provider'
 import { AnyonecanpayView } from './anyonecanpay-view'

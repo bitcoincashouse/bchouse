@@ -1,3 +1,4 @@
+import { addressToBytecode } from '@bchouse/utils'
 import { toBufferLE } from 'bigint-buffer'
 import {
   Contract,
@@ -8,7 +9,6 @@ import {
   TransactionBuilder,
   Unlocker,
 } from 'cashscript'
-import { addressToBytecode } from '~/services/utils/bchUtils'
 import { CampaignUtxo, ContractExecutor, PledgeUtxo } from '../../../types'
 import {
   getCampaignOutput,

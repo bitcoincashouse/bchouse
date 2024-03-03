@@ -1,6 +1,6 @@
+import { Network, trimPrefix } from '@bchouse/utils'
 import { Listbox } from '@headlessui/react'
 import { Fragment, useMemo } from 'react'
-import { Network, trimPrefix } from '~/utils/bchUtils'
 import { cn } from '~/utils/cn'
 import { WalletNetwork } from '../core/types/controllerTypes'
 

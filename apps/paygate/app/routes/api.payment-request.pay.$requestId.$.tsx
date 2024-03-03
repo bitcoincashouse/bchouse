@@ -1,7 +1,7 @@
+import { logger } from '@bchouse/utils'
 import { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { z } from 'zod'
 import { cors } from '~/utils/cors'
-import { logger } from '~/utils/logger'
 import { zx } from '~/utils/zodix'
 
 export async function loader(_: LoaderArgs) {

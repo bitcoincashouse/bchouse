@@ -1,3 +1,4 @@
+import { addressToHash160 } from '@bchouse/utils'
 import {
   Contract,
   NetworkProvider,
@@ -6,7 +7,6 @@ import {
   TransactionBuilder,
   Unlocker,
 } from 'cashscript'
-import { addressToHash160 } from '~/services/utils/bchUtils'
 import {
   CampaignUtxo,
   ContractExecutor,

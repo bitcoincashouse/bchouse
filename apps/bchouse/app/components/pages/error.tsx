@@ -1,6 +1,6 @@
+import { logger } from '@bchouse/utils'
 import { Link, isRouteErrorResponse, useRouteError } from '@remix-run/react'
 import stylesheet from '~/styles/tailwind.css'
-import { logger } from '~/utils/logger'
 
 export const links = () => [{ rel: 'stylesheet', href: stylesheet }]
 

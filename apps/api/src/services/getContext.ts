@@ -1,6 +1,6 @@
+import { logger } from '@bchouse/utils'
 import pTimeout from 'p-timeout'
 import { z } from 'zod'
-import { logger } from '../app/utils/logger'
 import { AddressWatcher } from './services/address-watcher'
 import { AuthService } from './services/auth'
 import { CampaignService } from './services/campaign'

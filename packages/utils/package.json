@@ -2,15 +2,15 @@
   "name": "@bchouse/utils",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "sideEffects": false,
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "npm run clean && npm run compile",
     "clean": "rm -rf ./dist",
     "prepare": "is-docker && echo 'Skipping prepare' || npm run build",
-    "compile": "tsup --tsconfig ./tsconfig.build.json ./src/index.ts --format esm,cjs --dts"
+    "compile": "tsup --tsconfig ./tsconfig.build.json ./src/index.ts --format esm --dts --sourcemap"
   },
   "dependencies": {},
   "engines": {

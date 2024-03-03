@@ -49,6 +49,7 @@
     "@bchouse/api": "^1.0.0",
     "@bchouse/cashconnect": "^1.0.0",
     "@bchouse/inngest": "^1.0.0",
+    "@bchouse/utils": "^1.0.0",
     "@bitauth/libauth": "^2.0.0-alpha.8",
     "@clerk/clerk-sdk-node": "^4.12.10",
     "@clerk/remix": "^3.0.3",

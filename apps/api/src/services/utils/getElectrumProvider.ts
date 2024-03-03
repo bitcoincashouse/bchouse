@@ -1,3 +1,4 @@
+import { logger } from '@bchouse/utils'
 import { ElectrumNetworkProvider } from 'cashscript'
 import {
   ClusterStatus,
@@ -5,7 +6,6 @@ import {
   ElectrumTransport,
   TransportScheme,
 } from 'electrum-cash'
-import { logger } from '~/utils/logger'
 import { Network } from '../db/types'
 
 type ElectrumNetwork = {

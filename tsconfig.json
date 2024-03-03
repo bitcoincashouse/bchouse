@@ -11,9 +11,16 @@
     "forceConsistentCasingInFileNames": true,
     "rootDir": ".",
   },
-  "files": [
-  ],
   "references": [
+    {
+      "path": "./packages/utils"
+    },
+    {
+      "path": "./packages/inngest"
+    },
+    {
+      "path": "./packages/cashconnect"
+    },
     {
       "path": "./apps/api"
     },
@@ -23,14 +30,5 @@
     {
       "path": "./apps/paygate"
     },
-    {
-      "path": "./packages/cashconnect"
-    },
-    {
-      "path": "./packages/inngest"
-    },
-    {
-      "path": "./packages/utils"
-    }
   ]
 }

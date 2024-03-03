@@ -23,6 +23,9 @@ importers:
       '@bchouse/inngest':
         specifier: ^1.0.0
         version: link:../../packages/inngest
+      '@bchouse/utils':
+        specifier: ^1.0.0
+        version: link:../../packages/utils
       '@bitauth/libauth':
         specifier: ^2.0.0-alpha.8
         version: 2.0.0-alpha.8
@@ -195,6 +198,9 @@ importers:
       '@bchouse/inngest':
         specifier: ^1.0.0
         version: link:../../packages/inngest
+      '@bchouse/utils':
+        specifier: ^1.0.0
+        version: link:../../packages/utils
       '@bitauth/libauth':
         specifier: ^2.0.0-alpha.8
         version: 2.0.0-alpha.8

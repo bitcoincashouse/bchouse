@@ -1,8 +1,8 @@
+import { logger } from '@bchouse/utils'
 import type { ActionArgs } from '@remix-run/node'
 import React from 'react'
 import { $path } from 'remix-routes'
 import { useTypedFetcher } from 'remix-typedjson'
-import { logger } from '~/utils/logger'
 import { useThrottleCallback } from '~/utils/useThrottle'
 
 export const action = async (_: ActionArgs) => {

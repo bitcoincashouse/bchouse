@@ -1,3 +1,4 @@
+import { addressToBytecode } from '@bchouse/utils'
 import {
   Contract,
   NetworkProvider,
@@ -7,7 +8,6 @@ import {
   TransactionBuilder,
   Unlocker,
 } from 'cashscript'
-import { addressToBytecode } from '~/services/utils/bchUtils'
 import { CampaignUtxo, ContractExecutor, PledgeUtxo } from '../../../types'
 import {
   getCampaignOutput,

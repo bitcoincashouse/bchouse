@@ -1,6 +1,6 @@
+import { moment } from '@bchouse/utils'
 import { sql } from 'kysely'
 import { db } from '../../db/index'
-import moment from '../../utils/moment'
 import { selectors } from '../posts/selectors'
 import { Notification, PostTypeNotification } from './types'
 

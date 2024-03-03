@@ -14,25 +14,17 @@
 	],
   "exclude": ["../../**/node_modules", "**/.*/"],
   "compilerOptions": {
-    //EMISSIONS
-    "declarationDir": "./dist/types",
-    "declaration": true,
-    "declarationMap": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "sourceMap": true,
-    "removeComments": true,
-    // Remix takes care of building everything in `remix build`.
-    "noEmit": true,
-
-    // ECMAS Module + ES2021 + Node-16LTS
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
+    //Base
     "esModuleInterop": true,
-    "allowJs": true,
-    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
+    "target": "ES2022",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "moduleDetection": "force",
+    "isolatedModules": true,
+
+    //Strictness
+    "allowSyntheticDefaultImports": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "noUncheckedIndexedAccess": true,
@@ -41,25 +33,35 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitThis": true,
     "strictPropertyInitialization": false,
-    
-    //STRUCTURE
-    "composite": true,
-    "incremental": true,
-    "lib": ["DOM", "DOM.Iterable", "ES2022"],
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "resolveJsonModule": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
+
+    //Monorepo emissions
+    "declaration": true,
+    "declarationMap": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "sourceMap": true,
+    "removeComments": true,
+    "composite": true,
+    "incremental": true,
+    
+    //Structure
     "baseUrl": ".",
     "rootDir": ".",
+    "declarationDir": "./dist/types",
 		"paths": {
-			"~/*": ["./app/*"],
+      "~/*": ["./app/*"],
 			"~/server/*": ["./server/*"],
 			"~/test/*": ["./test/*"],
-      "@algolia/*": ["../../node_modules/@algolia/*/dist/esm"],
-      "usehooks-ts": ["../../node_modules/usehooks-ts/dist/esm"],
-		}
+		},
+
+    //No Transpile
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "jsx": "react-jsx", 
   },
   "references": [{
     "path": "../../packages/inngest"

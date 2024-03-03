@@ -1,7 +1,7 @@
+import { moment } from '@bchouse/utils'
 import { sql } from 'kysely'
 import { jsonObjectFrom } from 'kysely/helpers/mysql'
 import { CampaignSpendType, Network, db } from '../../db/index'
-import moment from '../../utils/moment'
 import { postRowMapper } from './mappers'
 import { selectors } from './selectors'
 import { KyselyPostDbModel } from './types'

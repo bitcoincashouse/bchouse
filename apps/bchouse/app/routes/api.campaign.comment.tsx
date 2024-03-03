@@ -1,6 +1,6 @@
+import { logger } from '@bchouse/utils'
 import { ActionArgs, json } from '@remix-run/node'
 import { z } from 'zod'
-import { logger } from '~/utils/logger'
 
 export const action = async (_: ActionArgs) => {
   try {

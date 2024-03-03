@@ -1,22 +1,22 @@
+import type { FeedKeys } from '@bchouse/api/src/services/services/redis/keys'
 import { Link, useLocation, useNavigation } from '@remix-run/react'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { atom, useAtom } from 'jotai'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-// import {
-//   HtmlPortalNode,
-//   InPortal,
-//   createHtmlPortalNode,
-// } from 'react-reverse-portal'
 import { StateSnapshot, Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 import { $path } from 'remix-routes'
 import { LoadingIndicator } from '~/components/loading'
 import { FeedResponse } from '~/routes/api.feed.$type.$id.($cursor)'
-import type { FeedKeys } from '~/server/services/redis/keys'
 import { Avatar } from '../avatar'
 import { PostCard } from './post-card'
 import { RepostedBy } from './reposted-by'
 import { TimelineMessage } from './timeline-message'
 import { PostCardModel } from './types'
+// import {
+//   HtmlPortalNode,
+//   InPortal,
+//   createHtmlPortalNode,
+// } from 'react-reverse-portal'
 
 type FeedProps = {
   id: string

@@ -1,6 +1,5 @@
+import { formatAddress, moment } from '@bchouse/utils'
 import { NetworkProvider } from 'cashscript'
-import moment from '~/services/utils/moment'
-import { formatAddress } from '~/utils/bchUtils'
 import {
   AbstractCampaignContract,
   CampaignInfo,

@@ -4,12 +4,12 @@ import {
   lockingBytecodeToCashAddress,
 } from '@bitauth/libauth'
 //@ts-ignore
+import { Network, getPrefix, trimPrefix } from '@bchouse/utils'
 import PaymentProtocol from 'bitcore-payment-protocol'
 import { z } from 'zod'
-import { Network, getPrefix, trimPrefix } from '../../../app/utils/bchUtils'
 import { logger } from '../../../app/utils/logger'
-import { addressToBytecode } from '../../utils/bchUtils'
 import { ElectrumNetworkProviderService } from '../../utils/getElectrumProvider'
+import { addressToBytecode } from '../@bchouse/utils'
 import { HandleSuccessFn, PaymentOptions } from './types'
 
 type ByteBuffer = {

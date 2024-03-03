@@ -1,6 +1,6 @@
+import { formatAddress } from '@bchouse/utils'
 import { Expression, NoResultError, SqlBool, sql } from 'kysely'
 import { jsonObjectFrom } from 'kysely/helpers/mysql'
-import { formatAddress } from '../../app/utils/bchUtils'
 import { CampaignSpendType, Network, PledgeType, db } from '../db'
 
 export async function getUnpaidPledgeRequest(params: { id: string }) {

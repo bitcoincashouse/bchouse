@@ -7,13 +7,12 @@ import {
   WCText,
   WalletData,
 } from '@bchouse/cashconnect'
+import { Network, prettyPrintSats } from '@bchouse/utils'
 import { useRevalidator } from '@remix-run/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { useTipRequestSubscription } from '~/routes/api.payment-request.tip.subscribe.$requestId'
-import { Network } from '~/utils/bchUtils'
 import { bchLogo, checkmarkIcon } from '~/utils/constants'
-import { prettyPrintSats } from '~/utils/prettyPrintSats'
 import { StepRoute } from '../../StepRoutes/step'
 import { usePersistedTipMachine } from '../provider'
 

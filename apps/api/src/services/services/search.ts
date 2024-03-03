@@ -1,11 +1,11 @@
+import { moment } from '@bchouse/utils'
+import { Doc } from '@bchouse/utils/src/tiptapSchema'
 import { Client } from 'typesense'
 import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections'
 import { z } from 'zod'
 import postRepo from '../repositories/posts'
 import { getAllHashtags } from '../repositories/posts/getAllHashtags'
 import userRepo from '../repositories/user'
-import moment from '../utils/moment'
-import { Doc } from '../utils/tiptapSchema'
 
 export const typesenseClient = new Client({
   nodes: [

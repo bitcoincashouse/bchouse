@@ -1,4 +1,9 @@
+import { logger } from '@bchouse/utils'
+import type { UploadHandler } from '@remix-run/node'
+import { writeAsyncIterableToWritable } from '@remix-run/node'
 import AWS from 'aws-sdk'
+import { PassThrough } from 'stream'
+import { v4 as uuidv4, v4 } from 'uuid'
 import { UploadRequestType } from '../db/index'
 
 const STORAGE_ACCESS_KEY = process.env.STORAGE_ACCESS_KEY as string
@@ -145,12 +150,6 @@ export async function setMediaPublic(key: string | undefined) {
 
   return key
 }
-
-import type { UploadHandler } from '@remix-run/node'
-import { writeAsyncIterableToWritable } from '@remix-run/node'
-import { PassThrough } from 'stream'
-import { v4 as uuidv4, v4 } from 'uuid'
-import { logger } from '../../app/utils/logger'
 
 const getUploadStream = (Bucket: string, Key: string) => {
   const s3 = getS3Instance()

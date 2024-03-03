@@ -4,10 +4,10 @@ import {
   lockingBytecodeToCashAddress,
 } from '@bitauth/libauth'
 //@ts-ignore
-import moment from '../../utils/moment'
+import { moment } from '@bchouse/utils'
 //@ts-ignore
+import { Network, getPrefix, trimPrefix } from '@bchouse/utils'
 import { z } from 'zod'
-import { Network, getPrefix, trimPrefix } from '../../../app/utils/bchUtils'
 import { logger } from '../../../app/utils/logger'
 import type * as JPPv2 from '../../types/jppv2'
 import { ElectrumNetworkProviderService } from '../../utils/getElectrumProvider'

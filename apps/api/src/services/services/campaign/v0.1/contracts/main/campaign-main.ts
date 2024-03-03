@@ -1,10 +1,10 @@
+import { addressToBytecode, addressToHash160 } from '@bchouse/utils'
 import {
   Contract,
   NetworkProvider,
   TransactionBuilder,
   Unlocker,
 } from 'cashscript'
-import { addressToBytecode, addressToHash160 } from '~/services/utils/bchUtils'
 import {
   AnyonecanpayPledges,
   CampaignInfo,

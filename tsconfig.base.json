@@ -1,9 +1,4 @@
 {
-	"include": [
-		"src/**/*.ts",
-    "src/**/*.tsx",
-	],
-  "exclude": ["../../**/node_modules", "**/.*/"],
   "compilerOptions": {
     //Base
     "esModuleInterop": true,
@@ -34,19 +29,5 @@
     "experimentalDecorators": true,
     "sourceMap": true,
     "removeComments": true,
-
-    //Structure
-    "baseUrl": ".",
-    "rootDir": "./src",
-		"paths": {
-			"~/*": ["./src/*"],
-      "~/services": ["./src/services/*"]
-		},
-    
-    //Transpile
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "lib": ["DOM", "DOM.Iterable", "ES2022"],
-    "outDir": "./dist/",
   }
 }

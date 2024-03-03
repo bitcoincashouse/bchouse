@@ -1,3 +1,4 @@
+import { logger } from '@bchouse/utils'
 import {
   ConsensusCommon,
   TransactionBCH,
@@ -11,7 +12,6 @@ import {
   sha256,
 } from '@bitauth/libauth'
 import { z } from 'zod'
-import { logger } from '~/utils/logger'
 
 function varInt(number: number) {
   // Declare storage for the results.

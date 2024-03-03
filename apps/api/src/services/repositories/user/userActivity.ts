@@ -1,5 +1,5 @@
+import { moment } from '@bchouse/utils'
 import { db } from '~/services/db'
-import moment from '~/services/utils/moment'
 
 export async function updateUserLastActive({ id }: { id: string }) {
   await db

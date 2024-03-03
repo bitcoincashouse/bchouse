@@ -1,4 +1,4 @@
-import moment from '~/services/utils/moment'
+import { moment } from '@bchouse/utils'
 
 export type Activity =
   | ReactionActivity

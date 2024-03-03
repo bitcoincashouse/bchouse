@@ -1,6 +1,6 @@
+import { Doc } from '@bchouse/utils'
 import { Link } from '@remix-run/react'
 import { $path } from 'remix-routes'
-import { Doc } from '~/server/utils/tiptapSchema'
 import { ImageProxy } from '../image-proxy'
 import { classnames } from '../utils/classnames'
 

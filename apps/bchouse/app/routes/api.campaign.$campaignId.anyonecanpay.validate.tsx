@@ -1,9 +1,9 @@
+import { logger } from '@bchouse/utils'
 import { LoaderArgs } from '@remix-run/node'
 import { useMutation } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { typedjson } from 'remix-typedjson'
 import { z } from 'zod'
-import { logger } from '~/utils/logger'
 import { zx } from '~/utils/zodix'
 
 export const action = async (_: LoaderArgs) => {

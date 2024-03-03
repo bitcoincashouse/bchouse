@@ -1,6 +1,6 @@
 // learn more: https://fly.io/docs/reference/configuration/#services-http_checks
+import { logger } from '@bchouse/utils'
 import type { LoaderArgs } from '@remix-run/node'
-import { logger } from '~/utils/logger'
 
 export const loader = async (_: LoaderArgs) => {
   const host =

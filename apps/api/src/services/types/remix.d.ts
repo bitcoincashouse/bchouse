@@ -3,6 +3,14 @@ import type { RouteMatch } from '@remix-run/react'
 import type { Context } from '../getContext'
 
 declare module '@remix-run/node' {
+  export interface LoaderFunctionArgs extends DataFunctionArgs {
+    context: Context
+  }
+
+  export interface ActionFunctionArgs extends DataFunctionArgs {
+    context: Context
+  }
+
   export interface LoaderArgs extends DataFunctionArgs {
     context: Context
   }

@@ -1,3 +1,4 @@
+import { moment } from '@bchouse/utils'
 import {
   LoaderArgs,
   type LinksFunction,
@@ -15,7 +16,6 @@ import { useEffect, useRef } from 'react'
 import { UseDataFunctionReturn, useTypedLoaderData } from 'remix-typedjson'
 import { ErrorDisplay } from './components/pages/error'
 import { Document } from './document'
-import moment from './utils/moment'
 
 if (typeof window !== 'undefined') {
   //@ts-ignore

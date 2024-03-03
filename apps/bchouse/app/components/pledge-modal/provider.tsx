@@ -1,3 +1,4 @@
+import { Network } from '@bchouse/utils'
 import { useLocation, useSearchParams } from '@remix-run/react'
 import { useMachine } from '@xstate/react'
 import React, {
@@ -7,7 +8,6 @@ import React, {
   useEffect,
   useMemo,
 } from 'react'
-import { Network } from '~/utils/bchUtils'
 import { pledgeModalMachine } from '../machines/pledge-modal-machine'
 import { useHydrated } from '../utils/use-hydrated'
 

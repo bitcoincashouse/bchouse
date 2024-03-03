@@ -1,5 +1,6 @@
+import type { ProfileService } from '@bchouse/api/src/services/services/profile'
 import { WalletConnectProvider } from '@bchouse/cashconnect'
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import {
   Link,
   Outlet,
@@ -25,7 +26,6 @@ import { PostModal } from '~/components/post/post-modal'
 import { Post } from '~/components/post/types'
 import { TipPostModal, TipPostModalProvider } from '~/components/tip-modal'
 import { UserPopoverProvider } from '~/components/user-popover'
-import type { ProfileService } from '~/server/services/profile'
 import { useAppLoaderData, usePageDisplay } from '~/utils/appHooks'
 import { classNames } from '~/utils/classNames'
 import { getUpdateProfileSession } from '~/utils/updateProfileBannerCookie.server'
@@ -59,7 +59,7 @@ export const handle: RouteHandler<'layout'> = {
 export const layoutHandle = handle
 
 export const loader = async (
-  _: LoaderArgs
+  _: LoaderFunctionArgs
 ): Promise<TypedJsonResponse<LoaderData>> => {
   //Applies to entire application
   await _.context.ratelimit.limitByIp(_, 'app', true)

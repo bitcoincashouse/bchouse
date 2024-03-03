@@ -1,6 +1,6 @@
+import { logger } from '@bchouse/utils'
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '~/utils/cn'
-import { logger } from '~/utils/logger'
 import { Content } from '../components/ModalContent'
 import { WCHeader } from '../components/ModalHeader'
 import { SearchInput } from '../components/SearchInput'

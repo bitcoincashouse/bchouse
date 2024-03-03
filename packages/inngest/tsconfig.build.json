@@ -4,20 +4,18 @@
     "src/**/*.tsx",
 	],
   "exclude": ["../../**/node_modules", "**/.*/"],
-  "compilerOptions": {
-    //EMISSIONS
-    "sourceMap": true,
-    "removeComments": true,
-    "outDir": "./dist/",
-
-    // ECMAS Module + ES2021 + Node-16LTS
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
+  "compilerOptions": {    
+    //Base
     "esModuleInterop": true,
-    "allowJs": true,
-    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
+    "target": "ES2022",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "moduleDetection": "force",
+    "isolatedModules": true,
+
+    //Strictness
+    "allowSyntheticDefaultImports": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "noUncheckedIndexedAccess": true,
@@ -26,20 +24,25 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitThis": true,
     "strictPropertyInitialization": false,
-    "preserveSymlinks": true,
-    //STRUCTURE
-    "lib": ["DOM", "DOM.Iterable", "ES2022"],
-    "isolatedModules": true,
-    "resolveJsonModule": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
+
+    //Monorepo emissions
+    "declaration": true,
+    "declarationMap": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "sourceMap": true,
+    "removeComments": true,
+
+    //Structure
     "baseUrl": ".",
     "rootDir": "./src",
-		"paths": {
-			"~/*": ["./src/*"]
-		}
-  },
-  "references": [{
-    "path": "../utils"
-  }]
+
+    //Transpile
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["es2022"],
+    "outDir": "./dist/"
+  }
 }

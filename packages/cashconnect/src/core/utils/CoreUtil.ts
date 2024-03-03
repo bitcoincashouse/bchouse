@@ -1,4 +1,4 @@
-import { logger } from '~/utils/logger'
+import { logger } from '@bchouse/utils'
 import { RouterCtrl } from '../controllers/RouterCtrl'
 
 export const CoreUtil = {

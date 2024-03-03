@@ -1,7 +1,7 @@
+import { prettyPrintSats } from '@bchouse/utils'
 import { HeartIcon } from '@heroicons/react/24/outline'
 import { useMemo, useState } from 'react'
 import { useContributionsFetcher } from '~/routes/api.contributions.$campaignId'
-import { prettyPrintSats } from '~/utils/prettyPrintSats'
 import { Avatar } from '../avatar'
 import { Modal } from '../modal'
 import { AllContributions } from './all-contributions'

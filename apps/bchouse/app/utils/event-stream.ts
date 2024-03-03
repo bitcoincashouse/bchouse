@@ -1,4 +1,4 @@
-import { logger } from './logger'
+import { logger } from '../../../../packages/utils/src/logger'
 
 interface SendFunctionArgs {
   /**

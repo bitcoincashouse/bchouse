@@ -1,6 +1,6 @@
+import { logger } from '@bchouse/utils'
 import { LoaderArgs } from '@remix-run/node'
 import { typedjson } from 'remix-typedjson'
-import { logger } from '~/utils/logger'
 
 export const loader = async (_: LoaderArgs) => {
   try {

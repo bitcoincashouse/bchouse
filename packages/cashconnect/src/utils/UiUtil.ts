@@ -1,4 +1,4 @@
-import { logger } from '~/utils/logger'
+import { logger } from '@bchouse/utils'
 import { ConfigCtrl } from '../core/controllers/ConfigCtrl'
 import { ExplorerCtrl } from '../core/controllers/ExplorerCtrl'
 import { OptionsCtrl } from '../core/controllers/OptionsCtrl'

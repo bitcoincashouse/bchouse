@@ -1,5 +1,5 @@
+import { trimPrefix } from '@bchouse/utils'
 import { useZxing } from 'react-zxing'
-import { trimPrefix } from '~/utils/bchUtils'
 
 export function QrScanner({
   onScanSuccess,

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { trimStartAndEnd } from '../../app/utils/trimStartAndEnd'
+import { trimStartAndEnd } from './trimStartAndEnd'
 
 const mentionSchemaAttrs = z
   .object({

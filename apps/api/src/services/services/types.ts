@@ -1,5 +1,5 @@
+import { Doc } from '@bchouse/utils/src/tiptapSchema'
 import { Network } from '../db/types'
-import { Doc } from '../utils/tiptapSchema'
 
 export type PostCardModel = {
   id: string

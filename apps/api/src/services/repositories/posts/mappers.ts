@@ -1,4 +1,4 @@
-import moment from '../../utils/moment'
+import { moment } from '@bchouse/utils'
 
 export function postRowMapper(row: {
   postId: string

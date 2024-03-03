@@ -1,6 +1,6 @@
+import { MAX_SATOSHIS, MIN_SATOSHIS } from '@bchouse/utils'
 import { useState } from 'react'
 import DonationAmount from '~/components/DonationAmount'
-import { MAX_SATOSHIS, MIN_SATOSHIS } from '~/utils/bchUtils'
 import { cn } from '~/utils/cn'
 import { WCButton } from '../components/Button'
 import { InfoFooter } from '../components/InfoFooter'

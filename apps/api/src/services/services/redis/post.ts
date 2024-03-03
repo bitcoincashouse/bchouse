@@ -1,8 +1,7 @@
+import { Doc, moment } from '@bchouse/utils'
 import type Redis from 'ioredis'
 import type { ChainableCommander } from 'ioredis'
 import { Network } from '~/services/db/types.js'
-import moment from '../../utils/moment.js'
-import { Doc } from '../../utils/tiptapSchema.js'
 import {
   getAllCampaignsKey,
   getAllPostsKey,

@@ -1,8 +1,7 @@
+import { HttpStatus, logger } from '@bchouse/utils'
 import type { WebhookEvent } from '@clerk/clerk-sdk-node'
 import { ActionArgs, json } from '@remix-run/node'
 import { Webhook } from 'svix'
-import HttpStatus from '~/utils/http-status'
-import { logger } from '~/utils/logger'
 
 export const action = async (_: ActionArgs) => {
   // Verify the webhook signature

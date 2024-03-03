@@ -1,10 +1,9 @@
+import { formatAddress, moment } from '@bchouse/utils'
 import {
   NetworkProvider,
   TransactionBuilder,
   TransactionDetails,
 } from 'cashscript'
-import moment from '~/services/utils/moment'
-import { formatAddress } from '~/utils/bchUtils'
 import * as pledgeRepository from '../../../repositories/pledge'
 import {
   AbstractCampaignContract,
