@@ -1,11 +1,11 @@
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { useParams } from '@remix-run/react'
 import { useTypedLoaderData } from 'remix-typedjson'
 import { z } from 'zod'
 import { UserCard } from '~/components/user-card'
 import { zx } from '~/utils/zodix'
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   const { userId } = await _.context.authService.getAuthOptional(_)
   const { username } = zx.parseParams(_.params, { username: z.string() })
   return await _.context.profileService.getFollowers(userId, username)

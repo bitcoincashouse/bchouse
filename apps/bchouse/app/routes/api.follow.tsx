@@ -1,9 +1,9 @@
-import { ActionArgs, json } from '@remix-run/node'
+import { ActionFunctionArgs, json } from '@remix-run/node'
 import { typedjson } from 'remix-typedjson'
 import { z } from 'zod'
 import { zx } from '~/utils/zodix'
 
-export const action = async (_: ActionArgs) => {
+export const action = async (_: ActionFunctionArgs) => {
   try {
     await _.context.ratelimit.limitByIp(_, 'api', true)
 

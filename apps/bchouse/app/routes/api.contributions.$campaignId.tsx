@@ -1,10 +1,10 @@
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { useEffect } from 'react'
 import { typedjson, useTypedFetcher } from 'remix-typedjson'
 import { z } from 'zod'
 import { zx } from '~/utils/zodix'
 
-export async function loader(_: LoaderArgs) {
+export async function loader(_: LoaderFunctionArgs) {
   await _.context.ratelimit.limitByIp(_, 'api', true)
 
   const { campaignId } = zx.parseParams(_.params, {

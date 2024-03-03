@@ -1,4 +1,4 @@
-import { ActionArgs, LoaderArgs, json } from '@remix-run/node'
+import { ActionFunctionArgs, LoaderFunctionArgs, json } from '@remix-run/node'
 import { NavLink, Outlet, useLocation } from '@remix-run/react'
 import { $path } from 'remix-routes'
 import { typedjson, useTypedFetcher, useTypedLoaderData } from 'remix-typedjson'
@@ -24,7 +24,7 @@ import { useAppLoaderData } from '../../utils/appHooks'
 import { layoutHandle } from '../_app/route'
 import { ActiveCampaignsWidget } from '../api.campaigns.active.($username)'
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   const { hostname, pathname } = new URL(_.request.url)
   const mainDomain = process.env.APP_MAIN_DOMAIN as string
   const mainAccount = process.env.APP_MAIN_USER as string
@@ -54,7 +54,7 @@ export const loader = async (_: LoaderArgs) => {
   }
 }
 
-export const action = async (_: ActionArgs) => {
+export const action = async (_: ActionFunctionArgs) => {
   try {
     const { userId, sessionId } = await _.context.authService.getAuth(_)
     const { _action: action, profileId } = await zx.parseForm(_.request, {

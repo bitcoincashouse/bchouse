@@ -1,4 +1,4 @@
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { UseDataFunctionReturn, typedjson } from 'remix-typedjson'
 import { z } from 'zod'
 import { zx } from '~/utils/zodix'
@@ -6,7 +6,7 @@ import { zx } from '~/utils/zodix'
 /**
  * URL: /api/media/upload?type=avatar|coverPhoto
  */
-export const action = async (_: LoaderArgs) => {
+export const action = async (_: LoaderFunctionArgs) => {
   await _.context.ratelimit.limitByIp(_, 'api', true)
 
   const { userId } = await _.context.authService.getAuth(_)

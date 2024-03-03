@@ -10,14 +10,6 @@ declare module '@remix-run/node' {
   export interface ActionFunctionArgs extends DataFunctionArgs {
     context: Context
   }
-
-  export interface LoaderArgs extends DataFunctionArgs {
-    context: Context
-  }
-
-  export interface ActionArgs extends DataFunctionArgs {
-    context: Context
-  }
 }
 
 declare global {

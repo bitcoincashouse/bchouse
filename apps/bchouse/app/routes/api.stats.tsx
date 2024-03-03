@@ -1,4 +1,4 @@
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { Link } from '@remix-run/react'
 import { useQuery } from '@tanstack/react-query'
 import { $path } from 'remix-routes'
@@ -6,7 +6,7 @@ import { UseDataFunctionReturn, typedjson } from 'remix-typedjson'
 import { Widget } from '~/components/layouts/widget'
 import { classNames } from '~/utils/classNames'
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   await _.context.ratelimit.limitByIp(_, 'api', true)
 
   const { userCount, dailyActiveUserCount, weeklyActiveUserCount } =

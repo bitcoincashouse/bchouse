@@ -1,6 +1,6 @@
 import { moment } from '@bchouse/utils'
 import {
-  LoaderArgs,
+  LoaderFunctionArgs,
   type LinksFunction,
   type MetaFunction,
 } from '@remix-run/node'
@@ -48,7 +48,7 @@ export const meta: MetaFunction = (_) => {
   )
 }
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   return {
     BCHOUSE_URL: (process.env.BCHOUSE_URL as string).replace(/\/$/, ''),
     PAYGATE_URL: (process.env.PAYGATE_URL as string).replace(/\/$/, ''),

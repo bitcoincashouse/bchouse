@@ -1,4 +1,4 @@
-import { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { useNavigate } from '@remix-run/react'
 import { useEffect } from 'react'
 import { typedjson, useTypedFetcher, useTypedLoaderData } from 'remix-typedjson'
@@ -7,7 +7,7 @@ import { PostCard } from '~/components/post/post-card'
 import { classnames } from '~/components/utils/classnames'
 import { useNotificationsLoaderData } from './_app.notifications'
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   const { userId } = await _.context.authService.getAuth(_)
   const notifications = await _.context.userService.getMentions(userId)
 
@@ -16,7 +16,7 @@ export const loader = async (_: LoaderArgs) => {
   }
 }
 
-export const action = async (_: ActionArgs) => {
+export const action = async (_: ActionFunctionArgs) => {
   const { userId } = await _.context.authService.getAuth(_)
   const updated = await _.context.userService.updateLastViewedNotifications(
     userId

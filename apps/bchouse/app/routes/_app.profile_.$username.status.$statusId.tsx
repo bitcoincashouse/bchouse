@@ -1,4 +1,4 @@
-import { LoaderArgs, MetaFunction } from '@remix-run/node'
+import { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { useLocation, useParams } from '@remix-run/react'
 import { generateText } from '@tiptap/core'
 import { useMemo } from 'react'
@@ -23,7 +23,7 @@ export const handle = {
   skipScrollRestoration: true,
 }
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   const { userId } = await _.context.authService.getAuthOptional(_)
   const { username, statusId: postId } = zx.parseParams(_.params, {
     username: z.string(),

@@ -1,8 +1,8 @@
 import { logger } from '@bchouse/utils'
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { typedjson } from 'remix-typedjson'
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   try {
     if (await _.context.authService.getIsAdmin(_)) {
       const electrumCluster =

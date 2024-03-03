@@ -1,4 +1,4 @@
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { Link, NavLink, Outlet, useLocation } from '@remix-run/react'
 import { useMemo } from 'react'
 import { $path } from 'remix-routes'
@@ -16,7 +16,7 @@ export const handle = {
   showFooter: false,
 }
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   const { userId } = await _.context.authService.getAuthOptional(_)
 
   if (!userId) {

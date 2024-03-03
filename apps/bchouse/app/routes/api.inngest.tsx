@@ -1,9 +1,9 @@
-import { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 
-export const loader = (_: LoaderArgs) => {
+export const loader = (_: LoaderFunctionArgs) => {
   return _.context.inngestService.handler(_)
 }
 
-export const action = (_: ActionArgs) => {
+export const action = (_: ActionFunctionArgs) => {
   return _.context.inngestService.handler(_)
 }

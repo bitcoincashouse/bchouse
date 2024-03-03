@@ -1,4 +1,4 @@
-import { LoaderArgs, redirect } from '@remix-run/node'
+import { LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { UIMatch } from '@remix-run/react'
 import { typedjson, useTypedLoaderData } from 'remix-typedjson'
 import { z } from 'zod'
@@ -12,7 +12,7 @@ export const handle = {
   },
 }
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   const { userId } = await _.context.authService.getAuthOptional(_)
 
   const { hashtag } = zx.parseParams(_.params, {

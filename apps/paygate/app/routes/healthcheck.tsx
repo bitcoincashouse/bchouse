@@ -1,8 +1,8 @@
 // learn more: https://fly.io/docs/reference/configuration/#services-http_checks
 import { logger } from '@bchouse/utils'
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs } from '@remix-run/node'
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   const host =
     _.request.headers.get('X-Forwarded-Host') ?? _.request.headers.get('host')
 

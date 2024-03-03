@@ -1,10 +1,10 @@
 import { logger } from '@bchouse/utils'
-import { ActionArgs, json } from '@remix-run/node'
+import { ActionFunctionArgs, json } from '@remix-run/node'
 import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import { getPledgeSession } from '~/utils/pledgeCookie.server'
 
-export const action = async (_: ActionArgs) => {
+export const action = async (_: ActionFunctionArgs) => {
   await _.context.ratelimit.limitByIp(_, 'api', true)
 
   const { userId } = await _.context.authService.getAuthOptional(_)

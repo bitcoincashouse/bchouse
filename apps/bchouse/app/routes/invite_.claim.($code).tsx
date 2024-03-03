@@ -1,12 +1,12 @@
 import { isApplicationError, isClerkError, logger } from '@bchouse/utils'
 import { ArrowLeftIcon } from '@heroicons/react/20/solid'
-import { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { useNavigate } from '@remix-run/react'
 import { typedjson, useTypedFetcher, useTypedLoaderData } from 'remix-typedjson'
 import { z } from 'zod'
 import { zx } from '~/utils/zodix'
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   await _.context.ratelimit.limitByIp(_, 'api', true)
 
   const { code } = zx.parseParams(_.params, {
@@ -29,7 +29,7 @@ export const loader = async (_: LoaderArgs) => {
   })
 }
 
-export const action = async (_: ActionArgs) => {
+export const action = async (_: ActionFunctionArgs) => {
   try {
     const { emailAddress, code } = await zx.parseForm(_.request, {
       emailAddress: z.string().email(),

@@ -1,11 +1,11 @@
 import { logger } from '@bchouse/utils'
-import type { ActionArgs } from '@remix-run/node'
+import type { ActionFunctionArgs } from '@remix-run/node'
 import React from 'react'
 import { $path } from 'remix-routes'
 import { useTypedFetcher } from 'remix-typedjson'
 import { useThrottleCallback } from '~/utils/useThrottle'
 
-export const action = async (_: ActionArgs) => {
+export const action = async (_: ActionFunctionArgs) => {
   try {
     const { userId } = await _.context.authService.getAuthOptional(_)
 

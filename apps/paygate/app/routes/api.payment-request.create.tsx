@@ -1,9 +1,9 @@
 import { invoicePaymentEventsV1 } from '@bchouse/inngest'
 import { getPrefix } from '@bchouse/utils'
-import { ActionArgs, json } from '@remix-run/node'
+import { ActionFunctionArgs, json } from '@remix-run/node'
 import { z } from 'zod'
 
-export const action = async (_: ActionArgs) => {
+export const action = async (_: ActionFunctionArgs) => {
   const formData = await _.request.json()
 
   const { amount, address, network, event, memo } = z

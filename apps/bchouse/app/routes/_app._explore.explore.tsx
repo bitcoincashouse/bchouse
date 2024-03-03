@@ -1,4 +1,4 @@
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { typedjson, useTypedLoaderData } from 'remix-typedjson'
 import { z } from 'zod'
 import { StandardPostCard } from '~/components/post/standard-post-card'
@@ -7,7 +7,7 @@ import { getTrpc } from '~/utils/trpcClient'
 import { zx } from '~/utils/zodix'
 import { useLayoutLoaderData } from './_app/route'
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   const { q } = zx.parseQuery(_.request, {
     q: z.string().optional(),
   })

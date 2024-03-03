@@ -1,4 +1,4 @@
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { NavLink, Outlet } from '@remix-run/react'
 import { UseDataFunctionReturn, typedjson } from 'remix-typedjson'
 import { StandardLayout } from '~/components/layouts/standard-layout'
@@ -37,7 +37,7 @@ export function usePledgesLoaderData() {
 
 export type PledgeData = UseDataFunctionReturn<typeof loader>['pledges'][number]
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   const { userId } = await _.context.authService.getAuthOptional(_)
   const pledgeSession = await getPledgeSession(_.request)
   const pledgeSecrets = pledgeSession.getPledgeSecrets()

@@ -1,5 +1,5 @@
 import { prettyPrintSats } from '@bchouse/utils'
-import { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { Link } from '@remix-run/react'
 import { useMemo } from 'react'
 import { typedjson, useTypedFetcher, useTypedLoaderData } from 'remix-typedjson'
@@ -8,7 +8,7 @@ import { StandardLayout } from '~/components/layouts/standard-layout'
 import { classnames } from '~/components/utils/classnames'
 import { zx } from '~/utils/zodix'
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   const { secret } = zx.parseParams(_.params, {
     secret: z.string(),
   })
@@ -17,7 +17,7 @@ export const loader = async (_: LoaderArgs) => {
   return typedjson(result)
 }
 
-export const action = async (_: ActionArgs) => {
+export const action = async (_: ActionFunctionArgs) => {
   const { secret } = zx.parseParams(_.params, {
     secret: z.string(),
   })

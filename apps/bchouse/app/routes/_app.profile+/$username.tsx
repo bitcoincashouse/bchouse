@@ -1,4 +1,4 @@
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { NavLink, Outlet } from '@remix-run/react'
 import { $path } from 'remix-routes'
 import { useTypedLoaderData } from 'remix-typedjson'
@@ -22,7 +22,7 @@ import { PostForm } from '~/components/post/post-form'
 import { useAppLoaderData } from '../../utils/appHooks'
 import { ActiveCampaignsWidget } from '../api.campaigns.active.($username)'
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   const { userId } = await _.context.authService.getAuthOptional(_)
 
   let { username } = zx.parseParams(_.params, {

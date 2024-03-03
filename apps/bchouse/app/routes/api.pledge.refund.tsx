@@ -1,10 +1,10 @@
 import { logger } from '@bchouse/utils'
-import { ActionArgs } from '@remix-run/node'
+import { ActionFunctionArgs } from '@remix-run/node'
 import { typedjson, useTypedFetcher } from 'remix-typedjson'
 import { z } from 'zod'
 import { zx } from '~/utils/zodix'
 
-export const action = async (_: ActionArgs) => {
+export const action = async (_: ActionFunctionArgs) => {
   try {
     await _.context.ratelimit.limitByIp(_, 'api', true)
 

@@ -4,7 +4,7 @@ import {
   moment,
   pluralize,
 } from '@bchouse/utils'
-import { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useNavigate, useSearchParams } from '@remix-run/react'
 import { useMemo } from 'react'
 import { typedjson, useTypedFetcher, useTypedLoaderData } from 'remix-typedjson'
@@ -14,7 +14,7 @@ import { classnames } from '~/components/utils/classnames'
 import { ActiveCampaignsWidget } from './api.campaigns.active.($username)'
 import { StatsWidget } from './api.stats'
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   const { userId } = await _.context.authService.getAuth(_)
   const inviteCodes = await _.context.authService.getInviteCodes({
     userId,
@@ -22,7 +22,7 @@ export const loader = async (_: LoaderArgs) => {
   return typedjson(inviteCodes)
 }
 
-export const action = async (_: ActionArgs) => {
+export const action = async (_: ActionFunctionArgs) => {
   try {
     const { userId } = await _.context.authService.getAuth(_)
 

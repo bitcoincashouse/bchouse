@@ -1,13 +1,13 @@
 import { InngestEvent, inngest } from '@bchouse/inngest'
 import { Network, campaignEventSchema, logger } from '@bchouse/utils'
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { useRevalidator } from '@remix-run/react'
 import { useEffect, useMemo, useState } from 'react'
 import { z } from 'zod'
 import { eventStream } from '~/utils/event-stream'
 import { zx } from '~/utils/zodix'
 
-export async function loader(_: LoaderArgs) {
+export async function loader(_: LoaderFunctionArgs) {
   await _.context.ratelimit.limitByIp(_, 'api', true)
 
   const { campaignId } = zx.parseParams(_.params, {

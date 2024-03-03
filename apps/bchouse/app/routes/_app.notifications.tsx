@@ -1,4 +1,4 @@
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { NavLink, Outlet } from '@remix-run/react'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { classNames } from '~/utils/classNames'
@@ -33,7 +33,7 @@ export function useNotificationsLoaderData() {
   return useAppLoaderData(handle)
 }
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   const { userId } = await _.context.authService.getAuth(_)
   return await _.context.profileService.getProfile(userId)
 }

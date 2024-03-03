@@ -1,6 +1,6 @@
 import { moment, prettyPrintSats } from '@bchouse/utils'
 import { ArrowPathIcon, HeartIcon, UserIcon } from '@heroicons/react/20/solid'
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useNavigate } from '@remix-run/react'
 import { $path } from 'remix-routes'
 import { useTypedLoaderData } from 'remix-typedjson'
@@ -12,7 +12,7 @@ import { Activity } from '~/server/services/redis/activity'
 import { classNames } from '~/utils/classNames'
 import { useNotificationsLoaderData } from './_app.notifications'
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   const { userId } = await _.context.authService.getAuth(_)
   const notifications = await _.context.userService.getNotifications(userId)
 

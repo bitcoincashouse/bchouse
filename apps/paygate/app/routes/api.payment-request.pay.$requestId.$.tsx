@@ -1,10 +1,10 @@
 import { logger } from '@bchouse/utils'
-import { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { z } from 'zod'
 import { cors } from '~/utils/cors'
 import { zx } from '~/utils/zodix'
 
-export async function loader(_: LoaderArgs) {
+export async function loader(_: LoaderFunctionArgs) {
   return handlePaymentError(async () => {
     if (_.request.method.toLowerCase() === 'options') {
       return await cors(_.request, new Response('ok', { status: 200 }))
@@ -28,7 +28,7 @@ export async function loader(_: LoaderArgs) {
   })
 }
 
-export async function action(_: ActionArgs) {
+export async function action(_: ActionFunctionArgs) {
   return handlePaymentError(async () => {
     const headers = JSON.stringify({
       headers: Object.fromEntries(_.request.headers.entries()),

@@ -70,7 +70,7 @@ export const zx = {
 }
 
 /**
- * Parse and validate Params from LoaderArgs or ActionArgs. Throws an error if validation fails.
+ * Parse and validate Params from LoaderFunctionArgs or ActionFunctionArgs. Throws an error if validation fails.
  * @param params - A Remix Params object.
  * @param schema - A Zod object shape or object schema to validate.
  * @throws {Response} - Throws an error Response if validation fails.
@@ -89,7 +89,7 @@ export function parseParams<T extends ZodRawShape | ZodTypeAny>(
 }
 
 /**
- * Parse and validate Params from LoaderArgs or ActionArgs. Doesn't throw if validation fails.
+ * Parse and validate Params from LoaderFunctionArgs or ActionFunctionArgs. Doesn't throw if validation fails.
  * @param params - A Remix Params object.
  * @param schema - A Zod object shape or object schema to validate.
  * @returns {SafeParseReturnType} - An object with the parsed data or a ZodError.

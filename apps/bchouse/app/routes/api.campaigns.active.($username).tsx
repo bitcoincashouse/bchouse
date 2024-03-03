@@ -1,5 +1,5 @@
 import { moment, prettyPrintSats } from '@bchouse/utils'
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { Link } from '@remix-run/react'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
@@ -12,7 +12,7 @@ import { pluralize } from '~/components/utils'
 import { classNames } from '~/utils/classNames'
 import { zx } from '~/utils/zodix'
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   await _.context.ratelimit.limitByIp(_, 'api', true)
 
   const { username } = zx.parseParams(_.params, {

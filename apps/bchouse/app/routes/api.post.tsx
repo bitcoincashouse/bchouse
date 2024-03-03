@@ -1,5 +1,5 @@
 import { docSchema, logger, moment } from '@bchouse/utils'
-import { ActionArgs } from '@remix-run/node'
+import { ActionFunctionArgs } from '@remix-run/node'
 import { FetcherWithComponents } from '@remix-run/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { JSONContent, generateText } from '@tiptap/core'
@@ -79,7 +79,7 @@ const postSchema = topLevelPost.or(childPost).refine((post) => {
   return !!text.length
 }, 'Post requires body or media')
 
-export const action = async (_: ActionArgs) => {
+export const action = async (_: ActionFunctionArgs) => {
   try {
     await _.context.ratelimit.limitByIp(_, 'api', true)
 

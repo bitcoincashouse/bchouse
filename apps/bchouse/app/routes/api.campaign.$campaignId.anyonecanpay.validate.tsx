@@ -1,12 +1,12 @@
 import { logger } from '@bchouse/utils'
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { useMutation } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { typedjson } from 'remix-typedjson'
 import { z } from 'zod'
 import { zx } from '~/utils/zodix'
 
-export const action = async (_: LoaderArgs) => {
+export const action = async (_: LoaderFunctionArgs) => {
   try {
     await _.context.ratelimit.limitByIp(_, 'api', true)
 

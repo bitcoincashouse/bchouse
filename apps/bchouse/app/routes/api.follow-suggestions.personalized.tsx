@@ -1,5 +1,5 @@
 import { logger } from '@bchouse/utils'
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { ClientLoaderFunctionArgs } from '@remix-run/react'
 import { useEffect } from 'react'
 import { $path } from 'remix-routes'
@@ -9,7 +9,7 @@ import { UserCard } from '~/components/user-card'
 import { useTypedFetcher } from '~/utils/useTypedFetcher'
 import { useLayoutLoaderData } from './_app/route'
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   try {
     await _.context.ratelimit.limitByIp(_, 'api', true)
 

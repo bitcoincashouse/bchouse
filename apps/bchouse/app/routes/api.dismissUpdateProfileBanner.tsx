@@ -1,10 +1,10 @@
 import { logger } from '@bchouse/utils'
-import { ActionArgs, json } from '@remix-run/node'
+import { ActionFunctionArgs, json } from '@remix-run/node'
 import { useMemo } from 'react'
 import { useTypedFetcher } from 'remix-typedjson'
 import { getUpdateProfileSession } from '~/utils/updateProfileBannerCookie.server'
 
-export const action = async (_: ActionArgs) => {
+export const action = async (_: ActionFunctionArgs) => {
   try {
     const session = await getUpdateProfileSession(_.request)
     session.setDismissed()

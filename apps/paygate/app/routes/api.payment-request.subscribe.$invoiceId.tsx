@@ -1,10 +1,10 @@
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { z } from 'zod'
 import { cors } from '~/utils/cors'
 import { eventStream } from '~/utils/event-stream'
 import { zx } from '~/utils/zodix'
 
-export async function loader(_: LoaderArgs) {
+export async function loader(_: LoaderFunctionArgs) {
   if (_.request.method.toLowerCase() === 'options') {
     return await cors(_.request, new Response('ok', { status: 200 }))
   }

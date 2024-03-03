@@ -1,9 +1,9 @@
 import { logger } from '@bchouse/utils'
-import { ActionArgs, json } from '@remix-run/node'
+import { ActionFunctionArgs, json } from '@remix-run/node'
 import { z } from 'zod'
 import { zx } from '~/utils/zodix'
 
-export const action = async (_: ActionArgs) => {
+export const action = async (_: ActionFunctionArgs) => {
   try {
     const { action, secret, postId } = await zx.parseForm(_.request, {
       action: z.enum(['ALLOW', 'REMOVE']),

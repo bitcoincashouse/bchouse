@@ -5,7 +5,7 @@ import {
   ChevronDoubleRightIcon,
   XMarkIcon,
 } from '@heroicons/react/24/solid'
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import {
   Link,
   Outlet,
@@ -43,7 +43,7 @@ export const usePhotoLoaderData = () => {
   )
 }
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   const { userId } = await _.context.authService.getAuthOptional(_)
   const { username, statusId: postId } = zx.parseParams(_.params, {
     username: z.string(),

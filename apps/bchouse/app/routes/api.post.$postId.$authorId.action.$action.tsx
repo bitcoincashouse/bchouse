@@ -1,4 +1,4 @@
-import { ActionArgs } from '@remix-run/node'
+import { ActionFunctionArgs } from '@remix-run/node'
 import { ClientActionFunctionArgs, useSubmit } from '@remix-run/react'
 import { useCallback } from 'react'
 import { $path } from 'remix-routes'
@@ -32,7 +32,7 @@ const postActionSchema = z.object({
 
 export type PostActionType = z.infer<typeof postActionSchema>['action']
 
-export const action = async (_: ActionArgs) => {
+export const action = async (_: ActionFunctionArgs) => {
   await _.context.ratelimit.limitByIp(_, 'api', true)
 
   const { userId, sessionId } = await _.context.authService.getAuthOptional(_)

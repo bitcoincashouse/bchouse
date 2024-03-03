@@ -1,9 +1,9 @@
-import { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { typedjson } from 'remix-typedjson'
 import { z } from 'zod'
 import { zx } from '~/utils/zodix'
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   await _.context.ratelimit.limitByIp(_, 'api', true)
 
   const { userId: currentUserId } = await _.context.authService.getAuthOptional(
@@ -21,7 +21,7 @@ export const loader = async (_: LoaderArgs) => {
   return typedjson(user)
 }
 
-export const action = async (_: ActionArgs) => {
+export const action = async (_: ActionFunctionArgs) => {
   try {
     const { userId } = await _.context.authService.getAuth(_)
     const body = await zx.parseForm(

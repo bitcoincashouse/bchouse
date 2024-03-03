@@ -1,4 +1,4 @@
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { NavLink, Outlet } from '@remix-run/react'
 import { useTypedLoaderData } from 'remix-typedjson'
 import { z } from 'zod'
@@ -7,7 +7,7 @@ import { StandardLayout } from '~/components/layouts/standard-layout'
 import { classNames } from '~/utils/classNames'
 import { zx } from '~/utils/zodix'
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   const { username } = zx.parseParams(_.params, {
     username: z.string().nonempty(),
   })

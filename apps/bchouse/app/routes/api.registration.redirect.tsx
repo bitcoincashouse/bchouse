@@ -1,8 +1,8 @@
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { $path } from 'remix-routes'
 import { redirect } from 'remix-typedjson'
 
-export const loader = async (_: LoaderArgs) => {
+export const loader = async (_: LoaderFunctionArgs) => {
   const path = _.params['*']?.split('/')[0] || ''
 
   if (path === 'complete') {

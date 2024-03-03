@@ -1,9 +1,9 @@
 import { HttpStatus, logger } from '@bchouse/utils'
 import type { WebhookEvent } from '@clerk/clerk-sdk-node'
-import { ActionArgs, json } from '@remix-run/node'
+import { ActionFunctionArgs, json } from '@remix-run/node'
 import { Webhook } from 'svix'
 
-export const action = async (_: ActionArgs) => {
+export const action = async (_: ActionFunctionArgs) => {
   // Verify the webhook signature
   // See https://docs.svix.com/receiving/verifying-payloads/how
   const payload = Buffer.from(await _.request.arrayBuffer()).toString()

@@ -1,8 +1,8 @@
-import { LoaderArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { useTypedLoaderData } from 'remix-typedjson'
 import { LandingPage } from '~/components/landing'
 
-export async function loader(_: LoaderArgs) {
+export async function loader(_: LoaderFunctionArgs) {
   await _.context.ratelimit.limitByIp(_, 'app', true)
   const { userId } = await _.context.authService.getAuthOptional(_)
   return { isLoggedIn: !!userId }
