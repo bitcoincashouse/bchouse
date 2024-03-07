@@ -5,8 +5,6 @@ import {
 } from '@clerk/clerk-sdk-node'
 
 import { ApplicationError } from '@bchouse/utils'
-import { getAuth } from '@clerk/remix/ssr.server'
-import { DataFunctionArgs, redirect } from '@remix-run/node'
 import {
   addUserInvite,
   createInviteCode,
@@ -22,25 +20,7 @@ const MAX_INVITES = 10
 export class AuthService {
   constructor() {}
 
-  async getAuthOptional(params: DataFunctionArgs): Promise<AuthObject> {
-    return await getAuth(params)
-  }
-
-  async getAuth(params: DataFunctionArgs): Promise<SignedInAuthObject> {
-    const auth = await this.getAuthOptional(params)
-
-    if (!auth || !auth.userId) {
-      const redirectUrl = new URL(params.request.url)
-      throw redirect(
-        `/auth/login?redirectUrl=${encodeURI(redirectUrl.pathname)}`
-      )
-    }
-
-    return auth
-  }
-
-  async getIsAdmin(params: DataFunctionArgs) {
-    const auth = await this.getAuthOptional(params)
+  async getIsAdmin(auth: AuthObject) {
     return !!auth.userId && (await getUserIsAdmin({ userId: auth.userId }))
   }
 

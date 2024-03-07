@@ -47,7 +47,7 @@ export const layoutHandle = handle
 export const loader = async (_: LoaderFunctionArgs) => {
   try {
     const trpc = getServerClient(_.request)
-    await trpc.profile.prefetch()
+    await trpc.profile.get.prefetch()
 
     return {
       dehydratedState: trpc.dehydrate(),
@@ -59,7 +59,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
 }
 
 export const useLayoutLoaderData = () => {
-  const { data, error } = trpc.profile.useQuery(undefined, {
+  const { data, error } = trpc.profile.get.useQuery(undefined, {
     staleTime: 5 * 60 * 1000,
   })
   if (!data) throw new Error('Layout loader data error.')
@@ -67,7 +67,7 @@ export const useLayoutLoaderData = () => {
 }
 
 export const useLoggedInLoaderData = () => {
-  const { data } = trpc.profile.useQuery(undefined, {
+  const { data } = trpc.profile.get.useQuery(undefined, {
     staleTime: 5 * 60 * 1000,
   })
   if (data?.anonymousView) throw new Error('User not signed in')
@@ -75,7 +75,7 @@ export const useLoggedInLoaderData = () => {
 }
 
 export const ErrorBoundary = () => {
-  const { isLoading, data } = trpc.profile.useQuery(undefined, {
+  const { isLoading, data } = trpc.profile.get.useQuery(undefined, {
     staleTime: 5 * 60 * 1000,
   })
 
@@ -91,7 +91,7 @@ export const ErrorBoundary = () => {
 }
 
 export default function Index() {
-  let { data } = trpc.profile.useQuery(undefined, {
+  let { data } = trpc.profile.get.useQuery(undefined, {
     staleTime: 5 * 60 * 1000,
   })
 
@@ -120,7 +120,7 @@ export default function Index() {
 
   const updateProfileFetcher = useDismissUpdateProfileBanner()
 
-  useUpdateLastActive(!applicationData.anonymousView)
+  useUpdateLastActive(!applicationData.isAnonymous)
 
   return (
     <CurrentUserProvider user={applicationData}>
@@ -129,7 +129,7 @@ export default function Index() {
           <PledgeModalProvider>
             <ClientOnly>
               {() =>
-                !applicationData.anonymousView &&
+                !applicationData.isAnonymous &&
                 applicationData.showUpdateProfile ? (
                   <InfoAlert
                     target="_blank"
@@ -149,10 +149,8 @@ export default function Index() {
                 ) : null
               }
             </ClientOnly>
-            <TipPostModal isLoggedIn={!applicationData.anonymousView} />
-            <PledgeFundraiserModal
-              isLoggedIn={!applicationData.anonymousView}
-            />
+            <TipPostModal isLoggedIn={!applicationData.isAnonymous} />
+            <PledgeFundraiserModal isLoggedIn={!applicationData.isAnonymous} />
 
             <AppShell {...applicationData} showHeader={pageProps.header}>
               <section className={classNames('relative admin-outlet')}>
@@ -212,7 +210,7 @@ function ShowPostModal() {
     data: applicationData = {
       anonymousView: true,
     },
-  } = trpc.profile.useQuery(undefined, {
+  } = trpc.profile.get.useQuery(undefined, {
     staleTime: 5 * 60 * 1000,
   })
   const [searchParams] = useSearchParams()
@@ -258,7 +256,7 @@ function ShowEditProfileModal() {
     data: applicationData = {
       anonymousView: true,
     },
-  } = trpc.profile.useQuery(undefined, {
+  } = trp.profile.profile.useQuery(undefined, {
     staleTime: 5 * 60 * 1000,
   })
 

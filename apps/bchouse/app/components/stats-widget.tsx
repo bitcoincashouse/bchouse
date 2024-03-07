@@ -5,7 +5,7 @@ import { classNames } from '~/utils/classNames'
 import { trpc } from '~/utils/trpc'
 
 export function StatsWidget() {
-  const { data, isLoading } = trpc.stats.useQuery(undefined, {
+  const { data, isLoading } = trpc.metrics.stats.useQuery(undefined, {
     staleTime: 1000 * 60,
     gcTime: 1000 * 60 * 5,
   })

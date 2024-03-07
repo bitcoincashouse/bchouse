@@ -1,4 +1,3 @@
-import { AppRouter } from '@bchouse/api'
 import {
   BellIcon as BellIconSolid,
   GlobeAltIcon as GlobeAltIconSolid,
@@ -19,7 +18,6 @@ import {
   UserGroupIcon,
   UserIcon,
 } from '@heroicons/react/24/outline'
-import { inferRouterOutputs } from '@trpc/server'
 import { useMemo } from 'react'
 import ReactDOM from 'react-dom'
 import { $path } from 'remix-routes' // <-- Import magical $path helper from remix-routes.
@@ -33,17 +31,18 @@ import SidebarNavigation, {
 import { classnames } from '~/components/utils/classnames'
 import { usePageDisplay } from '~/utils/appHooks'
 import { logoUrl } from '~/utils/constants'
+import { useCurrentUser } from './context/current-user-context'
 
 export const AppShell: React.FC<
-  React.PropsWithChildren &
-    inferRouterOutputs<AppRouter>['profile'] & { showHeader: boolean }
-> = function ({ children, showHeader, ...layoutData }) {
+  React.PropsWithChildren & { showHeader: boolean }
+> = function ({ children, showHeader }) {
+  const currentUser = useCurrentUser()
   const userNavigation = useMemo(
     () =>
       [
         {
           name: 'Home',
-          href: layoutData.anonymousView ? $path('/home/all') : $path('/home'),
+          href: currentUser.isAnonymous ? $path('/home/all') : $path('/home'),
           icon: HomeIcon,
           activeIcon: HomeIconSolid,
           mobile: true,
@@ -57,22 +56,22 @@ export const AppShell: React.FC<
         },
         {
           name: 'Notifications',
-          href: layoutData.anonymousView
+          href: currentUser.isAnonymous
             ? $path('/auth/login/:rest?', {})
             : $path('/notifications'),
           icon: BellIcon,
           activeIcon: BellIconSolid,
           mobile: true,
-          notificationCount: layoutData.anonymousView
+          notificationCount: currentUser.isAnonymous
             ? 0
-            : layoutData.profile?.notificationCount,
+            : currentUser.notificationCount,
         },
         {
           name: 'Profile',
-          href: layoutData.anonymousView
+          href: currentUser.isAnonymous
             ? $path('/auth/login/:rest?', {})
             : $path('/profile/:username', {
-                username: layoutData.profile?.username,
+                username: currentUser.username,
               }),
           icon: UserIcon,
           activeIcon: UserIconSolid,
@@ -101,7 +100,7 @@ export const AppShell: React.FC<
         },
         {
           name: 'Invite',
-          href: layoutData.anonymousView
+          href: currentUser.isAnonymous
             ? $path('/auth/login/:rest?', {})
             : $path('/invite'),
           icon: UserGroupIcon,
@@ -109,7 +108,7 @@ export const AppShell: React.FC<
           mobile: false,
         },
       ] as NavigationItemProps[],
-    [layoutData]
+    [currentUser]
   )
 
   const { containerClassName } = usePageDisplay()
@@ -119,13 +118,12 @@ export const AppShell: React.FC<
       <div className="app-container relative flex flex-col h-screen min-h-screen sm:h-auto">
         {/* Fixed position and invisible copy to offset body container */}
         <div className="non-mobile:hidden invisible">
-          <MobileHeaderNavigation logoUrl={logoUrl} {...layoutData} />
+          <MobileHeaderNavigation logoUrl={logoUrl} />
         </div>
         <div className="non-mobile:hidden absolute top-0 w-full z-40">
           <MobileHeaderNavigation
             logoUrl={logoUrl}
             navigation={userNavigation}
-            {...layoutData}
           />
         </div>
 
@@ -140,7 +138,6 @@ export const AppShell: React.FC<
             <div className="w-[88px] xl:w-[275px]">
               <div className="fixed w-[88px] xl:w-[275px] h-full flex pt-4 xl:pt-0">
                 <SidebarNavigation
-                  {...layoutData}
                   navigation={userNavigation}
                   logoUrl={logoUrl}
                 />
@@ -156,7 +153,7 @@ export const AppShell: React.FC<
         </div>
 
         {/* Fixed position and invisible copy to offset body container */}
-        {!layoutData.anonymousView && (
+        {!currentUser.isAnonymous && (
           <ClientOnly>
             {() =>
               ReactDOM.createPortal(

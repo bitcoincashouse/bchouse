@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { PostCardModel } from '~/types'
 
-const postActionSchema = z.object({
+export const postActionSchema = z.object({
   postId: z.string(),
   authorId: z.string(),
   action: z.enum([

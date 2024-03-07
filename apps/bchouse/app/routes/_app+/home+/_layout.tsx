@@ -30,7 +30,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
 
   const trpc = getServerClient(_.request)
 
-  await trpc.stats.prefetch()
+  await trpc.metrics.stats.prefetch()
 
   return {
     dehydratedState: trpc.dehydrate(),
@@ -42,7 +42,7 @@ export default function Index() {
     data: applicationData = {
       anonymousView: true,
     },
-  } = trpc.profile.useQuery(undefined, {
+  } = trpc.profile.get.useQuery(undefined, {
     staleTime: 5 * 60 * 1000,
   })
   const location = useLocation()
@@ -50,7 +50,7 @@ export default function Index() {
   const {
     data: { userCount = 0, dailyActiveUserCount = 0 } = {},
     isLoading: isLoadingStats,
-  } = trpc.stats.useQuery(undefined, {
+  } = trpc.metrics.stats.useQuery(undefined, {
     staleTime: 5 * 60 * 1000,
   })
 

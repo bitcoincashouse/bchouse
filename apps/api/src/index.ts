@@ -2,7 +2,7 @@ import { ClerkExpressWithAuth } from '@clerk/clerk-sdk-node'
 import { createExpressMiddleware } from '@trpc/server/adapters/express'
 import cors from 'cors'
 import express from 'express'
-import { appRouter } from './app'
+import { appRouter } from './router/index'
 import { createContext } from './trpc'
 
 const app = express()

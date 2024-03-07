@@ -15,7 +15,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
 
   console.log('Salam explore prefetch')
 
-  await trpc.explore.prefetch({ q })
+  await trpc.search.explore.prefetch({ q })
 
   return {
     dehydratedState: trpc.dehydrate(),
@@ -27,14 +27,14 @@ export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
     q: z.string().optional(),
   })
 
-  await window.trpcClientUtils.explore.prefetch({ q })
+  await window.trpcClientUtils.search.explore.prefetch({ q })
 
   return null
 }
 
 export default function Index() {
   const [searchParams] = useSearchParams()
-  const { data: posts, isLoading } = trpc.explore.useQuery(
+  const { data: posts, isLoading } = trpc.search.explore.useQuery(
     {
       q: searchParams.get('q') || undefined,
     },
@@ -42,8 +42,6 @@ export default function Index() {
       staleTime: 5 * 60 * 1000,
     }
   )
-
-  const layoutData = useLayoutLoaderData()
 
   return (
     <>

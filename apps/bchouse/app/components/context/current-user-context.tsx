@@ -7,6 +7,7 @@ export type CurrentUser = {
   avatarUrl: string
   fullName: string
   id: string
+  notificationCount: number
 }
 
 const CurrentUserContext = createContext<CurrentUser | null>(null)

@@ -12,6 +12,8 @@ process.on('SIGTERM', () => context.destroy().then(() => process.exit()))
 export const createContext = ({ req, res }: CreateExpressContextOptions) => ({
   auth: (req as any).auth as AuthObject,
   ip: req.headers['Fly-Client-IP'] ?? req.socket.remoteAddress,
+  req,
+  res,
   ...context,
 })
 

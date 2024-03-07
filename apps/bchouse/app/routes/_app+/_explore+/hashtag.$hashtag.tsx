@@ -1,9 +1,10 @@
+import { logger } from '@bchouse/utils'
 import { LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { UIMatch } from '@remix-run/react'
-import { typedjson, useTypedLoaderData } from 'remix-typedjson'
 import { z } from 'zod'
 import { StandardPostCard } from '~/components/post/standard-post-card'
-import { getAuthOptional } from '~/utils/auth'
+import { trpc } from '~/utils/trpc'
+import { getServerClient } from '~/utils/trpc.server'
 import { zx } from '~/utils/zodix'
 
 export const handle = {
@@ -13,28 +14,28 @@ export const handle = {
 }
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  const { userId } = await getAuthOptional(_)
+  try {
+    const trpc = getServerClient(_.request)
 
-  const { hashtag } = zx.parseParams(_.params, {
-    hashtag: z.string().optional(),
-  })
+    const { hashtag } = zx.parseParams(_.params, {
+      hashtag: z.string().optional(),
+    })
 
-  if (!hashtag) throw redirect('/explore')
+    if (!hashtag) throw redirect('/explore')
 
-  const results = await _.context.searchService.searchPosts(hashtag)
-  const posts = await _.context.redisService.getPosts(
-    results.hits?.map((result) => ({
-      id: result.document.id,
-      publishedById: result.document.post_author_id,
-    })) || [],
-    userId
-  )
+    await trpc.search.searchHashtag.prefetch()
 
-  return typedjson(posts)
+    return {
+      dehydratedState: trpc.dehydrate(),
+    }
+  } catch (err) {
+    logger.info('Error fetching app shell')
+    throw err
+  }
 }
 
 export default function Index() {
-  const posts = useTypedLoaderData<typeof loader>()
+  const posts = trpc.search.searchHashtag.useQuery({}, {})
 
   return (
     <>

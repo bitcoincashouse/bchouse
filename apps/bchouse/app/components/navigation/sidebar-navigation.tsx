@@ -4,7 +4,7 @@ import { Link, NavLink, useLocation } from '@remix-run/react'
 import React, { useRef } from 'react'
 import { classNames } from '~/utils/classNames'
 import { useClerkTheme } from '~/utils/useClerkTheme'
-import { LayoutLoaderData } from '../../routes/_app/_layout'
+import { useCurrentUser } from '../context/current-user-context'
 import { ThemeToggle } from '../theme-toggle'
 import { classnames } from '../utils/classnames'
 
@@ -31,17 +31,17 @@ export type NavigationItemProps = {
 export type SidebarNavigationProps = {
   logoUrl: string
   navigation: NavigationItemProps[]
-} & LayoutLoaderData
+}
 
 const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
   logoUrl,
   navigation = [],
-  ...layoutData
 }) => {
   const location = useLocation()
   const pathParts = location.pathname.split('/')
+  const currentUser = useCurrentUser()
   const hidePostButton =
-    layoutData.anonymousView ||
+    currentUser.isAnonymous ||
     (pathParts.indexOf('profile') !== -1 && pathParts.indexOf('status') !== -1)
 
   const userButtonRef = useRef<HTMLDivElement>(null)
@@ -125,7 +125,7 @@ const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
               ))}
             </ul>
           </li>
-          {layoutData.anonymousView ? (
+          {currentUser.isAnonymous ? (
             <li className="flex justify-center">
               <SignInButton
                 mode="modal"
@@ -170,7 +170,7 @@ const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
               </Link>
             </li>
           ) : null}
-          {!layoutData.anonymousView ? (
+          {!currentUser.isAnonymous ? (
             <li className="-mx-6 mt-auto">
               <div className="relative">
                 <Menu as="div" className="flex text-left">
@@ -205,10 +205,10 @@ const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
                     </div>
                     <div className="hidden xl:flex flex-col gap-0.5 items-start">
                       <span className="" aria-hidden="true">
-                        {layoutData.profile?.fullName}
+                        {currentUser.fullName}
                       </span>
                       <span className="text-secondary-text" aria-hidden="true">
-                        @{layoutData.profile?.username}
+                        @{currentUser.username}
                       </span>
                     </div>
                   </div>

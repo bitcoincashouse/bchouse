@@ -8,7 +8,7 @@ export function useUpdateLastActive(isEnabled: boolean) {
 
   isEnabledRef.current = isEnabled
 
-  const updateActivityMutation = trpc.lastActive.useMutation()
+  const updateActivityMutation = trpc.profile.updateLastActive.useMutation()
 
   const updateLastActiveCallback = useThrottleCallback(() => {
     if (isEnabledRef.current && isVisibleRef.current) {

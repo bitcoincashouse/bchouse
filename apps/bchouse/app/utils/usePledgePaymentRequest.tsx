@@ -5,7 +5,7 @@ export function clearPaymentRequestQuery(params: {
   address: string
   campaignId: string
 }) {
-  return window.trpcClientUtils.paymentRequestPledge.invalidate(params)
+  return window.trpcClientUtils.campaign.paymentRequestPledge.invalidate(params)
 }
 
 export function queryPaymentRequest(params: {
@@ -13,7 +13,7 @@ export function queryPaymentRequest(params: {
   address: string
   campaignId: string
 }) {
-  return window.trpcClientUtils.paymentRequestPledge.fetch(params, {
+  return window.trpcClientUtils.campaign.paymentRequestPledge.fetch(params, {
     //Match expiration time
     staleTime: 15 * 60 * 1000,
   })
@@ -26,7 +26,7 @@ export function usePaymentRequest(
     campaignId: string
   } | null
 ) {
-  return trpc.paymentRequestPledge.useQuery(
+  return trpc.campaign.paymentRequestPledge.useQuery(
     params as NonNullable<typeof params>,
     {
       enabled: !!params,

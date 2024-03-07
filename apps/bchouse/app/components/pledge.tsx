@@ -20,7 +20,7 @@ export function Pledge({ pledge }: { pledge: PledgeData }) {
     error,
     isPending,
     data,
-  } = trpc.refundPledge.useMutation({})
+  } = trpc.campaign.refundPledge.useMutation({})
 
   if (error) {
     //TODO: Show a modal

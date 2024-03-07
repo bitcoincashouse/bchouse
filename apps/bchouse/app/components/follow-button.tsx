@@ -28,10 +28,10 @@ export function FollowButton({
   const trpcClientUtils = trpc.useUtils()
 
   const { mutate: update, isPending: isSubmitting } =
-    trpc.updateFollow.useMutation({
+    trpc.profile.updateFollow.useMutation({
       onMutate: (variables) => {
         //TODO: Optimistically update follow/unfollow globally for user
-        trpcClientUtils.isFollowing.setData(
+        trpcClientUtils.profile.getIsFollowing.setData(
           { profileId: variables.profileId },
           variables.action === 'follow'
         )
@@ -45,7 +45,7 @@ export function FollowButton({
 
   //TODO: pass in isFollowing so context can handle optimistic updates
   //TODO: have global onMutate/onSuccess/onFailure for all related queries dealing with follow/unfollow status of particular user
-  const isFollowing = trpc.isFollowing.useQuery(
+  const isFollowing = trpc.profile.getIsFollowing.useQuery(
     {
       profileId: user.id,
     },

@@ -1,5 +1,5 @@
+import { useCurrentUser } from '~/components/context/current-user-context'
 import { Feed } from '~/components/post/feed'
-import { trpc } from '~/utils/trpc'
 
 export const handle: AppRouteHandle = {
   preventScrollReset: true,
@@ -7,19 +7,12 @@ export const handle: AppRouteHandle = {
 }
 
 export default function Index() {
-  let {
-    data: layoutData = {
-      anonymousView: true,
-    },
-  } = trpc.profile.useQuery(undefined, {
-    staleTime: 5 * 60 * 1000,
-  })
+  const currentUser = useCurrentUser()
 
   return (
     <Feed
-      currentUser={!layoutData.anonymousView ? layoutData.profile : undefined}
-      feedOwner={!layoutData.anonymousView ? layoutData.profile : undefined}
-      id={!layoutData.anonymousView ? layoutData.profile.id : 'anonymous'}
+      feedOwner={!currentUser.isAnonymous ? currentUser : undefined}
+      id={!currentUser.isAnonymous ? currentUser.id : 'anonymous'}
       queryKey="all_posts"
     />
   )

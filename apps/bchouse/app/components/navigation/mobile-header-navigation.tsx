@@ -3,10 +3,10 @@ import { Dialog, Menu, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/20/solid'
 import { NavLink, useLocation } from '@remix-run/react'
 import React, { Fragment, useRef } from 'react'
-import { LayoutLoaderData } from '~/routes/_app/_layout'
 import { classNames } from '~/utils/classNames'
 import { useClerkTheme } from '~/utils/useClerkTheme'
 import { Avatar } from '../avatar'
+import { useCurrentUser } from '../context/current-user-context'
 import { useMobileMenu } from '../mobile-menu-provider'
 import { Search } from '../search/autocomplete-search'
 import { ThemeToggle } from '../theme-toggle'
@@ -16,19 +16,18 @@ export type AdminLayoutProps = {
   logoUrl?: string
   showAvatar?: boolean
   navigation?: NavigationItemProps[]
-} & LayoutLoaderData
+}
 
 export const MobileHeaderNavigation: React.FC<AdminLayoutProps> = ({
   logoUrl,
   navigation = [],
-  ...layoutData
 }) => {
   const location = useLocation()
+  const currentUser = useCurrentUser()
   const isSearchView = location.pathname === '/explore'
   const { menuOpen, setMenuOpen } = useMobileMenu()
   const userButtonRef = useRef<HTMLDivElement>(null)
   const clerkTheme = useClerkTheme()
-  const profile = layoutData.anonymousView ? null : layoutData.profile
 
   return (
     <>
@@ -46,7 +45,12 @@ export const MobileHeaderNavigation: React.FC<AdminLayoutProps> = ({
               type="button"
               onClick={() => setMenuOpen(true)}
             >
-              <Avatar src={profile?.avatarUrl} className="block h-8 w-auto" />
+              <Avatar
+                src={
+                  currentUser.isAnonymous ? undefined : currentUser.avatarUrl
+                }
+                className="block h-8 w-auto"
+              />
             </button>
           </div>
           {isSearchView ? (
@@ -185,7 +189,7 @@ export const MobileHeaderNavigation: React.FC<AdminLayoutProps> = ({
                           ))}
                         </ul>
                       </li>
-                      {layoutData.anonymousView ? (
+                      {currentUser.isAnonymous ? (
                         <li className="flex justify-center">
                           <SignInButton
                             mode="modal"
@@ -201,7 +205,7 @@ export const MobileHeaderNavigation: React.FC<AdminLayoutProps> = ({
                           </SignInButton>
                         </li>
                       ) : null}
-                      {!layoutData.anonymousView ? (
+                      {!currentUser.isAnonymous ? (
                         <li className="-mx-6 mt-auto">
                           <div className="relative">
                             <Menu as="div" className="flex text-left">
@@ -237,13 +241,13 @@ export const MobileHeaderNavigation: React.FC<AdminLayoutProps> = ({
                                 </div>
                                 <div className="flex flex-col gap-0.5 items-start">
                                   <span className="" aria-hidden="true">
-                                    {layoutData.profile?.fullName}
+                                    {currentUser.fullName}
                                   </span>
                                   <span
                                     className="text-secondary-text"
                                     aria-hidden="true"
                                   >
-                                    @{layoutData.profile?.username}
+                                    @{currentUser.username}
                                   </span>
                                 </div>
                               </div>
