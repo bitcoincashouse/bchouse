@@ -5,7 +5,7 @@ import { typedjson, useTypedFetcher, useTypedLoaderData } from 'remix-typedjson'
 import { ClientOnly } from '~/components/client-only'
 import { PostCard } from '~/components/post/post-card'
 import { classnames } from '~/components/utils/classnames'
-import { useNotificationsLoaderData } from './_app.notifications'
+import { useNotificationsLoaderData } from './_layout'
 
 export const loader = async (_: LoaderFunctionArgs) => {
   const { userId } = await _.context.authService.getAuth(_)

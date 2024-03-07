@@ -10,7 +10,7 @@ import { PostCard, PostProvider } from '~/components/post/post-card'
 import { classnames } from '~/components/utils/classnames'
 import { Activity } from '~/server/services/redis/activity'
 import { classNames } from '~/utils/classNames'
-import { useNotificationsLoaderData } from './_app.notifications'
+import { useNotificationsLoaderData } from './_layout'
 
 export const loader = async (_: LoaderFunctionArgs) => {
   const { userId } = await _.context.authService.getAuth(_)
