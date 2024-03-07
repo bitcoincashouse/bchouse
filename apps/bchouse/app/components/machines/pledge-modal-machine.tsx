@@ -1,10 +1,9 @@
 import { WalletData } from '@bchouse/cashconnect'
 import { createMachine } from 'xstate'
-import { submitAnyonecanpayPledge } from '~/routes/api.campaign.$campaignId.anyonecanpay.submit'
 import {
   clearPaymentRequestQuery,
   queryPaymentRequest,
-} from '~/routes/api.payment-request.pledge'
+} from '~/utils/usePledgePaymentRequest'
 
 type Event =
   | {
@@ -138,7 +137,7 @@ export const pledgeModalMachine = createMachine(
           // syntax for expressing services
           src: (context, event) => async (send) => {
             //submit annyonecanpay pledge, show loader until done, then leave message
-            const result = await submitAnyonecanpayPledge({
+            const result = await window.trpcClient.submitAnyonecanpay.mutate({
               campaignId: context.campaignId as string,
               payload: context.anyonecanpayPayload as string,
             })

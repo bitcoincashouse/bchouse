@@ -1,8 +1,8 @@
 import { PlainQrCodeView } from '@bchouse/cashconnect'
 import { useRevalidator } from '@remix-run/react'
 import { useEffect } from 'react'
-import { usePledgeRequestSubscription } from '~/routes/api.payment-request.pledge.subscribe.$requestId'
 import { bchLogo } from '~/utils/constants'
+import { usePledgeRequestSubscription } from '~/utils/usePledgeRequestSubscription'
 
 export function PaymentView({
   nextStep,

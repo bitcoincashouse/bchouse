@@ -1,7 +1,7 @@
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import { createContext, useContext, useEffect, useState } from 'react'
-import { useSetThemeFetcher } from '~/routes/api.setTheme'
 import { useMounted } from '~/utils/useMounted'
+import { useSetThemeFetcher } from '~/utils/useSetThemeFetcher'
 import { useHydrated } from './utils/use-hydrated'
 
 enum Theme {

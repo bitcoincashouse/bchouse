@@ -21,8 +21,8 @@ import { getServerClient } from '~/utils/trpc.server'
 import { useCloseCreatePostModal } from '~/utils/useCloseCreatePostModal'
 import { useWalletConnectConfig } from '~/utils/useWalletConnect'
 import { trpc } from '../../utils/trpc'
+import { useUpdateLastActive } from '../../utils/useUpdateLastActive'
 import { useDismissUpdateProfileBanner } from '../api.dismissUpdateProfileBanner'
-import { useUpdateLastActive } from '../api.update-last-active'
 import { AppShell } from './app-shell'
 
 declare global {

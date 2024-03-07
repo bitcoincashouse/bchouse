@@ -20,9 +20,9 @@ import { FollowButton } from '~/components/follow-button'
 import { ImageProxy } from '~/components/image-proxy'
 import { LandingPage } from '~/components/landing'
 import { PostForm } from '~/components/post/post-form'
+import { ActiveCampaignsWidget } from '../../components/active-campaigns-widget'
 import { useAppLoaderData } from '../../utils/appHooks'
 import { layoutHandle } from '../_app/route'
-import { ActiveCampaignsWidget } from '../api.campaigns.active.($username)'
 
 export const loader = async (_: LoaderFunctionArgs) => {
   const { hostname, pathname } = new URL(_.request.url)

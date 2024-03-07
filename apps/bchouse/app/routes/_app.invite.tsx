@@ -11,8 +11,8 @@ import { typedjson, useTypedFetcher, useTypedLoaderData } from 'remix-typedjson'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { TimelineMessage } from '~/components/post/timeline-message'
 import { classnames } from '~/components/utils/classnames'
-import { ActiveCampaignsWidget } from './api.campaigns.active.($username)'
-import { StatsWidget } from './api.stats'
+import { ActiveCampaignsWidget } from '../components/active-campaigns-widget'
+import { StatsWidget } from '../components/stats-widget'
 
 export const loader = async (_: LoaderFunctionArgs) => {
   const { userId } = await _.context.authService.getAuth(_)

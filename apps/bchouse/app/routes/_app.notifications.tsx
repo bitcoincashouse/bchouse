@@ -2,9 +2,9 @@ import { LoaderFunctionArgs } from '@remix-run/node'
 import { NavLink, Outlet } from '@remix-run/react'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { classNames } from '~/utils/classNames'
+import { ActiveCampaignsWidget } from '../components/active-campaigns-widget'
+import { StatsWidget } from '../components/stats-widget'
 import { useAppLoaderData } from '../utils/appHooks'
-import { ActiveCampaignsWidget } from './api.campaigns.active.($username)'
-import { StatsWidget } from './api.stats'
 
 declare global {
   interface RouteDescription {

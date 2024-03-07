@@ -3,9 +3,9 @@ import { useLayoutEffect, useMemo, useRef } from 'react'
 import { Avatar } from '~/components/avatar'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { classNames } from '~/utils/classNames'
+import { ActiveCampaignsWidget } from '../components/active-campaigns-widget'
+import { StatsWidget } from '../components/stats-widget'
 import { ecosystem } from '../utils/ecosystem'
-import { ActiveCampaignsWidget } from './api.campaigns.active.($username)'
-import { StatsWidget } from './api.stats'
 
 const tabs = [
   { name: 'All', href: '' },

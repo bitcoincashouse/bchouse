@@ -3,7 +3,7 @@ import { createMachine } from 'xstate'
 import {
   clearTipPaymentRequestQuery,
   queryTipPaymentRequest,
-} from '~/routes/api.payment-request.tip'
+} from '~/utils/useTipPaymentRequest'
 
 type Event =
   | {

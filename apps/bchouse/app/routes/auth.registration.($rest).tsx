@@ -1,5 +1,20 @@
 import { SignUp } from '@clerk/remix'
+import { LoaderFunctionArgs } from '@remix-run/node'
+import { $path } from 'remix-routes'
+import { redirect } from 'remix-typedjson'
 import { useClerkTheme } from '~/utils/useClerkTheme'
+
+export const loader = async (_: LoaderFunctionArgs) => {
+  const path = _.params['*']?.split('/')[0] || ''
+
+  if (path === 'complete') {
+    const { userId } = await _.context.authService.getAuth(_)
+    await _.context.userService.createAccountRedirect(userId)
+    return redirect($path('/home'))
+  }
+
+  return null
+}
 
 export default function Index() {
   const clerkTheme = useClerkTheme()

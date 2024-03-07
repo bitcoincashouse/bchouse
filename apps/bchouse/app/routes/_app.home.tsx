@@ -9,8 +9,8 @@ import { getAuthOptional } from '~/utils/auth'
 import { classNames } from '~/utils/classNames'
 import { trpc } from '~/utils/trpc'
 import { getServerClient } from '~/utils/trpc.server'
-import { ActiveCampaignsWidget } from './api.campaigns.active.($username)'
-import { StatsWidget } from './api.stats'
+import { ActiveCampaignsWidget } from '../components/active-campaigns-widget'
+import { StatsWidget } from '../components/stats-widget'
 
 export const handle = {
   title: 'Home',

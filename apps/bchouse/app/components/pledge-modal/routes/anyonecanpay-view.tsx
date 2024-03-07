@@ -9,11 +9,11 @@ import {
 } from '@bchouse/cashconnect'
 import { useCallback, useRef } from 'react'
 import { classnames } from '~/components/utils/classnames'
+import useCopy from '~/utils/useCopy'
 import {
   useExternalWalletPayload,
   useValidateAnyonecanpayPledgeFetcher,
-} from '~/routes/api.campaign.$campaignId.anyonecanpay.validate'
-import useCopy from '~/utils/useCopy'
+} from '~/utils/useValidateAnyonecanpayPledgeFetcher'
 
 export function AnyonecanpayView({
   nextStep,
