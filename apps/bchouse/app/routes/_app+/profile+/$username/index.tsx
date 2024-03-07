@@ -1,5 +1,5 @@
 import { Feed } from '~/components/post/feed'
-import { useProfileLoader } from './$username'
+import { useProfileLoader } from './_layout'
 
 export default function Index() {
   const profileData = useProfileLoader()
