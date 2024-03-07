@@ -1,10 +1,9 @@
 import { prettyPrintSats } from '@bchouse/utils'
 import { Link } from '@remix-run/react'
 import { useMemo } from 'react'
-import { $path } from 'remix-routes'
 import { classnames } from '~/components/utils/classnames'
 import { PledgeData } from '~/routes/_app.manage.pledges'
-import { usePledgeRefundFetcher } from '~/routes/api.pledge.refund'
+import { trpc } from '~/utils/trpc'
 
 export function Pledge({ pledge }: { pledge: PledgeData }) {
   const [amount, denomination] = useMemo(() => {
@@ -16,13 +15,18 @@ export function Pledge({ pledge }: { pledge: PledgeData }) {
   }, [pledge])
 
   //TODO: trpc.refundPledge
-  const fetcher = usePledgeRefundFetcher()
+  const {
+    mutate: refundPledgeMutation,
+    error,
+    isPending,
+    data,
+  } = trpc.refundPledge.useMutation({})
 
-  if (fetcher.data && 'error' in fetcher.data) {
+  if (error) {
     //TODO: Show a modal
   }
 
-  const refundTxId = pledge.refundTxId || fetcher.data?.txid
+  const refundTxId = pledge.refundTxId || data?.txid
 
   return (
     <li key={pledge.pledgeRequestId}>
@@ -55,12 +59,14 @@ export function Pledge({ pledge }: { pledge: PledgeData }) {
                   Refunded
                 </button>
               ) : (
-                <fetcher.Form
+                <form
                   method="POST"
-                  //TODO: trpc.refundPledge
-                  action={$path('/api/pledge/refund')}
+                  onSubmit={() =>
+                    refundPledgeMutation({
+                      secret: pledge.secret,
+                    })
+                  }
                 >
-                  <input type="hidden" name="secret" value={pledge.secret} />
                   <button
                     type="submit"
                     disabled={!!pledge.fulfillmentTxId}
@@ -68,11 +74,11 @@ export function Pledge({ pledge }: { pledge: PledgeData }) {
                   >
                     {!!pledge.fulfillmentTxId
                       ? 'Fulfilled'
-                      : fetcher.state === 'submitting'
+                      : isPending
                       ? 'Refunding...'
                       : 'Refund'}
                   </button>
-                </fetcher.Form>
+                </form>
               )}
             </div>
           </div>

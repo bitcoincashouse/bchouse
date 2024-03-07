@@ -55,7 +55,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
 }
 
 export const useLayoutLoaderData = () => {
-  const { data } = trpc.profile.useQuery(undefined, {
+  const { data, error } = trpc.profile.useQuery(undefined, {
     staleTime: 5 * 60 * 1000,
   })
   if (!data) throw new Error('Layout loader data error.')

@@ -11,11 +11,11 @@ import { Mention } from '@tiptap/extension-mention'
 import Paragraph from '@tiptap/extension-paragraph'
 import { Placeholder } from '@tiptap/extension-placeholder'
 import Text from '@tiptap/extension-text'
-import { EditorState, Plugin, PluginKey } from '@tiptap/pm/state'
+import { PluginKey } from '@tiptap/pm/state'
 import { mergeAttributes } from '@tiptap/react'
 import { z } from 'zod'
 import {
-  Doc,
+  TipTapSchema,
   docSchema,
   mediaSchema,
   paragraphContentSchema,
@@ -50,63 +50,6 @@ export const Media = Node.create({
   },
   renderHTML({ HTMLAttributes, node }) {
     return ['media', mergeAttributes(HTMLAttributes)]
-  },
-  addProseMirrorPlugins(this) {
-    const options = this.options || {}
-    const name = this.name
-
-    const removeFileGridItem = (src: string) => options.removeFile?.(src)
-
-    return [
-      new Plugin({
-        key: new PluginKey('eventHandler'),
-        props: {
-          handleDrop(view, event, slice, moved) {
-            function safePos(state: EditorState, pos: number) {
-              if (pos < 0) return 0
-              return Math.min(state.doc.content.size, pos)
-            }
-
-            const { schema } = view.state
-            const nodeType = schema.nodes[name]
-
-            if (moved || !nodeType) return false
-
-            //If already a node, get src attr (if not, try from datatransfer)
-            const imageNode = slice?.content.firstChild?.attrs?.src
-              ? slice.content.firstChild
-              : null
-
-            const src = imageNode
-              ? imageNode.attrs?.src
-              : event.dataTransfer?.getData('text')
-
-            if (!src) return false
-
-            const newNode = nodeType.create({
-              src: src,
-            })
-
-            //Remove original file from gallery (if dragged from gallery)
-            removeFileGridItem(src)
-
-            const insertNode = imageNode || newNode
-
-            const insertAt = safePos(
-              view.state,
-              view.posAtCoords({
-                left: event.clientX,
-                top: event.clientY,
-              })?.pos || 0
-            )
-
-            view.dispatch(view.state.tr.insert(insertAt, insertNode))
-
-            return true
-          },
-        },
-      }),
-    ]
   },
 })
 
@@ -184,7 +127,7 @@ const clientMediaSchema = mediaSchema.omit({ attrs: true }).merge(
 export function serializeForServer(
   content: JSONContent,
   uploadResults: { url: string; id: string }[]
-): Doc {
+): TipTapSchema.Doc {
   return docSchema
     .omit({ content: true })
     .merge(
@@ -219,7 +162,7 @@ export function serializeForServer(
             content.type === 'paragraph' &&
             typeof content.content !== 'undefined'
           )
-        }) as Doc['content'],
+        }) as TipTapSchema.Doc['content'],
       }
     })
     .parse(content)
