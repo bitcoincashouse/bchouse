@@ -1,7 +1,7 @@
 import { ShouldRevalidateFunctionArgs } from '@remix-run/react'
 import { Pledge } from '~/components/pledge'
 import { TimelineMessage } from '~/components/post/timeline-message'
-import { usePledgesLoaderData } from './_app.manage.pledges'
+import { usePledgesLoaderData } from './_layout'
 
 export function shouldRevalidate({
   currentUrl,

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Pledge } from '~/components/pledge'
 import { TimelineMessage } from '~/components/post/timeline-message'
-import { usePledgesLoaderData } from './_app.manage.pledges'
+import { usePledgesLoaderData } from './_layout'
 
 export default function Index() {
   const { pledges: allPledges } = usePledgesLoaderData()
