@@ -4,12 +4,5 @@ import { useProfileLoader } from './$username'
 export default function Index() {
   const profileData = useProfileLoader()
 
-  return (
-    <Feed
-      currentUser={!layoutData.anonymousView ? layoutData.profile : undefined}
-      feedOwner={profileData}
-      id={profileData.id}
-      queryKey="likes"
-    />
-  )
+  return <Feed feedOwner={profileData} id={profileData.id} queryKey="likes" />
 }

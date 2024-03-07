@@ -43,7 +43,7 @@ export const handle: AppRouteHandle = {
 export const usePhotoLoaderData = () => {
   return useTypedRouteLoaderData<typeof loader>(
     $routeId(
-      'routes/_app.profile_.$username+/status.$statusId+/photo_+/_layout'
+      'routes/_app+/profile_.$username+/status.$statusId+/photo_+/_layout'
     )
   )
 }

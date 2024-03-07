@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 
-type CurrentUser = {
+export type CurrentUser = {
   isAnonymous: boolean
   isAdmin: boolean
   username: string

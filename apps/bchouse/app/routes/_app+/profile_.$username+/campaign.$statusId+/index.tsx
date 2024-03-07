@@ -13,8 +13,7 @@ import { StandardLayout } from '~/components/layouts/standard-layout'
 import { usePledgeModal } from '~/components/pledge-modal'
 import { CampaignThread } from '~/components/post/campaign'
 import { getExtensions } from '~/components/post/tiptap-extensions'
-import { useLayoutLoaderData } from '~/routes/_app/route'
-import { CampaignSubscription } from '~/routes/api.campaign.subscribe.$campaignId'
+import { CampaignSubscription } from '~/routes/api+/campaign.subscribe.$campaignId'
 import { zx } from '~/utils/zodix'
 
 export const handle = {
@@ -111,9 +110,7 @@ export default function Index() {
     children,
     donorPosts,
   } = useTypedLoaderData<typeof loader>()
-  const layoutData = useLayoutLoaderData()
   const location = useLocation()
-  const currentUser = !layoutData.anonymousView ? layoutData.profile : undefined
   const { pledge, setPledge } = usePledgeModal()
   const openPledgeModal = () =>
     mainPost.monetization &&
@@ -148,7 +145,6 @@ export default function Index() {
                 <div className="">
                   <CampaignThread
                     key={location.pathname}
-                    currentUser={currentUser}
                     ancestorPosts={ancestors}
                     previousCursor={previousCursor}
                     mainPost={mainPost}
@@ -182,7 +178,6 @@ export default function Index() {
                     fulfilledAt={campaignData.fulfilledAt}
                     network={campaignData.network}
                     campaignerDisplayName={mainPost.person.name}
-                    isLoggedIn={!layoutData.anonymousView}
                     className={`rounded-lg overflow-hidden`}
                     isOpen={!!pledge}
                     onOpen={openPledgeModal}

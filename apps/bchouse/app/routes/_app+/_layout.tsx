@@ -6,6 +6,10 @@ import { useMemo } from 'react'
 import InfoAlert from '~/components/alert'
 import { AppShell } from '~/components/app-shell'
 import { ClientOnly } from '~/components/client-only'
+import {
+  CurrentUser,
+  CurrentUserProvider,
+} from '~/components/context/current-user-context'
 import { EditProfileModal } from '~/components/edit-profile-modal'
 import { ErrorDisplay } from '~/components/pages/error'
 import {
@@ -87,13 +91,28 @@ export const ErrorBoundary = () => {
 }
 
 export default function Index() {
-  let {
-    data: applicationData = {
-      anonymousView: true,
-    },
-  } = trpc.profile.useQuery(undefined, {
+  let { data } = trpc.profile.useQuery(undefined, {
     staleTime: 5 * 60 * 1000,
   })
+
+  const applicationData: CurrentUser =
+    !data || data.anonymousView
+      ? {
+          isAnonymous: true,
+          isAdmin: false,
+          id: undefined,
+          avatarUrl: undefined,
+          fullName: undefined,
+          username: undefined,
+        }
+      : {
+          isAnonymous: false,
+          isAdmin: data.profile.isAdmin,
+          avatarUrl: data.profile.avatarUrl,
+          fullName: data.profile.fullName,
+          id: data.profile.id,
+          username: data.profile.username,
+        }
 
   const pageProps = usePageDisplay()
 
@@ -104,55 +123,59 @@ export default function Index() {
   useUpdateLastActive(!applicationData.anonymousView)
 
   return (
-    <WalletConnectProvider config={config}>
-      <TipPostModalProvider>
-        <PledgeModalProvider>
-          <ClientOnly>
-            {() =>
-              !applicationData.anonymousView &&
-              applicationData.showUpdateProfile ? (
-                <InfoAlert
-                  target="_blank"
-                  onDismiss={updateProfileFetcher.submit}
-                >
-                  <span>
-                    Your profile is missing a BCH address.{' '}
-                    <Link
-                      className="underline"
-                      to={{ search: 'modal=edit-profile' }}
-                    >
-                      Click here
-                    </Link>{' '}
-                    to update.
-                  </span>
-                </InfoAlert>
-              ) : null
-            }
-          </ClientOnly>
-          <TipPostModal isLoggedIn={!applicationData.anonymousView} />
-          <PledgeFundraiserModal isLoggedIn={!applicationData.anonymousView} />
+    <CurrentUserProvider user={applicationData}>
+      <WalletConnectProvider config={config}>
+        <TipPostModalProvider>
+          <PledgeModalProvider>
+            <ClientOnly>
+              {() =>
+                !applicationData.anonymousView &&
+                applicationData.showUpdateProfile ? (
+                  <InfoAlert
+                    target="_blank"
+                    onDismiss={updateProfileFetcher.submit}
+                  >
+                    <span>
+                      Your profile is missing a BCH address.{' '}
+                      <Link
+                        className="underline"
+                        to={{ search: 'modal=edit-profile' }}
+                      >
+                        Click here
+                      </Link>{' '}
+                      to update.
+                    </span>
+                  </InfoAlert>
+                ) : null
+              }
+            </ClientOnly>
+            <TipPostModal isLoggedIn={!applicationData.anonymousView} />
+            <PledgeFundraiserModal
+              isLoggedIn={!applicationData.anonymousView}
+            />
 
-          <AppShell {...applicationData} showHeader={pageProps.header}>
-            <section className={classNames('relative admin-outlet')}>
-              <div>
+            <AppShell {...applicationData} showHeader={pageProps.header}>
+              <section className={classNames('relative admin-outlet')}>
                 <div>
-                  <HeaderSection />
-                  {/* Body */}
                   <div>
-                    <UserPopoverProvider>
-                      <Outlet />
-                    </UserPopoverProvider>
+                    <HeaderSection />
+                    {/* Body */}
+                    <div>
+                      <UserPopoverProvider>
+                        <Outlet />
+                      </UserPopoverProvider>
+                    </div>
                   </div>
-                </div>
 
-                <FooterSection />
-                <ModalSection />
-              </div>
-            </section>
-          </AppShell>
-        </PledgeModalProvider>
-      </TipPostModalProvider>
-    </WalletConnectProvider>
+                  <FooterSection />
+                  <ModalSection />
+                </div>
+              </section>
+            </AppShell>
+          </PledgeModalProvider>
+        </TipPostModalProvider>
+      </WalletConnectProvider>
+    </CurrentUserProvider>
   )
 }
 
