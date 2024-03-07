@@ -3,14 +3,14 @@ import { Link, NavLink, Outlet, useLocation } from '@remix-run/react'
 import { useMemo } from 'react'
 import { $path } from 'remix-routes'
 import { redirect } from 'remix-typedjson'
+import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { PostForm } from '~/components/post/post-form'
+import { StatsWidget } from '~/components/stats-widget'
 import { getAuthOptional } from '~/utils/auth'
 import { classNames } from '~/utils/classNames'
 import { trpc } from '~/utils/trpc'
 import { getServerClient } from '~/utils/trpc.server'
-import { ActiveCampaignsWidget } from '../components/active-campaigns-widget'
-import { StatsWidget } from '../components/stats-widget'
 
 export const handle = {
   title: 'Home',
