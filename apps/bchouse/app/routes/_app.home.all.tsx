@@ -1,6 +1,5 @@
 import { Feed } from '~/components/post/feed'
-import { layoutHandle } from '~/routes/_app/route'
-import { useAppLoaderData } from '~/utils/appHooks'
+import { trpc } from '~/utils/trpc'
 
 export const handle: AppRouteHandle = {
   preventScrollReset: true,
@@ -8,7 +7,13 @@ export const handle: AppRouteHandle = {
 }
 
 export default function Index() {
-  const layoutData = useAppLoaderData(layoutHandle)
+  let {
+    data: layoutData = {
+      anonymousView: true,
+    },
+  } = trpc.profile.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000,
+  })
 
   return (
     <Feed

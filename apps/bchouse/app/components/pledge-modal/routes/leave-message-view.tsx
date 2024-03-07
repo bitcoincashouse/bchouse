@@ -35,6 +35,7 @@ export function LeaveMessageView({
             secret,
           },
           {
+            //TODO: trpc.commentOnCampaign
             action: `/api/campaign/comment`,
             method: 'POST',
             encType: 'application/json',

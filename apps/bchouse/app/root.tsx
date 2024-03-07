@@ -23,8 +23,12 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query'
 import { httpBatchLink } from '@trpc/client'
-import { CreateTRPCReact } from '@trpc/react-query'
-import { createServerSideHelpers } from '@trpc/react-query/server'
+import {
+  CreateTRPCClient,
+  createTRPCClient,
+  createTRPCQueryUtils,
+} from '@trpc/react-query'
+import { CreateQueryUtils } from '@trpc/react-query/shared'
 import { Buffer } from 'buffer-polyfill'
 import { useEffect, useRef, useState } from 'react'
 import { UseDataFunctionReturn, useTypedLoaderData } from 'remix-typedjson'
@@ -110,8 +114,8 @@ declare global {
   interface Window {
     env: UseDataFunctionReturn<typeof loader>
     queryClient: QueryClient
-    trpcClient: CreateTRPCReact<AppRouter, any>
-    trpcHelpers: ReturnType<typeof createServerSideHelpers<AppRouter>>
+    trpcClient: CreateTRPCClient<AppRouter>
+    trpcClientUtils: CreateQueryUtils<AppRouter>
   }
 }
 
@@ -149,11 +153,31 @@ const App = function () {
     })
 
     if (typeof window !== 'undefined') {
-      window.trpcClient = trpc as any
-      window.trpcHelpers = createServerSideHelpers({
-        client: trpcClient,
+      window.trpcClient = createTRPCClient({
+        links: [
+          httpBatchLink({
+            url: 'http://localhost:3003/trpc',
+            // You can pass any HTTP headers you wish here
+            async fetch(url, options) {
+              const token = await getToken()
+
+              return fetch(url, {
+                ...options,
+                credentials: 'include',
+                headers: {
+                  ...options?.headers,
+                  Authorization: `Bearer ${token}`,
+                },
+              })
+            },
+          }),
+        ],
+      })
+
+      window.trpcClientUtils = createTRPCQueryUtils({
         queryClient,
-      }) as any
+        client: trpc as any,
+      })
     }
 
     return trpcClient

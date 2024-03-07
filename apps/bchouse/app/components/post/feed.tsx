@@ -71,6 +71,7 @@ export const Feed: React.FC<
     isError,
   } = useInfiniteQuery({
     queryKey: ['feed', queryKey, id],
+    //TODO: trpc.feed
     queryFn: async ({ pageParam, meta }) => {
       const data = (await (
         await fetch(

@@ -2,12 +2,13 @@ import { LoaderFunctionArgs } from '@remix-run/node'
 import { Link, NavLink, Outlet, useLocation } from '@remix-run/react'
 import { useMemo } from 'react'
 import { $path } from 'remix-routes'
-import { redirect, typedjson, useTypedLoaderData } from 'remix-typedjson'
+import { redirect } from 'remix-typedjson'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { PostForm } from '~/components/post/post-form'
-import { layoutHandle } from '~/routes/_app/route'
-import { useAppLoaderData } from '~/utils/appHooks'
+import { getAuthOptional } from '~/utils/auth'
 import { classNames } from '~/utils/classNames'
+import { trpc } from '~/utils/trpc'
+import { getServerClient } from '~/utils/trpc.server'
 import { ActiveCampaignsWidget } from './api.campaigns.active.($username)'
 import { StatsWidget } from './api.stats'
 
@@ -17,7 +18,7 @@ export const handle = {
 }
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  const { userId } = await _.context.authService.getAuthOptional(_)
+  const { userId } = await getAuthOptional(_)
 
   if (!userId) {
     const pathParts = new URL(_.request.url).pathname.split('/').filter(Boolean)
@@ -27,25 +28,34 @@ export const loader = async (_: LoaderFunctionArgs) => {
     }
   }
 
-  const { userCount, dailyActiveUserCount, weeklyActiveUserCount } =
-    await _.context.userService.getUserCounts()
+  const trpc = getServerClient(_.request)
 
-  return typedjson({
-    userId,
-    userCount,
-    dailyActiveUserCount,
-    weeklyActiveUserCount,
-  })
+  await trpc.stats.prefetch()
+
+  return {
+    dehydratedState: trpc.dehydrate(),
+  }
 }
 
 export default function Index() {
-  const layoutData = useAppLoaderData(layoutHandle)
+  let {
+    data: applicationData = {
+      anonymousView: true,
+    },
+  } = trpc.profile.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000,
+  })
   const location = useLocation()
-  const { userCount, dailyActiveUserCount, weeklyActiveUserCount } =
-    useTypedLoaderData<typeof loader>()
+
+  const {
+    data: { userCount = 0, dailyActiveUserCount = 0 } = {},
+    isLoading: isLoadingStats,
+  } = trpc.stats.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000,
+  })
 
   const tabs = useMemo(() => {
-    return layoutData.anonymousView
+    return applicationData.anonymousView
       ? [{ name: 'All', href: 'all' }]
       : [
           { name: 'All', href: 'all' },
@@ -55,7 +65,7 @@ export default function Index() {
 
   const pathParts = location.pathname.split('/')
   const hidePostButton =
-    layoutData.anonymousView ||
+    applicationData.anonymousView ||
     (pathParts.indexOf('profile') !== -1 && pathParts.indexOf('status') !== -1)
 
   return (
@@ -120,31 +130,35 @@ export default function Index() {
                   <div>
                     <div className="">
                       <div className="">
-                        {!layoutData.anonymousView ? (
+                        {!applicationData.anonymousView ? (
                           <>
                             <div className="hidden sm:block border-b dark:border-gray-600 px-4 py-6 sm:px-6">
                               <PostForm
                                 showAudience
-                                user={layoutData.profile}
+                                user={applicationData.profile}
                                 placeholder="What's building?"
                                 formClassName="flex !flex-col"
                               />
                             </div>
                             <div className="lg:hidden flex flex-row flex-wrap items-center mx-auto justify-around text-sm pt-3 gap-2">
-                              <span>Registered Users: {userCount} </span>
-                              <span>
-                                Active (24hrs): {dailyActiveUserCount}
-                              </span>
-                              <div className="flex">
-                                <Link
-                                  to={$path('/invite')}
-                                  className={classNames(
-                                    'ml-auto inline-flex items-center justify-center rounded-full border border-transparent bg-purple-500 px-3 py-1 text-xs font-medium text-white shadow-sm hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2'
-                                  )}
-                                >
-                                  Invite new users
-                                </Link>
-                              </div>
+                              {isLoadingStats ? null : (
+                                <>
+                                  <span>Registered Users: {userCount} </span>
+                                  <span>
+                                    Active (24hrs): {dailyActiveUserCount}
+                                  </span>
+                                  <div className="flex">
+                                    <Link
+                                      to={$path('/invite')}
+                                      className={classNames(
+                                        'ml-auto inline-flex items-center justify-center rounded-full border border-transparent bg-purple-500 px-3 py-1 text-xs font-medium text-white shadow-sm hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2'
+                                      )}
+                                    >
+                                      Invite new users
+                                    </Link>
+                                  </div>
+                                </>
+                              )}
                             </div>
                           </>
                         ) : null}
@@ -190,17 +204,7 @@ export default function Index() {
           ) : null}
         </div>
       }
-      widgets={[
-        <StatsWidget
-          shouldLoad={false}
-          initialData={{
-            userCount,
-            dailyActiveUserCount,
-            weeklyActiveUserCount,
-          }}
-        />,
-        <ActiveCampaignsWidget />,
-      ]}
+      widgets={[<StatsWidget />, <ActiveCampaignsWidget />]}
     ></StandardLayout>
   )
 }

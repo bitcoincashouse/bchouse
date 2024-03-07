@@ -324,6 +324,7 @@ const MenuAction = React.forwardRef<
       onClick={(e) => {
         e.stopPropagation()
         fetcher.submit(null, {
+          //TODO: trpc.postAction
           action: $path('/api/post/:postId/:authorId/action/:action', {
             action: props.action,
             authorId: post.publishedById,
@@ -640,6 +641,7 @@ function RepostButton({ item }: { item: PostCardModel }) {
     <fetcher.Form
       className="flex items-center"
       method="POST"
+      //TODO: trpc.postAction
       action={$path('/api/post/:postId/:authorId/action/:action', {
         postId: item.id,
         authorId: item.publishedById,
@@ -702,6 +704,7 @@ function LikeButton({ item }: { item: PostCardModel }) {
     <fetcher.Form
       className="flex items-center"
       method="POST"
+      //TODO: trpc.postAction
       action={$path('/api/post/:postId/:authorId/action/:action', {
         postId: item.id,
         authorId: item.publishedById,

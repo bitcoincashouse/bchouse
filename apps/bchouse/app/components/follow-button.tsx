@@ -1,11 +1,12 @@
 import { UserMinusIcon, UserPlusIcon } from '@heroicons/react/24/outline'
 import { useLocation, useNavigate, useRevalidator } from '@remix-run/react'
 import { useQueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { $path } from 'remix-routes'
 import { useTypedFetcher } from 'remix-typedjson'
 import { useLayoutLoaderData } from '~/routes/_app/route'
 import { action as followAction } from '~/routes/api.follow'
+import { trpc } from '~/utils/trpc'
 import { classnames } from './utils/classnames'
 
 export function FollowButton({
@@ -26,44 +27,53 @@ export function FollowButton({
   const location = useLocation()
   const navigate = useNavigate()
 
-  const isSubmittingFollowAction = fetcher.state !== 'idle'
-  const isDoneSubmitting =
-    !isSubmittingFollowAction && fetcher.data !== undefined
-
-  const isFollowing = useMemo(() => {
-    if (!isSubmittingFollowAction) {
-      return !!user.isCurrentUserFollowing
-    }
-
-    if (fetcher.formAction?.indexOf('follow:add') !== -1) {
-      return true
-    }
-
-    if (fetcher.formAction?.indexOf('follow:remove') !== -1) {
-      return false
-    }
-
-    const data = fetcher.formData?.get('_action')
-    return data === 'follow'
-  }, [fetcher])
-
   const queryClient = useQueryClient()
-  useEffect(() => {
-    if (isDoneSubmitting) {
-      revalidator.revalidate()
-      //Invalidate user profile card for user
-      queryClient.invalidateQueries({ queryKey: ['feed', 'home'] })
-    }
-  }, [isDoneSubmitting])
-
   const { anonymousView } = useLayoutLoaderData()
   const [isHovering, setHover] = useState(false)
+  const trpcClientUtils = trpc.useUtils()
+
+  const { mutate: update, isPending: isSubmitting } =
+    trpc.updateFollow.useMutation({
+      onMutate: (variables) => {
+        //TODO: Optimistically update follow/unfollow globally for user
+        trpcClientUtils.isFollowing.setData(
+          { profileId: variables.profileId },
+          variables.action === 'follow'
+        )
+      },
+      onSuccess: () => {
+        revalidator.revalidate()
+        //Invalidate user profile card for user
+        queryClient.invalidateQueries({ queryKey: ['feed', 'home'] })
+      },
+    })
+
+  //TODO: pass in isFollowing so context can handle optimistic updates
+  //TODO: have global onMutate/onSuccess/onFailure for all related queries dealing with follow/unfollow status of particular user
+  const isFollowing = trpc.isFollowing.useQuery(
+    {
+      profileId: user.id,
+    },
+    {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
+      //TODO: enable if logged in, otherwise, set initial to false.
+      enabled: true,
+      //TODO: if not logged in, set initial to false, otherwise, set initial to undefined.
+      initialData: false ? false : undefined,
+    }
+  )
+
   return (
     <>
       {!user.isCurrentUser ? (
-        <fetcher.Form
-          method="post"
-          action={$path('/api/follow', {})}
+        <form
+          onSubmit={() =>
+            update({
+              action: !isFollowing ? 'follow' : 'unfollow',
+              profileId: user.id,
+            })
+          }
           className="group"
           onClick={(e) => {
             e.stopPropagation()
@@ -82,15 +92,12 @@ export function FollowButton({
             }
           }}
         >
-          <input type="hidden" name="profileId" value={user.id} />
           <div
             onMouseOver={() => setHover(true)}
             onMouseLeave={() => setHover(false)}
           >
             <button
               type="submit"
-              name="_action"
-              value={!isFollowing ? 'follow' : 'unfollow'}
               className={classnames(
                 'inline-flex justify-center gap-x-1.5 rounded-md px-3 py-2 text-sm font-semibold shadow-sm ring-1 ring-inset',
                 isFollowing && !isHovering && 'opacity-50',
@@ -121,7 +128,7 @@ export function FollowButton({
               </span>
             </button>
           </div>
-        </fetcher.Form>
+        </form>
       ) : null}
     </>
   )

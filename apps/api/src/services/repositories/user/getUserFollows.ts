@@ -1,6 +1,27 @@
 import { Kysely } from 'kysely'
-import { DB } from '../../db/index'
+import { DB, db } from '../../db/index'
 import { MinimalProfile } from './types'
+
+export async function getUserIsFollowing({
+  userId,
+  queryUserId,
+}: {
+  userId: string
+  queryUserId: string
+}) {
+  return db
+    .selectFrom('Follows')
+    .where((eb) =>
+      eb('Follows.followedId', '=', queryUserId).and(
+        'Follows.followerId',
+        '=',
+        userId
+      )
+    )
+    .select((eb) => eb.exists('Follows.id').as('isFollowing'))
+    .executeTakeFirst()
+    .then((row) => row?.isFollowing)
+}
 
 export async function getUserFollows(
   db: Kysely<DB>,

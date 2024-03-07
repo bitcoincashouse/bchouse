@@ -1,6 +1,7 @@
 import { logger, moment, toDefault } from '@bchouse/utils'
 import { z } from 'zod'
 import userRepo from '../repositories/user'
+import { getUserIsFollowing } from '../repositories/user/getUserFollows'
 import { MinimalProfile } from '../repositories/user/types'
 import { AuthService } from './auth'
 import { setMediaPublic } from './images'
@@ -233,6 +234,10 @@ export class ProfileService {
       createdAt: updatedUser.createdAt,
       updatedAt: updatedUser.updatedAt,
     }
+  }
+
+  async getIsFollowing(userId: string, queryUserId: string) {
+    return await getUserIsFollowing({ userId, queryUserId })
   }
 
   async addUserFollow(userId: string, sessionId: string, followedId: string) {

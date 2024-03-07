@@ -1,42 +1,18 @@
-import { logger } from '@bchouse/utils'
-import type { ActionFunctionArgs } from '@remix-run/node'
 import React from 'react'
-import { $path } from 'remix-routes'
-import { useTypedFetcher } from 'remix-typedjson'
+import { trpc } from '~/utils/trpc'
 import { useThrottleCallback } from '~/utils/useThrottle'
 
-export const action = async (_: ActionFunctionArgs) => {
-  try {
-    const { userId } = await _.context.authService.getAuthOptional(_)
-
-    if (userId) {
-      await _.context.userService.updateAccountActivity(userId)
-    }
-
-    return null
-  } catch (err) {
-    logger.error(err)
-    throw err
-  }
-}
-
 export function useUpdateLastActive(isEnabled: boolean) {
-  const fetcher = useTypedFetcher<typeof action>()
   const isEnabledRef = React.useRef<boolean>(isEnabled)
   const isVisibleRef = React.useRef<boolean>(true)
 
   isEnabledRef.current = isEnabled
 
+  const updateActivityMutation = trpc.lastActive.useMutation()
+
   const updateLastActiveCallback = useThrottleCallback(() => {
     if (isEnabledRef.current && isVisibleRef.current) {
-      fetcher.submit(
-        {},
-        {
-          action: $path('/api/update-last-active'),
-          method: 'POST',
-          encType: 'application/json',
-        }
-      )
+      updateActivityMutation.mutate()
     }
   }, 60 * 60 * 1000)
 

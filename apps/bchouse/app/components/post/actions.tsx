@@ -223,6 +223,7 @@ export function RepostButton({ item }: { item: PostCardModel }) {
   return (
     <fetcher.Form
       method="POST"
+      //TODO: trpc.postAction
       action={$path('/api/post/:postId/:authorId/action/:action', {
         postId: item.id,
         authorId: item.publishedById,
@@ -280,6 +281,7 @@ export function LikeButton({ item }: { item: PostCardModel }) {
   return (
     <fetcher.Form
       method="POST"
+      //TODO: trpc.postAction
       action={$path('/api/post/:postId/:authorId/action/:action', {
         postId: item.id,
         authorId: item.publishedById,

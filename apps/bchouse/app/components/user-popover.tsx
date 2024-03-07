@@ -68,6 +68,7 @@ export function UserPopoverProvider({
 export function UserPopover({ id }: { id: string }) {
   const fetcher = useTypedFetcher<typeof apiProfileLoader>()
 
+  //TODO: trpc.getProfile
   useEffect(() => {
     fetcher.load(`/api/profile/${id}`)
   }, [id])

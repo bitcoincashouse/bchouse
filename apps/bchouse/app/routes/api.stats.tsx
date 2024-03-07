@@ -1,47 +1,14 @@
-import { LoaderFunctionArgs } from '@remix-run/node'
 import { Link } from '@remix-run/react'
-import { useQuery } from '@tanstack/react-query'
 import { $path } from 'remix-routes'
-import { UseDataFunctionReturn, typedjson } from 'remix-typedjson'
 import { Widget } from '~/components/layouts/widget'
 import { classNames } from '~/utils/classNames'
+import { trpc } from '~/utils/trpc'
 
-export const loader = async (_: LoaderFunctionArgs) => {
-  await _.context.ratelimit.limitByIp(_, 'api', true)
-
-  const { userCount, dailyActiveUserCount, weeklyActiveUserCount } =
-    await _.context.userService.getUserCounts()
-
-  return typedjson({ userCount, dailyActiveUserCount, weeklyActiveUserCount })
-}
-
-export function StatsWidget({
-  shouldLoad = true,
-  initialData,
-}: {
-  shouldLoad?: boolean
-  initialData?: {
-    userCount: number
-    dailyActiveUserCount: number
-    weeklyActiveUserCount: number
-  }
-}) {
-  const { data, isLoading } = useQuery(
-    ['stats'],
-    async () => {
-      const path = $path('/api/stats')
-      return fetch(path + '?_data=routes/api.stats')
-        .then((res) => res.json())
-        .then((data) => {
-          return data as UseDataFunctionReturn<typeof loader>
-        })
-    },
-    {
-      staleTime: 1000 * 60,
-      cacheTime: 1000 * 60 * 5,
-      initialData,
-    }
-  )
+export function StatsWidget() {
+  const { data, isLoading } = trpc.stats.useQuery(undefined, {
+    staleTime: 1000 * 60,
+    gcTime: 1000 * 60 * 5,
+  })
 
   const items = data
     ? [

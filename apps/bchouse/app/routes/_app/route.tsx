@@ -1,19 +1,8 @@
-import type { ProfileService } from '@bchouse/api/src/services/services/profile'
 import { WalletConnectProvider } from '@bchouse/cashconnect'
+import { logger } from '@bchouse/utils'
 import { LoaderFunctionArgs } from '@remix-run/node'
-import {
-  Link,
-  Outlet,
-  ShouldRevalidateFunctionArgs,
-  useLocation,
-  useSearchParams,
-} from '@remix-run/react'
+import { Link, Outlet, useLocation, useSearchParams } from '@remix-run/react'
 import { useMemo } from 'react'
-import {
-  TypedJsonResponse,
-  typedjson,
-  useTypedLoaderData,
-} from 'remix-typedjson'
 import InfoAlert from '~/components/alert'
 import { ClientOnly } from '~/components/client-only'
 import { EditProfileModal } from '~/components/edit-profile-modal'
@@ -26,11 +15,12 @@ import { PostModal } from '~/components/post/post-modal'
 import { Post } from '~/components/post/types'
 import { TipPostModal, TipPostModalProvider } from '~/components/tip-modal'
 import { UserPopoverProvider } from '~/components/user-popover'
-import { useAppLoaderData, usePageDisplay } from '~/utils/appHooks'
+import { usePageDisplay } from '~/utils/appHooks'
 import { classNames } from '~/utils/classNames'
-import { getUpdateProfileSession } from '~/utils/updateProfileBannerCookie.server'
+import { getServerClient } from '~/utils/trpc.server'
 import { useCloseCreatePostModal } from '~/utils/useCloseCreatePostModal'
 import { useWalletConnectConfig } from '~/utils/useWalletConnect'
+import { trpc } from '../../utils/trpc'
 import { useDismissUpdateProfileBanner } from '../api.dismissUpdateProfileBanner'
 import { useUpdateLastActive } from '../api.update-last-active'
 import { AppShell } from './app-shell'
@@ -43,76 +33,52 @@ declare global {
   }
 }
 
-type SignedInLoaderData = {
-  anonymousView: false
-  showUpdateProfile: boolean
-} & Awaited<ReturnType<ProfileService['getHomeProfile']>>
-type AnonymousLoaderData = { anonymousView: true }
-type LoaderData = AnonymousLoaderData | SignedInLoaderData
-
-export type LayoutLoaderData = LoaderData
-
 export const handle: RouteHandler<'layout'> = {
   id: 'layout',
 }
 
 export const layoutHandle = handle
 
-export const loader = async (
-  _: LoaderFunctionArgs
-): Promise<TypedJsonResponse<LoaderData>> => {
-  //Applies to entire application
-  await _.context.ratelimit.limitByIp(_, 'app', true)
+//@ts-ignore
+export const loader = async (_: LoaderFunctionArgs) => {
+  try {
+    const trpc = getServerClient(_.request)
+    await trpc.profile.prefetch()
 
-  const { userId } = await _.context.authService.getAuthOptional(_)
-  const profile =
-    !!userId && (await _.context.profileService.getHomeProfile(userId))
-  const updateProfileSession = await getUpdateProfileSession(_.request)
-
-  if (!profile) {
-    return typedjson({
-      anonymousView: true,
-      showUpdateProfile: false,
-    })
-  } else {
-    return typedjson({
-      ...profile,
-      anonymousView: false,
-      showUpdateProfile:
-        !profile.homeView.bchAddress && !updateProfileSession.getDismissed(),
-    })
+    return {
+      dehydratedState: trpc.dehydrate(),
+    }
+  } catch (err) {
+    logger.info('Error fetching app shell')
+    throw err
   }
 }
 
-export function shouldRevalidate({
-  currentUrl,
-  nextUrl,
-  defaultShouldRevalidate,
-}: ShouldRevalidateFunctionArgs) {
-  return (
-    currentUrl.pathname === '/' ||
-    nextUrl.pathname === '/' ||
-    defaultShouldRevalidate
-  )
-}
-
 export const useLayoutLoaderData = () => {
-  const data = useAppLoaderData(layoutHandle)
+  const { data } = trpc.profile.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000,
+  })
   if (!data) throw new Error('Layout loader data error.')
   return data
 }
 
 export const useLoggedInLoaderData = () => {
-  const data = useAppLoaderData(layoutHandle)
+  const { data } = trpc.profile.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000,
+  })
   if (data?.anonymousView) throw new Error('User not signed in')
   return data
 }
 
 export const ErrorBoundary = () => {
-  const appData = useAppLoaderData(layoutHandle)
+  const { isLoading, data } = trpc.profile.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000,
+  })
 
-  return (
-    <AppShell showHeader={false} {...appData}>
+  return !data ? (
+    <div>Sorry, something went wrong</div>
+  ) : (
+    <AppShell showHeader={false} {...data}>
       <div>
         <ErrorDisplay page="__index" />
       </div>
@@ -121,7 +87,14 @@ export const ErrorBoundary = () => {
 }
 
 export default function Index() {
-  const applicationData = useTypedLoaderData<typeof loader>()
+  let {
+    data: applicationData = {
+      anonymousView: true,
+    },
+  } = trpc.profile.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000,
+  })
+
   const pageProps = usePageDisplay()
 
   const config = useWalletConnectConfig()
@@ -212,7 +185,13 @@ function ModalSection() {
 }
 
 function ShowPostModal() {
-  const applicationData = useTypedLoaderData<typeof loader>()
+  let {
+    data: applicationData = {
+      anonymousView: true,
+    },
+  } = trpc.profile.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000,
+  })
   const [searchParams] = useSearchParams()
   const modalName = searchParams.get('modal')
   const replyToPost = useLocation().state?.replyToPost as Post
@@ -235,13 +214,15 @@ function ShowPostModal() {
     return null
   }
 
+  const profile = applicationData.profile
+
   return (
     <ClientOnly>
       {() => (
         <PostModal
           isOpen={true}
           onClose={() => closePostModal()}
-          user={applicationData.profile}
+          user={profile}
           parentPost={replyToPost}
         />
       )}
@@ -250,7 +231,14 @@ function ShowPostModal() {
 }
 
 function ShowEditProfileModal() {
-  const applicationData = useTypedLoaderData<typeof loader>()
+  let {
+    data: applicationData = {
+      anonymousView: true,
+    },
+  } = trpc.profile.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000,
+  })
+
   const closeEditProfileModal = useCloseCreatePostModal()
   const [searchParams] = useSearchParams()
   const modalName = searchParams.get('modal')

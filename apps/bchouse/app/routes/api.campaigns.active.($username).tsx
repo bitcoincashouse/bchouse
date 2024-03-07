@@ -1,60 +1,21 @@
 import { moment, prettyPrintSats } from '@bchouse/utils'
-import { LoaderFunctionArgs } from '@remix-run/node'
 import { Link } from '@remix-run/react'
-import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { $path } from 'remix-routes'
-import { UseDataFunctionReturn, typedjson } from 'remix-typedjson'
-import { z } from 'zod'
 import { Widget } from '~/components/layouts/widget'
 import { ProgressBar } from '~/components/progress-bar'
 import { pluralize } from '~/components/utils'
 import { classNames } from '~/utils/classNames'
-import { zx } from '~/utils/zodix'
-
-export const loader = async (_: LoaderFunctionArgs) => {
-  await _.context.ratelimit.limitByIp(_, 'api', true)
-
-  const { username } = zx.parseParams(_.params, {
-    username: z.string().optional(),
-  })
-
-  const activeCampaigns = await _.context.campaignService.getActiveCampaigns({
-    limit: 2,
-    username,
-  })
-
-  return typedjson(
-    activeCampaigns.map((c) => ({
-      id: c.id,
-      title: c.title,
-      expires: c.expires,
-      goal: Number(c.goal || 0),
-      raised: Number(c.raised || 0),
-      pledges: Number(c.pledges || 0),
-      username: c.username,
-      statusId: c.statusId,
-    }))
-  )
-}
+import { inferAppRouterOutput, trpc } from '~/utils/trpc'
 
 export function ActiveCampaignsWidget({ username }: { username?: string }) {
-  const { data, isLoading } = useQuery(
-    ['activeCampaigns', username],
-    async () => {
-      const path = $path('/api/campaigns/active/:username?', {
-        username,
-      })
-
-      return fetch(path + '?_data=routes/api.campaigns.active.($username)')
-        .then((res) => res.json())
-        .then((data) => {
-          return data as UseDataFunctionReturn<typeof loader>
-        })
+  const { data, isLoading } = trpc.activeCampaigns.useQuery(
+    {
+      username,
     },
     {
       staleTime: 1000 * 60,
-      cacheTime: 1000 * 60 * 5,
+      gcTime: 1000 * 60 * 5,
     }
   )
 
@@ -85,7 +46,7 @@ function CampaignItem({
   title,
   username,
   statusId,
-}: UseDataFunctionReturn<typeof loader>[number]) {
+}: inferAppRouterOutput<'activeCampaigns'>[number]) {
   const [requestedAmountText, requestedDenominationText] =
     prettyPrintSats(requestedAmount)
   const [amountRaisedText, amountRaisedDenominationText] =

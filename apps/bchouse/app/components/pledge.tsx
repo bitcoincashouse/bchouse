@@ -15,6 +15,7 @@ export function Pledge({ pledge }: { pledge: PledgeData }) {
     )
   }, [pledge])
 
+  //TODO: trpc.refundPledge
   const fetcher = usePledgeRefundFetcher()
 
   if (fetcher.data && 'error' in fetcher.data) {
@@ -56,6 +57,7 @@ export function Pledge({ pledge }: { pledge: PledgeData }) {
               ) : (
                 <fetcher.Form
                   method="POST"
+                  //TODO: trpc.refundPledge
                   action={$path('/api/pledge/refund')}
                 >
                   <input type="hidden" name="secret" value={pledge.secret} />

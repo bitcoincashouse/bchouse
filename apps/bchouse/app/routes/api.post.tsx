@@ -1,131 +1,15 @@
-import { docSchema, logger, moment } from '@bchouse/utils'
-import { ActionFunctionArgs } from '@remix-run/node'
+import { CreatePostParams } from '@bchouse/api/src/pages/post'
 import { FetcherWithComponents } from '@remix-run/react'
 import { useQueryClient } from '@tanstack/react-query'
-import { JSONContent, generateText } from '@tiptap/core'
-import { isValidAddress } from 'bchaddrjs'
+import { JSONContent } from '@tiptap/core'
 import { serialize } from 'object-to-formdata'
 import { useEffect, useState } from 'react'
 import { $path } from 'remix-routes'
-import { typedjson, useTypedFetcher } from 'remix-typedjson'
-import { ZodError, z } from 'zod'
+import { useTypedFetcher } from 'remix-typedjson'
 import { AudienceType } from '~/components/post/audience-dropdown'
-import {
-  getExtensions,
-  serializeForServer,
-} from '~/components/post/tiptap-extensions'
+import { serializeForServer } from '~/components/post/tiptap-extensions'
 import { Monetization } from '~/components/post/types'
 import { isFetcherDone } from '~/components/utils/isFetcherDone'
-import { MediaUploadResponse } from '~/routes/api.media.upload.$type.($count)'
-
-export type CreateTopLevelPostParams = z.input<typeof topLevelPost>
-export type CreateChildPostParams = z.input<typeof childPost>
-export type CreatePostParams = CreateTopLevelPostParams | CreateChildPostParams
-
-const commentSchema = z
-  .string()
-  .transform((val) => JSON.parse(val))
-  .pipe(docSchema)
-
-const topLevelPost = z.object({
-  comment: commentSchema,
-  mediaIds: z
-    .string()
-    .optional()
-    .transform((value) => value?.split(',').filter(Boolean) || []),
-  audienceType: z
-    .enum(['circle', 'everyone'])
-    .transform((s) =>
-      s === 'everyone' ? ('PUBLIC' as const) : ('CIRCLE' as const)
-    ),
-  monetization: z
-    .object({
-      payoutAddress: z.string().refine((val) => isValidAddress(val)),
-      network: z.enum([
-        'mainnet',
-        'chipnet',
-        'testnet3',
-        'testnet4',
-        'regtest',
-      ]),
-      amount: z.coerce.number().transform((val) => BigInt(val)),
-      expires: z.coerce.number().transform((val) => moment.unix(val).toDate()),
-      title: z.string().min(3, 'Title too short'),
-    })
-    .optional(),
-})
-
-const childPost = z.object({
-  comment: commentSchema,
-  mediaIds: z
-    .string()
-    .optional()
-    .transform((value) => value?.split(',').filter(Boolean) || []),
-  //Non-top level post
-  parentPost: z.object({
-    id: z.string().nonempty(),
-    publishedById: z.string().nonempty(),
-  }),
-})
-
-const postSchema = topLevelPost.or(childPost).refine((post) => {
-  if (post.mediaIds.length) return true
-
-  const text = generateText(
-    post.comment as JSONContent,
-    getExtensions('Placeholder', () => {})
-  )
-
-  return !!text.length
-}, 'Post requires body or media')
-
-export const action = async (_: ActionFunctionArgs) => {
-  try {
-    await _.context.ratelimit.limitByIp(_, 'api', true)
-
-    const { userId } = await _.context.authService.getAuth(_)
-    const formData = await _.request.json()
-
-    const form = postSchema.parse(formData)
-
-    const newPostId = await _.context.postService.addPost(
-      userId,
-      'parentPost' in form
-        ? {
-            content: form.comment,
-            audienceType: 'CHILD' as const,
-            mediaIds: form.mediaIds,
-            parentPost: {
-              id: form.parentPost.id,
-              publishedById: form.parentPost.publishedById,
-            },
-          }
-        : {
-            content: form.comment,
-            audienceType: form.audienceType,
-            mediaIds: form.mediaIds,
-            monetization: form.monetization,
-          }
-    )
-
-    return typedjson(newPostId)
-  } catch (err) {
-    logger.error(err)
-
-    let message = 'Error submitting post. Please try again.'
-
-    if (err instanceof ZodError) {
-      const errors = err.flatten().formErrors
-      if (errors.length === 1 && errors[0]) message = errors[0]
-    }
-
-    return typedjson({
-      error: {
-        message,
-      },
-    })
-  }
-}
 
 export function useSubmitPost(
   options?:
@@ -134,6 +18,7 @@ export function useSubmitPost(
       }
     | undefined
 ) {
+  //TODO: trpc.post
   const fetcher = useTypedFetcher<typeof action>()
   const [postError, setPostError] = useState<Error | undefined>(undefined)
 
@@ -172,6 +57,8 @@ export function useSubmitPost(
       //Add placeholders in content for simpler verification server side
       const contentJson = serializeForServer(body, postImages)
       const galleryIds = galleryImages.map(({ id }) => id).join(',')
+
+      //TODO: trpc.post
       const createPostParams: CreatePostParams =
         'parentPost' in options
           ? {
@@ -236,6 +123,7 @@ async function uploadImages(
 ) {
   //Get media upload presigned post requests
   const totalImageCount = galleryImageUrls.length + postImageUrls.length
+  //TODO: trpc.uploadMedia
   const getUploadRequestsUrl = $path('/api/media/upload/:type/:count?', {
     type: 'post',
     count: totalImageCount,

@@ -117,13 +117,14 @@ export const docSchema = z
   })
   .strict()
 
-export type Text = z.infer<typeof textSchema>
-export type Mention = z.infer<typeof mentionSchema>
-export type Hashtag = z.infer<typeof hashtagSchema>
-export type Paragraph = z.infer<typeof paragraphSchema>
-export type Media = z.infer<typeof mediaSchema>
-
-export type Doc = {
-  type: 'doc'
-  content: (Paragraph | Media)[]
+export namespace TipTapSchema {
+  export type Text = z.infer<typeof textSchema>
+  export type Mention = z.infer<typeof mentionSchema>
+  export type Hashtag = z.infer<typeof hashtagSchema>
+  export type Paragraph = z.infer<typeof paragraphSchema>
+  export type Media = z.infer<typeof mediaSchema>
+  export type Doc = {
+    type: 'doc'
+    content: (Paragraph | Media)[]
+  }
 }

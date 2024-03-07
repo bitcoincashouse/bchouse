@@ -70,6 +70,7 @@ export function EditProfileModal({
     if (coverPhotoFile) {
       const errors: Error[] = []
 
+      //TODO: trpc.uploadMedia
       const results = (await (
         await fetch(
           $path('/api/media/upload/:type/:count?', {
@@ -118,6 +119,7 @@ export function EditProfileModal({
       lastName: lastName || '',
     })
 
+    //TODO: trpc.updateProfile
     fetcher.submit(formData, {
       method: 'POST',
       action: $path('/api/profile/:userId?', {

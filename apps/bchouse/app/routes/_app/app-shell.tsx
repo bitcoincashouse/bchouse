@@ -1,3 +1,4 @@
+import { AppRouter } from '@bchouse/api'
 import {
   BellIcon as BellIconSolid,
   GlobeAltIcon as GlobeAltIconSolid,
@@ -18,6 +19,7 @@ import {
   UserGroupIcon,
   UserIcon,
 } from '@heroicons/react/24/outline'
+import { inferRouterOutputs } from '@trpc/server'
 import { useMemo } from 'react'
 import ReactDOM from 'react-dom'
 import { $path } from 'remix-routes' // <-- Import magical $path helper from remix-routes.
@@ -31,10 +33,10 @@ import SidebarNavigation, {
 import { classnames } from '~/components/utils/classnames'
 import { usePageDisplay } from '~/utils/appHooks'
 import { logoUrl } from '~/utils/constants'
-import { LayoutLoaderData } from './route'
 
 export const AppShell: React.FC<
-  React.PropsWithChildren & LayoutLoaderData & { showHeader: boolean }
+  React.PropsWithChildren &
+    inferRouterOutputs<AppRouter>['profile'] & { showHeader: boolean }
 > = function ({ children, showHeader, ...layoutData }) {
   const userNavigation = useMemo(
     () =>

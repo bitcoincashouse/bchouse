@@ -1,48 +1,54 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
-import { typedjson, useTypedLoaderData } from 'remix-typedjson'
+import { ClientLoaderFunctionArgs, useSearchParams } from '@remix-run/react'
 import { z } from 'zod'
 import { StandardPostCard } from '~/components/post/standard-post-card'
-import { PostCardModel } from '~/components/post/types'
-import { getTrpc } from '~/utils/trpcClient'
+import { trpc } from '~/utils/trpc'
+import { getServerClient } from '~/utils/trpc.server'
 import { zx } from '~/utils/zodix'
 import { useLayoutLoaderData } from './_app/route'
 
 export const loader = async (_: LoaderFunctionArgs) => {
+  const trpc = getServerClient(_.request)
+
   const { q } = zx.parseQuery(_.request, {
     q: z.string().optional(),
   })
 
-  try {
-    const response = await getTrpc(_.request).explore.query({ q })
-  } catch (err) {
-    console.log(err)
+  console.log('Salam explore prefetch')
+
+  await trpc.explore.prefetch({ q })
+
+  return {
+    dehydratedState: trpc.dehydrate(),
   }
+}
 
-  const { userId } = await _.context.authService.getAuthOptional(_)
+export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
+  const { q } = zx.parseQuery(_.request, {
+    q: z.string().optional(),
+  })
 
-  if (!q) {
-    return typedjson([] as PostCardModel[])
-  }
+  await window.trpcClientUtils.explore.prefetch({ q })
 
-  const results = await _.context.searchService.searchPosts(q)
-  const posts = await _.context.redisService.getPosts(
-    results.hits?.map((result) => ({
-      id: result.document.id,
-      publishedById: result.document.post_author_id,
-    })) || [],
-    userId
-  )
-
-  return typedjson(posts)
+  return null
 }
 
 export default function Index() {
-  const posts = useTypedLoaderData<typeof loader>()
+  const [searchParams] = useSearchParams()
+  const { data: posts, isLoading } = trpc.explore.useQuery(
+    {
+      q: searchParams.get('q') || undefined,
+    },
+    {
+      staleTime: 5 * 60 * 1000,
+    }
+  )
+
   const layoutData = useLayoutLoaderData()
 
   return (
     <>
-      {posts.length ? (
+      {!isLoading && posts?.length ? (
         posts.map((post) => (
           <StandardPostCard
             key={post.key}
