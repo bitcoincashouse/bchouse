@@ -1,3 +1,4 @@
+import { logger } from '@bchouse/utils'
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -25,9 +26,11 @@ import { useMediaQuery } from 'usehooks-ts'
 import { z } from 'zod'
 import { PostCard, PostProvider } from '~/components/post/post-card'
 import { Thread } from '~/components/post/thread'
+import { useLayoutLoaderData } from '~/routes/_app/route'
+import { getAuthOptional } from '~/utils/auth'
 import { classNames } from '~/utils/classNames'
+import { getServerClient } from '~/utils/trpc.server'
 import { zx } from '~/utils/zodix'
-import { useLayoutLoaderData } from './_app/route'
 
 export const handle: AppRouteHandle = {
   title: 'Post',
@@ -39,30 +42,30 @@ export const handle: AppRouteHandle = {
 
 export const usePhotoLoaderData = () => {
   return useTypedRouteLoaderData<typeof loader>(
-    $routeId('routes/_app.profile_.$username.status.$statusId_.photo')
+    $routeId(
+      'routes/_app.profile_.$username+/status.$statusId+/photo_+/_layout'
+    )
   )
 }
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  const { userId } = await _.context.authService.getAuthOptional(_)
-  const { username, statusId: postId } = zx.parseParams(_.params, {
-    username: z.string(),
-    statusId: z.string(),
-  })
+  try {
+    const { userId } = await getAuthOptional(_)
+    const { username, statusId } = zx.parseParams(_.params, {
+      username: z.string(),
+      statusId: z.string(),
+    })
 
-  const { ancestors, mainPost, children, previousCursor, nextCursor } =
-    await _.context.postService.getPostWithChildren(userId, postId)
-
-  //TODO: Fetch parents dynamically
-  return typedjson({
-    posts: [
-      ...ancestors.map((a) => ({ ...a, isThread: true })),
-      mainPost,
-      ...children,
-    ],
-    nextCursor: nextCursor,
-    previousCursor,
-  })
+    return typedjson(
+      await getServerClient(_.request).status.fetch({
+        username,
+        statusId,
+      })
+    )
+  } catch (err) {
+    logger.info(err)
+    throw err
+  }
 }
 
 export default function Page() {

@@ -2,7 +2,7 @@ import { useLocation, useParams } from '@remix-run/react'
 import { motion } from 'framer-motion'
 import { useMemo } from 'react'
 import { ImageProxy } from '~/components/image-proxy'
-import { usePhotoLoaderData } from './_app.profile_.$username.status.$statusId_.photo'
+import { usePhotoLoaderData } from './_layout'
 
 const variants = {
   enter: (direction: number) => {

@@ -12,10 +12,10 @@ import { DonationWidget } from '~/components/donation-widget'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { usePledgeModal } from '~/components/pledge-modal'
 import { CampaignThread } from '~/components/post/campaign'
+import { getExtensions } from '~/components/post/tiptap-extensions'
+import { useLayoutLoaderData } from '~/routes/_app/route'
+import { CampaignSubscription } from '~/routes/api.campaign.subscribe.$campaignId'
 import { zx } from '~/utils/zodix'
-import { getExtensions } from '../components/post/tiptap-extensions'
-import { useLayoutLoaderData } from './_app/route'
-import { CampaignSubscription } from './api.campaign.subscribe.$campaignId'
 
 export const handle = {
   title: 'Post',
