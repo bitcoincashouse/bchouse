@@ -1,11 +1,11 @@
 import { Link, useLocation, useParams } from '@remix-run/react'
 import { useLayoutEffect, useMemo, useRef } from 'react'
+import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { Avatar } from '~/components/avatar'
 import { StandardLayout } from '~/components/layouts/standard-layout'
+import { StatsWidget } from '~/components/stats-widget'
 import { classNames } from '~/utils/classNames'
-import { ActiveCampaignsWidget } from '../components/active-campaigns-widget'
-import { StatsWidget } from '../components/stats-widget'
-import { ecosystem } from '../utils/ecosystem'
+import { ecosystem } from '~/utils/ecosystem'
 
 const tabs = [
   { name: 'All', href: '' },

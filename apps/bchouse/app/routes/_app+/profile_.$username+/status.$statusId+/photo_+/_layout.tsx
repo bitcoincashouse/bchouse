@@ -24,9 +24,9 @@ import {
 } from 'remix-typedjson'
 import { useMediaQuery } from 'usehooks-ts'
 import { z } from 'zod'
+import { useCurrentUser } from '~/components/context/current-user-context'
 import { PostCard, PostProvider } from '~/components/post/post-card'
 import { Thread } from '~/components/post/thread'
-import { useLayoutLoaderData } from '~/routes/_app/route'
 import { getAuthOptional } from '~/utils/auth'
 import { classNames } from '~/utils/classNames'
 import { getServerClient } from '~/utils/trpc.server'
@@ -77,7 +77,7 @@ export default function Page() {
 
   const [collapsePosts, setCollapsePosts] = useState<boolean>(false)
   const navigate = useNavigate()
-  const layoutData = useLayoutLoaderData()
+  const currentUser = useCurrentUser()
   const location = useLocation()
 
   const mainPost = useMemo(
@@ -131,9 +131,6 @@ export default function Page() {
                     previousCursor={previousCursor}
                     nextCursor={nextCursor}
                     initialPosts={posts}
-                    currentUser={
-                      !layoutData.anonymousView ? layoutData.profile : undefined
-                    }
                   />
                 </div>
               </div>

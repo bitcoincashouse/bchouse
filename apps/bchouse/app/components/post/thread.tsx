@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react'
+import { useCurrentUser } from '~/components/context/current-user-context'
 import { useBrowserLayoutEffect } from '~/utils/useBrowserLayoutEffect'
 import { classnames } from '../utils/classnames'
 import { Post } from './threads/post'
@@ -12,12 +13,9 @@ export const Thread: React.FC<{
   initialPosts: Extract<FeedResponse, { posts: any }>['posts']
   nextCursor?: string | undefined
   previousCursor?: string | undefined
-  currentUser?: {
-    username: string
-    avatarUrl: string | undefined
-  }
 }> = (props) => {
-  const { mainPost, initialPosts, currentUser } = props
+  const { mainPost, initialPosts } = props
+  const currentUser = useCurrentUser()
 
   const mainPostId = mainPost.id
   const listRef = useRef<HTMLUListElement | null>(null)

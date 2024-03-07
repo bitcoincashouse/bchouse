@@ -1,15 +1,12 @@
+import { useCurrentUser } from '~/components/context/current-user-context'
 import { Avatar } from '../avatar'
 import { PostCard } from './post-card'
 import { RepostedBy } from './reposted-by'
 import { PostCardModel } from './types'
 
-export function StandardPostCard({
-  post,
-  currentUser,
-}: {
-  post: PostCardModel
-  currentUser?: { username: string }
-}) {
+export function StandardPostCard({ post }: { post: PostCardModel }) {
+  const currentUser = useCurrentUser()
+
   return (
     <PostCard
       key={post.key}

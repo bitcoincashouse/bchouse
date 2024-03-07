@@ -1,14 +1,14 @@
 import { useClerk } from '@clerk/remix'
 import { useLocation } from '@remix-run/react'
-import { useLayoutLoaderData } from '~/routes/_app/route'
+import { useCurrentUser } from '../context/current-user-context'
 
 export const useAuthGuardCheck = () => {
-  const layoutData = useLayoutLoaderData()
+  const currentUser = useCurrentUser()
   const clerk = useClerk()
   const location = useLocation()
 
   return (e: { preventDefault: () => void }) => {
-    if (layoutData.anonymousView) {
+    if (currentUser.isAnonymous) {
       e.preventDefault()
       clerk.openSignIn({
         afterSignInUrl: location.pathname,

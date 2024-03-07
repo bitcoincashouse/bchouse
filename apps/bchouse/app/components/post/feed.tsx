@@ -5,6 +5,7 @@ import { atom, useAtom } from 'jotai'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { StateSnapshot, Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 import { $path } from 'remix-routes'
+import { useCurrentUser } from '~/components/context/current-user-context'
 import { LoadingIndicator } from '~/components/loading'
 import { FeedResponse } from '~/routes/api.feed.$type.$id.($cursor)'
 import { Avatar } from '../avatar'
@@ -21,11 +22,6 @@ import { PostCardModel } from './types'
 type FeedProps = {
   id: string
   feedOwner?: {
-    avatarUrl: string | undefined
-    fullName?: string | undefined
-    username: string
-  }
-  currentUser?: {
     avatarUrl: string | undefined
     fullName?: string | undefined
     username: string
@@ -59,7 +55,8 @@ export const Feed: React.FC<
     queryKey?: FeedKeys
   }
 > = (props) => {
-  const { queryKey = 'home', feedOwner, currentUser, id } = props
+  const { queryKey = 'home', feedOwner, id } = props
+  const currentUser = useCurrentUser()
 
   const {
     data,

@@ -15,8 +15,8 @@ import {
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { ClientOnly } from '~/components/client-only'
-import { useLayoutLoaderData } from '~/routes/_app/route'
 import { ExtractStepData, StepRoute, useSteps } from '../StepRoutes/step'
+import { useCurrentUser } from '../context/current-user-context'
 
 type Steps =
   | {
@@ -85,26 +85,21 @@ function SetupFundraiserModalRoutes({
 
   let route
 
-  const layoutData = useLayoutLoaderData()
+  const currentUser = useCurrentUser()
 
   if (step.step === 1) {
     route = (
       <ChooseAmountView
         showBackBtn={false}
         minimum={8000}
-        maximum={
-          layoutData.anonymousView || !layoutData.profile.isAdmin
-            ? 0.1 * SATS_PER_BCH
-            : undefined
-        }
+        maximum={!currentUser.isAdmin ? 0.1 * SATS_PER_BCH : undefined}
         onAmountSelected={(amount) => stepTo(2, { amount })}
       />
     )
   } else if (step.step === 2) {
-    const allowedNetworks =
-      layoutData.anonymousView || !layoutData.profile.isAdmin
-        ? (['chipnet'] as const)
-        : (['chipnet', 'mainnet'] as const)
+    const allowedNetworks = !currentUser.isAdmin
+      ? (['chipnet'] as const)
+      : (['chipnet', 'mainnet'] as const)
 
     route = (
       <ManualAddressView

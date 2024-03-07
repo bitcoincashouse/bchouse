@@ -7,6 +7,7 @@ import React, { useMemo, useState } from 'react'
 import { pluralize } from '~/components/utils'
 import { classNames } from '~/utils/classNames'
 import { bchLogo } from '~/utils/constants'
+import { useCurrentUser } from './context/current-user-context'
 import { AllContributions } from './contributions/all-contributions'
 import { Modal } from './modal'
 import { ProgressBar } from './progress-bar'
@@ -28,7 +29,6 @@ export const DonationWidget = ({
 
   network,
   campaignerDisplayName,
-  isLoggedIn,
 
   onOpen,
   isOpen,
@@ -49,7 +49,6 @@ export const DonationWidget = ({
 
   network: Network
   campaignerDisplayName: string
-  isLoggedIn: boolean
   isOpen: boolean
   onOpen: () => void
 }) => {
@@ -66,6 +65,7 @@ export const DonationWidget = ({
   //   })()
   // }, [])
 
+  const { isAnonymous: isLoggedIn } = useCurrentUser()
   const [requestedAmountText, requestedDenominationText] =
     prettyPrintSats(requestedAmount)
   const [amountRaisedText, amountRaisedDenominationText] =

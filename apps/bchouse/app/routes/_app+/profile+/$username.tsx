@@ -15,12 +15,12 @@ import {
 } from '@heroicons/react/24/outline'
 import { Link } from '@remix-run/react'
 // import QRCode from 'qrcode-svg'
+import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { Avatar } from '~/components/avatar'
 import { FollowButton } from '~/components/follow-button'
 import { ImageProxy } from '~/components/image-proxy'
 import { PostForm } from '~/components/post/post-form'
-import { ActiveCampaignsWidget } from '../../components/active-campaigns-widget'
-import { useAppLoaderData } from '../../utils/appHooks'
+import { useAppLoaderData } from '~/utils/appHooks'
 
 export const loader = async (_: LoaderFunctionArgs) => {
   const { userId } = await _.context.authService.getAuthOptional(_)

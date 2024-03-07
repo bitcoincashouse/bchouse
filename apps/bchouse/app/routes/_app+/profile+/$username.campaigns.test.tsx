@@ -1,6 +1,6 @@
 import { Feed } from '~/components/post/feed'
 import { useAppLoaderData } from '../../utils/appHooks'
-import { layoutHandle } from '../_app/route'
+import { layoutHandle } from '../_app/_layout'
 import { useProfileLoader } from './$username'
 
 export default function Index() {
@@ -12,7 +12,7 @@ export default function Index() {
       currentUser={!layoutData.anonymousView ? layoutData.profile : undefined}
       feedOwner={profileData}
       id={profileData.id}
-      queryKey="user"
+      queryKey="campaigns"
     />
   )
 }

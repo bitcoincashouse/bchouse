@@ -5,7 +5,32 @@ import { publicProcedure, router } from '../trpc'
 import { postSchema } from './post'
 
 export const pagesRouter = router({
-  commentOnCampaign: publicProcedure.input().query(async (opts) => {
+  status: publicProcedure
+    .input(
+      z.object({
+        username: z.string(),
+        statusId: z.string(),
+      })
+    )
+    .query(async (opts) => {
+      const { userId } = opts.ctx.auth
+      const { username, statusId: postId } = opts.input
+
+      const { ancestors, mainPost, children, previousCursor, nextCursor } =
+        await opts.ctx.postService.getPostWithChildren(userId, postId)
+
+      //TODO: Fetch parents dynamically
+      return {
+        posts: [
+          ...ancestors.map((a) => ({ ...a, isThread: true })),
+          mainPost,
+          ...children,
+        ],
+        nextCursor: nextCursor,
+        previousCursor,
+      }
+    }),
+  commentOnCampaign: publicProcedure.query(async (opts) => {
     try {
       await _.context.ratelimit.limitByIp(_, 'api', true)
 
@@ -32,7 +57,7 @@ export const pagesRouter = router({
       throw err
     }
   }),
-  clusters: publicProcedure.input().query(async (opts) => {
+  clusters: publicProcedure.query(async (opts) => {
     try {
       if (await _.context.authService.getIsAdmin(_)) {
         const electrumCluster =
@@ -53,7 +78,7 @@ export const pagesRouter = router({
       return typedjson(null)
     }
   }),
-  contributions: publicProcedure.input().query(async (opts) => {
+  contributions: publicProcedure.query(async (opts) => {
     await _.context.ratelimit.limitByIp(_, 'api', true)
 
     const { campaignId } = zx.parseParams(_.params, {
@@ -65,7 +90,7 @@ export const pagesRouter = router({
     )
     return typedjson(result)
   }),
-  contributionsList: publicProcedure.input().query(async (opts) => {
+  contributionsList: publicProcedure.query(async (opts) => {
     await _.context.ratelimit.limitByIp(_, 'api', true)
 
     const { campaignId } = zx.parseParams(_.params, {
@@ -77,7 +102,7 @@ export const pagesRouter = router({
     )
     return typedjson(result)
   }),
-  feed: publicProcedure.input().query(async (opts) => {
+  feed: publicProcedure.query(async (opts) => {
     try {
       return []
 
@@ -321,7 +346,7 @@ export const pagesRouter = router({
         opts.input.profileId
       )
     }),
-  uploadMedia: publicProcedure.input().mutation(async (opts) => {
+  uploadMedia: publicProcedure.mutation(async (opts) => {
     await _.context.ratelimit.limitByIp(_, 'api', true)
 
     const { userId } = await _.context.authService.getAuth(_)
@@ -344,7 +369,7 @@ export const pagesRouter = router({
       await _.context.imageService.createUploadRequest(userId, params)
     )
   }),
-  refundPledge: publicProcedure.input().mutation(async (opts) => {
+  refundPledge: publicProcedure.mutation(async (opts) => {
     try {
       await _.context.ratelimit.limitByIp(_, 'api', true)
 
@@ -359,7 +384,7 @@ export const pagesRouter = router({
       return typedjson({ error: true, txid: null })
     }
   }),
-  post: publicProcedure.input().mutation(async (opts) => {
+  post: publicProcedure.mutation(async (opts) => {
     try {
       await _.context.ratelimit.limitByIp(_, 'api', true)
 
@@ -406,7 +431,7 @@ export const pagesRouter = router({
       })
     }
   }),
-  updateProfile: publicProcedure.input().mutation(async (opts) => {
+  updateProfile: publicProcedure.mutation(async (opts) => {
     await _.context.ratelimit.limitByIp(_, 'api', true)
 
     const { userId: currentUserId } =
@@ -422,7 +447,7 @@ export const pagesRouter = router({
 
     return typedjson(user)
   }),
-  getProfile: publicProcedure.input().query(async (opts) => {
+  getProfile: publicProcedure.query(async (opts) => {
     try {
       const { userId } = await _.context.authService.getAuth(_)
       const body = await zx.parseForm(
@@ -446,7 +471,7 @@ export const pagesRouter = router({
       return typedjson({ error: err })
     }
   }),
-  search: publicProcedure.input().query(async (opts) => {
+  search: publicProcedure.query(async (opts) => {
     await _.context.ratelimit.limitByIp(_, 'api', true, 'search')
 
     const { q = '' } = zx.parseQuery(_.request, {
@@ -459,7 +484,7 @@ export const pagesRouter = router({
       },
     })
   }),
-  setTheme: publicProcedure.input().mutation(async (opts) => {
+  setTheme: publicProcedure.mutation(async (opts) => {
     const themeSession = await getThemeSession(request)
     const requestText = await request.text()
     const form = new URLSearchParams(requestText)
@@ -478,7 +503,7 @@ export const pagesRouter = router({
       { headers: { 'Set-Cookie': await themeSession.commit() } }
     )
   }),
-  clerkRegistrationWebhook: publicProcedure.input().mutation(async (opts) => {
+  clerkRegistrationWebhook: publicProcedure.mutation(async (opts) => {
     // Verify the webhook signature
     // See https://docs.svix.com/receiving/verifying-payloads/how
     const payload = Buffer.from(await _.request.arrayBuffer()).toString()
@@ -506,7 +531,7 @@ export const pagesRouter = router({
 
     return json({})
   }),
-  postAction: publicProcedure.input().mutation(async (opts) => {
+  postAction: publicProcedure.mutation(async (opts) => {
     await _.context.ratelimit.limitByIp(_, 'api', true)
 
     const { userId, sessionId } = await _.context.authService.getAuthOptional(_)
@@ -551,7 +576,7 @@ export const pagesRouter = router({
 
     return typedjson({})
   }),
-  clerkLoginWebhook: publicProcedure.input().mutation(async (opts) => {
+  clerkLoginWebhook: publicProcedure.mutation(async (opts) => {
     // Verify the webhook signature
     // See https://docs.svix.com/receiving/verifying-payloads/how
     const payload = Buffer.from(await _.request.arrayBuffer()).toString()
@@ -577,7 +602,7 @@ export const pagesRouter = router({
 
     return json({})
   }),
-  validateAnyonecanpay: publicProcedure.input().mutation(async (opts) => {
+  validateAnyonecanpay: publicProcedure.mutation(async (opts) => {
     try {
       await _.context.ratelimit.limitByIp(_, 'api', true)
 
@@ -603,7 +628,7 @@ export const pagesRouter = router({
       return typedjson({ isValid: false })
     }
   }),
-  submitAnyonecanpay: publicProcedure.input().mutation(async (opts) => {
+  submitAnyonecanpay: publicProcedure.mutation(async (opts) => {
     await _.context.ratelimit.limitByIp(_, 'api', true)
 
     const { userId } = await _.context.authService.getAuthOptional(_)
@@ -626,7 +651,7 @@ export const pagesRouter = router({
 
     return typedjson(result)
   }),
-  handleReportedPost: publicProcedure.input().mutation(async (opts) => {
+  handleReportedPost: publicProcedure.mutation(async (opts) => {
     try {
       const { action, secret, postId } = await zx.parseForm(_.request, {
         action: z.enum(['ALLOW', 'REMOVE']),
@@ -652,6 +677,6 @@ export const pagesRouter = router({
       })
     }
   }),
-  post: publicProcedure.input().mutation(async (opts) => {}),
-  post: publicProcedure.input().query(async (opts) => {}),
+  post: publicProcedure.mutation(async (opts) => {}),
+  post: publicProcedure.query(async (opts) => {}),
 })

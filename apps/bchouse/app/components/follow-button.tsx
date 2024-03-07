@@ -3,10 +3,8 @@ import { useLocation, useNavigate, useRevalidator } from '@remix-run/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { $path } from 'remix-routes'
-import { useTypedFetcher } from 'remix-typedjson'
-import { useLayoutLoaderData } from '~/routes/_app/route'
-import { action as followAction } from '~/routes/api.follow'
 import { trpc } from '~/utils/trpc'
+import { useCurrentUser } from './context/current-user-context'
 import { classnames } from './utils/classnames'
 
 export function FollowButton({
@@ -20,15 +18,12 @@ export function FollowButton({
   }
   className?: string
 }) {
-  const fetcher = useTypedFetcher<typeof followAction>({
-    key: 'follow:' + user.id,
-  })
   const revalidator = useRevalidator()
   const location = useLocation()
   const navigate = useNavigate()
 
   const queryClient = useQueryClient()
-  const { anonymousView } = useLayoutLoaderData()
+  const currentUser = useCurrentUser()
   const [isHovering, setHover] = useState(false)
   const trpcClientUtils = trpc.useUtils()
 
@@ -78,7 +73,7 @@ export function FollowButton({
           onClick={(e) => {
             e.stopPropagation()
 
-            if (anonymousView) {
+            if (currentUser.isAnonymous) {
               e.preventDefault()
               navigate(
                 $path(

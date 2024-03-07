@@ -8,11 +8,11 @@ import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useNavigate, useSearchParams } from '@remix-run/react'
 import { useMemo } from 'react'
 import { typedjson, useTypedFetcher, useTypedLoaderData } from 'remix-typedjson'
+import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { TimelineMessage } from '~/components/post/timeline-message'
+import { StatsWidget } from '~/components/stats-widget'
 import { classnames } from '~/components/utils/classnames'
-import { ActiveCampaignsWidget } from '../components/active-campaigns-widget'
-import { StatsWidget } from '../components/stats-widget'
 
 export const loader = async (_: LoaderFunctionArgs) => {
   const { userId } = await _.context.authService.getAuth(_)

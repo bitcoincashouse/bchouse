@@ -4,6 +4,7 @@ import { Link, useLocation } from '@remix-run/react'
 import React, { useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 import { $path } from 'remix-routes'
+import { useCurrentUser } from '~/components/context/current-user-context'
 import { useBrowserLayoutEffect } from '~/utils/useBrowserLayoutEffect'
 import { Avatar } from '../avatar'
 import { classnames } from '../utils/classnames'
@@ -37,16 +38,11 @@ export const CampaignThread: React.FC<{
   donorPosts: DonorPost[]
   nextCursor?: string | undefined
   previousCursor?: string | undefined
-  currentUser?: {
-    username: string
-    avatarUrl: string | undefined
-  }
   isPledgeModalOpen: boolean
   openPledgeModal: () => void
 }> = (props) => {
   const {
     mainPost,
-    currentUser,
     childPosts,
     donorPosts,
     ancestorPosts,
@@ -54,6 +50,7 @@ export const CampaignThread: React.FC<{
     isPledgeModalOpen,
   } = props
 
+  const currentUser = useCurrentUser()
   const mainPostId = mainPost.id
 
   const ancestorFeedState = useInfiniteScroll({

@@ -2,7 +2,6 @@ import { LoaderFunctionArgs } from '@remix-run/node'
 import { ClientLoaderFunctionArgs, useSearchParams } from '@remix-run/react'
 import { z } from 'zod'
 import { StandardPostCard } from '~/components/post/standard-post-card'
-import { useLayoutLoaderData } from '~/routes/_app/route'
 import { trpc } from '~/utils/trpc'
 import { getServerClient } from '~/utils/trpc.server'
 import { zx } from '~/utils/zodix'
@@ -49,15 +48,7 @@ export default function Index() {
   return (
     <>
       {!isLoading && posts?.length ? (
-        posts.map((post) => (
-          <StandardPostCard
-            key={post.key}
-            post={post}
-            currentUser={
-              layoutData.anonymousView ? undefined : layoutData.profile
-            }
-          />
-        ))
+        posts.map((post) => <StandardPostCard key={post.key} post={post} />)
       ) : (
         <div className="flex flex-col items-center justify-center p-4 pt-8 gap-2">
           <h2 className="text-xl font-semibold text-secondary-text">

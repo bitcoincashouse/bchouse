@@ -35,7 +35,7 @@ import { Network, prettyPrintSats } from '@bchouse/utils'
 import { $path } from 'remix-routes'
 import { useDebounce } from 'usehooks-ts'
 import { Avatar } from '~/components/avatar'
-import { useLayoutLoaderData } from '~/routes/_app/route'
+import { useCurrentUser } from '~/components/context/current-user-context'
 import { classNames } from '~/utils/classNames'
 import { PostActionType } from '~/utils/usePostActionSubmit'
 import { BitcoinIcon } from '../icons/BitcoinIcon'
@@ -158,13 +158,13 @@ type PostCardMenuItem =
 
 PostCard.ItemMenu = function () {
   const post = usePost()
-  const layoutData = useLayoutLoaderData()
+  const currentUser = useCurrentUser()
 
   const menuItems = React.useMemo<PostCardMenuItem[]>(() => {
     const isCurrentUser =
-      !layoutData.anonymousView &&
-      post.publishedById === layoutData.profile.id &&
-      post.repostedBy !== layoutData.profile.id
+      !currentUser.isAnonymous &&
+      post.publishedById === currentUser.id &&
+      post.repostedBy !== currentUser.id
 
     const currentUserItems: PostCardMenuItem[] =
       isCurrentUser && !post.repostedBy
@@ -244,7 +244,7 @@ PostCard.ItemMenu = function () {
           },
         ]
 
-    return layoutData.anonymousView
+    return currentUser.isAnonymous
       ? baseItems
       : Array.prototype.concat(currentUserItems, loggedInItems, baseItems)
   }, [post])

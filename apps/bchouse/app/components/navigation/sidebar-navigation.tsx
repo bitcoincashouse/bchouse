@@ -4,7 +4,7 @@ import { Link, NavLink, useLocation } from '@remix-run/react'
 import React, { useRef } from 'react'
 import { classNames } from '~/utils/classNames'
 import { useClerkTheme } from '~/utils/useClerkTheme'
-import { LayoutLoaderData } from '../../routes/_app/route'
+import { LayoutLoaderData } from '../../routes/_app/_layout'
 import { ThemeToggle } from '../theme-toggle'
 import { classnames } from '../utils/classnames'
 
