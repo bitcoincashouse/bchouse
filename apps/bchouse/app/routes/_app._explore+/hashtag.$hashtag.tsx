@@ -3,8 +3,8 @@ import { UIMatch } from '@remix-run/react'
 import { typedjson, useTypedLoaderData } from 'remix-typedjson'
 import { z } from 'zod'
 import { StandardPostCard } from '~/components/post/standard-post-card'
+import { useLayoutLoaderData } from '~/routes/_app/route'
 import { zx } from '~/utils/zodix'
-import { useLayoutLoaderData } from './_app/route'
 
 export const handle = {
   query: (match: UIMatch) => {
@@ -13,7 +13,7 @@ export const handle = {
 }
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  const { userId } = await _.context.authService.getAuthOptional(_)
+  const { userId } = await getAuthOptional(_)
 
   const { hashtag } = zx.parseParams(_.params, {
     hashtag: z.string().optional(),

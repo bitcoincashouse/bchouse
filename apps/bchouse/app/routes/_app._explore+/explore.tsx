@@ -2,10 +2,10 @@ import { LoaderFunctionArgs } from '@remix-run/node'
 import { ClientLoaderFunctionArgs, useSearchParams } from '@remix-run/react'
 import { z } from 'zod'
 import { StandardPostCard } from '~/components/post/standard-post-card'
+import { useLayoutLoaderData } from '~/routes/_app/route'
 import { trpc } from '~/utils/trpc'
 import { getServerClient } from '~/utils/trpc.server'
 import { zx } from '~/utils/zodix'
-import { useLayoutLoaderData } from './_app/route'
 
 export const loader = async (_: LoaderFunctionArgs) => {
   const trpc = getServerClient(_.request)

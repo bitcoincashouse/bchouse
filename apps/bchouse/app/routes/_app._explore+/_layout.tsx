@@ -6,11 +6,11 @@ import {
 } from '@remix-run/react'
 import { AnyFunction, isFunction, isString } from 'is-what'
 import { useMemo } from 'react'
+import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { Search } from '~/components/search/autocomplete-search'
+import { StatsWidget } from '~/components/stats-widget'
 import { useFindMatchHandle } from '~/utils/appHooks'
-import { ActiveCampaignsWidget } from '../components/active-campaigns-widget'
-import { StatsWidget } from '../components/stats-widget'
 
 function isStringOrMatchFunction(val: unknown): val is string | AnyFunction {
   return isString(val) || isFunction(val)
