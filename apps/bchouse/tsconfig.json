@@ -7,11 +7,9 @@
     "./server/**/*.tsx",
 		"./server/**/*.json",
     "./server.ts",
-    "../api/test/**/*.ts",
-    "../api/test/**/*.tsx",
-    "../api/test/**/*.json",
-    "./remix.env.d.ts"
-, "../api/src/services/utils/zod.ts"  ],
+    "./remix.env.d.ts",
+    "./types/**/*.ts" 
+  ],
   "exclude": ["../../**/node_modules", "**/.*/"],
   "compilerOptions": {
     //Base
@@ -53,7 +51,6 @@
 		"paths": {
       "~/*": ["./app/*"],
 			"~/server/*": ["./server/*"],
-			"~/test/*": ["../api/test/*"],
       "@algolia/*": ["../../node_modules/@algolia/*/dist/esm"],
       "usehooks-ts": ["../../node_modules/usehooks-ts/dist/esm"]
 		},

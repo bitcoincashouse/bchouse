@@ -7,7 +7,7 @@ import { createContext } from './trpc'
 
 const app = express()
 
-app.use(cors({ credentials: true }))
+app.use(cors({ credentials: true, origin: 'http://localhost:3000' }))
 app.use(ClerkExpressWithAuth())
 app.use(
   '/trpc',
@@ -17,9 +17,5 @@ app.use(
   })
 )
 
-app.listen(3003)
-
-const test = ''
-export { test }
-
+const server = app.listen(3003)
 export type AppRouter = typeof appRouter

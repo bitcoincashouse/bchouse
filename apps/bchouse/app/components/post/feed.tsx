@@ -69,9 +69,9 @@ export const Feed: React.FC<
     isLoading,
     isInitialLoading,
     isError,
-  } = useInfiniteQuery(
-    ['feed', queryKey, id],
-    async ({ pageParam, meta }) => {
+  } = useInfiniteQuery({
+    queryKey: ['feed', queryKey, id],
+    queryFn: async ({ pageParam, meta }) => {
       const data = (await (
         await fetch(
           $path('/api/feed/:type/:id/:cursor?', {
@@ -99,15 +99,13 @@ export const Feed: React.FC<
             nextCursor: data?.nextCursor || undefined,
           }
     },
-    {
-      getNextPageParam: (lastPage, allPages) => {
-        return lastPage.nextCursor
-      },
-      staleTime: 1000 * 60 * 2,
-      cacheTime: Infinity,
-      refetchOnWindowFocus: false,
-    }
-  )
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.nextCursor
+    },
+    staleTime: 1000 * 60 * 2,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
+  })
 
   const feedRef = useRef<VirtuosoHandle>()
   const location = useLocation()

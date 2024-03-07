@@ -1,0 +1,81 @@
+diff --git a/dist/server/index.d.ts b/dist/server/index.d.ts
+index 579182be811a3faaf470fe6c41a05bb963e3d9b9..77720e883cff935b1990c242a5ae15fac1fa5a1c 100644
+--- a/dist/server/index.d.ts
++++ b/dist/server/index.d.ts
+@@ -1,2 +1,2 @@
+-export { createServerSideHelpers } from './ssgProxy';
++export { createServerSideHelpers, CreateSSGHelpers } from './ssgProxy';
+ //# sourceMappingURL=index.d.ts.map
+\ No newline at end of file
+diff --git a/dist/server/ssgProxy.d.ts b/dist/server/ssgProxy.d.ts
+index 2a1c0932e4c7e1601cd97507d182f87d739532a8..bf41fd502abdff53462c4d8e077b24acdd697a94 100644
+--- a/dist/server/ssgProxy.d.ts
++++ b/dist/server/ssgProxy.d.ts
+@@ -36,6 +36,18 @@ type DecorateProcedure<TRoot extends AnyRootTypes, TProcedure extends AnyProcedu
+ type DecoratedProcedureSSGRecord<TRoot extends AnyRootTypes, TRecord extends RouterRecord> = {
+     [TKey in keyof TRecord]: TRecord[TKey] extends infer $Value ? $Value extends RouterRecord ? DecoratedProcedureSSGRecord<TRoot, $Value> : $Value extends AnyQueryProcedure ? DecorateProcedure<TRoot, $Value> : never : never;
+ };
++
++export type CreateSSGHelpers<TRouter extends AnyRouter> = ProtectedIntersection<
++{
++  queryClient: QueryClient;
++  dehydrate: (opts?: DehydrateOptions) => DehydratedState;
++},
++DecoratedProcedureSSGRecord<
++  TRouter['_def']['_config']['$types'],
++  TRouter['_def']['record']
++>
++>;
++
+ /**
+  * Create functions you can use for server-side rendering / static generation
+  * @link https://trpc.io/docs/v11/client/nextjs/server-side-helpers
+diff --git a/src/server/index.ts b/src/server/index.ts
+index 575012e94ce3a4f419de8bf5851b009e125df0e6..3ed298fea3962dfd2a56efd33e9fd1eeea79bf6f 100644
+--- a/src/server/index.ts
++++ b/src/server/index.ts
+@@ -1 +1 @@
+-export { createServerSideHelpers } from './ssgProxy';
++export { createServerSideHelpers, CreateSSGHelpers } from './ssgProxy';
+diff --git a/src/server/ssgProxy.ts b/src/server/ssgProxy.ts
+index 1ce5264f7f837209df495a37859921a3710776ef..fb6b829a9dcfc3c27db512f63670f9e061e19ec7 100644
+--- a/src/server/ssgProxy.ts
++++ b/src/server/ssgProxy.ts
+@@ -127,6 +127,17 @@ type DecoratedProcedureSSGRecord<
+ 
+ type AnyDecoratedProcedure = DecorateProcedure<any, any>;
+ 
++export type CreateSSGHelpers<TRouter extends AnyRouter> = ProtectedIntersection<
++{
++  queryClient: QueryClient;
++  dehydrate: (opts?: DehydrateOptions) => DehydratedState;
++},
++DecoratedProcedureSSGRecord<
++  TRouter['_def']['_config']['$types'],
++  TRouter['_def']['record']
++>
++>;
++
+ /**
+  * Create functions you can use for server-side rendering / static generation
+  * @link https://trpc.io/docs/v11/client/nextjs/server-side-helpers
+@@ -183,18 +194,7 @@ export function createServerSideHelpers<TRouter extends AnyRouter>(
+     return after;
+   }
+ 
+-  type CreateSSGHelpers = ProtectedIntersection<
+-    {
+-      queryClient: QueryClient;
+-      dehydrate: (opts?: DehydrateOptions) => DehydratedState;
+-    },
+-    DecoratedProcedureSSGRecord<
+-      TRouter['_def']['_config']['$types'],
+-      TRouter['_def']['record']
+-    >
+-  >;
+-
+-  return createFlatProxy<CreateSSGHelpers>((key) => {
++  return createFlatProxy<CreateSSGHelpers<TRouter>>((key) => {
+     if (key === 'queryClient') return queryClient;
+     if (key === 'dehydrate') return _dehydrate;
+ 

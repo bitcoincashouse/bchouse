@@ -1,4 +1,4 @@
-import { detectAddressNetwork, logger } from '@bchouse/utils'
+import { detectAddressNetwork, logger, moment } from '@bchouse/utils'
 import { type Doc } from '@bchouse/utils/src/tiptapSchema.js'
 import Redis from 'ioredis'
 import { z } from 'zod'
@@ -7,7 +7,6 @@ import postRepo from '../repositories/posts/index.js'
 import { Cursor } from '../repositories/types.js'
 import userRepo from '../repositories/user/index.js'
 import { UserProfile } from '../repositories/user/types.js'
-import { moment } from '../utils/moment.js'
 import { serializeCursor } from '../utils/serializeCursor.js'
 import { ActivityData, ActivityFactory } from './redis/activity.js'
 import {

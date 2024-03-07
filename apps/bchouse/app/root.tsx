@@ -1,6 +1,7 @@
 import autocompleteCss from '@algolia/autocomplete-theme-classic/dist/theme.min.css'
+import { AppRouter } from '@bchouse/api'
 import { moment } from '@bchouse/utils'
-import { ClerkApp, ClerkErrorBoundary, useClerk } from '@clerk/remix'
+import { ClerkApp, ClerkErrorBoundary, useAuth, useClerk } from '@clerk/remix'
 import { rootAuthLoader } from '@clerk/remix/ssr.server'
 import {
   LoaderFunctionArgs,
@@ -16,7 +17,14 @@ import {
 } from '@remix-run/react'
 import { metaV1 } from '@remix-run/v1-meta'
 import { withSentry } from '@sentry/remix'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import {
+  HydrationBoundary,
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query'
+import { httpBatchLink } from '@trpc/client'
+import { CreateTRPCReact } from '@trpc/react-query'
+import { createServerSideHelpers } from '@trpc/react-query/server'
 import { Buffer } from 'buffer-polyfill'
 import { useEffect, useRef, useState } from 'react'
 import { UseDataFunctionReturn, useTypedLoaderData } from 'remix-typedjson'
@@ -24,6 +32,8 @@ import stylesheet from '~/styles/tailwind.css'
 import { ErrorDisplay } from './components/pages/error'
 import { Document } from './document'
 import { getThemeSession } from './utils/themeCookie.server'
+import { trpc } from './utils/trpc'
+import { useDehydratedState } from './utils/useDehydratedState'
 
 if (typeof window !== 'undefined') {
   //@ts-ignore
@@ -100,6 +110,8 @@ declare global {
   interface Window {
     env: UseDataFunctionReturn<typeof loader>
     queryClient: QueryClient
+    trpcClient: CreateTRPCReact<AppRouter, any>
+    trpcHelpers: ReturnType<typeof createServerSideHelpers<AppRouter>>
   }
 }
 
@@ -111,6 +123,40 @@ const App = function () {
     }
 
     return queryClient
+  })
+
+  const { getToken } = useAuth()
+  const [trpcClient] = useState(() => {
+    const trpcClient = trpc.createClient({
+      links: [
+        httpBatchLink({
+          url: 'http://localhost:3003/trpc',
+          // You can pass any HTTP headers you wish here
+          async fetch(url, options) {
+            const token = await getToken()
+
+            return fetch(url, {
+              ...options,
+              credentials: 'include',
+              headers: {
+                ...options?.headers,
+                Authorization: `Bearer ${token}`,
+              },
+            })
+          },
+        }),
+      ],
+    })
+
+    if (typeof window !== 'undefined') {
+      window.trpcClient = trpc as any
+      window.trpcHelpers = createServerSideHelpers({
+        client: trpcClient,
+        queryClient,
+      }) as any
+    }
+
+    return trpcClient
   })
 
   const env = useTypedLoaderData<typeof loader>()
@@ -158,17 +204,23 @@ const App = function () {
     }
   }, [])
 
+  const dehydratedState = useDehydratedState()
+
   return (
     <Document specifiedTheme={env.theme}>
-      <QueryClientProvider client={queryClient}>
-        <Outlet />
-      </QueryClientProvider>
-      <script src="//cdn.iframe.ly/embed.js?" />
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `window.env = ${JSON.stringify(env)}`,
-        }}
-      />
+      <trpc.Provider client={trpcClient} queryClient={queryClient}>
+        <QueryClientProvider client={queryClient}>
+          <HydrationBoundary state={dehydratedState}>
+            <Outlet />
+          </HydrationBoundary>
+        </QueryClientProvider>
+        <script src="//cdn.iframe.ly/embed.js?" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.env = ${JSON.stringify(env)}`,
+          }}
+        />
+      </trpc.Provider>
     </Document>
   )
 }

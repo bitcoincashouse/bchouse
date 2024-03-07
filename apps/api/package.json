@@ -6,10 +6,13 @@
   "type": "module",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "npm run clean && npm run compile",
-    "dev": "tsx watch --clear-screen=false -r dotenv/config ./src/index.ts dotenv_config_path=../../_development.env",
-    "clean": "rm -rf ./dist",
-    "compile": "tsup --tsconfig ./tsconfig.build.json ./src/index.ts --format esm,cjs --dts"
+    "build": "npm run clean && run-s build:*",
+    "build:cashscript": "foreach -g **/*.cash -x \"cashc #{path} --output #{dir}/contract.json\"",
+    "build:compile": "tsup --tsconfig ./tsconfig.build.json ./src/index.ts --format esm,cjs --dts",
+    "dev": "run-s dev:*",
+    "dev:cashscript": "foreach -g **/*.cash -x \"cashc #{path} --output #{dir}/contract.json\"",
+    "dev:run": "tsx watch --clear-screen=false -r dotenv/config ./src/index.ts dotenv_config_path=../../_development.env",
+    "clean": "rm -rf ./dist"
   },
   "dependencies": {
     "@bchouse/inngest": "^1.0.0",
@@ -18,14 +21,7 @@
     "@clerk/clerk-sdk-node": "^4.12.10",
     "@planetscale/database": "^1.10.0",
     "@psf/bch-js": "^6.7.4",
-    "@remix-run/express": "^2.4.1",
-    "@remix-run/node": "^2.4.1",
-    "@remix-run/react": "^2.4.1",
-    "@remix-run/serve": "^2.4.1",
-    "@remix-run/server-runtime": "^2.4.1",
-    "@remix-run/v1-meta": "^0.1.3",
-    "@sentry/remix": "^7.73.0",
-    "@trpc/server": "11.0.0-next-beta.303",
+    "@trpc/server": "11.0.0-next-beta.305",
     "bchaddrjs": "^0.5.2",
     "bigint-buffer": "^1.1.5",
     "bitcore-payment-protocol": "^8.1.1",
@@ -46,7 +42,6 @@
     "morgan": "^1.10.0",
     "nanoid": "^4.0.2",
     "p-reduce": "^3.0.0",
-    "remix-routes": "^1.4.4",
     "remix-typedjson": "^0.4.1",
     "uuid": "^9.0.1",
     "zod": "^3.22.3"

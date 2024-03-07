@@ -29,5 +29,6 @@
     "experimentalDecorators": true,
     "sourceMap": true,
     "removeComments": true,
+    "preserveSymlinks": true
   }
 }

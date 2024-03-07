@@ -18,9 +18,9 @@ export default function Iframely({
   const debouncedIsScrolling = false //useDebounce(isScrolling, 500)
   const [theme] = useClientTheme()
 
-  const { data, error, isLoading } = useQuery(
-    ['embed', url, allowFullHeight, theme],
-    () => {
+  const { data, error, isLoading } = useQuery({
+    queryKey: ['embed', url, allowFullHeight, theme],
+    queryFn: () => {
       return fetch(
         `https://cdn.iframe.ly/api/iframely?url=${encodeURIComponent(
           url
@@ -59,12 +59,10 @@ export default function Iframely({
           }
         })
     },
-    {
-      enabled: !!url && !debouncedIsScrolling,
-      cacheTime: 1000 * 60,
-      staleTime: 1000 * 60 * 5,
-    }
-  )
+    enabled: !!url && !debouncedIsScrolling,
+    gcTime: 1000 * 60,
+    staleTime: 1000 * 60 * 5,
+  })
 
   if (error) {
     return (

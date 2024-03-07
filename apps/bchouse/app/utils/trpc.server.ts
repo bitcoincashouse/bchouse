@@ -1,16 +1,16 @@
 import type { AppRouter } from '@bchouse/api'
 import { constants } from '@clerk/clerk-sdk-node'
 import { createTRPCClient, httpLink } from '@trpc/client'
+import { createServerSideHelpers } from '@trpc/react-query/server'
 import { parse } from 'cookie'
-
 let apiUrl = ((process.env.API_URL as string) || '').replace(/\/$/, '')
 
 if (process.env.NODE_ENV !== 'production' && !apiUrl) {
   apiUrl = 'http://localhost:3003'
 }
 
-export const getTrpc = (request: Request) =>
-  createTRPCClient<AppRouter>({
+export const getServerClient = (request: Request) => {
+  const proxyClient = createTRPCClient<AppRouter>({
     links: [
       httpLink({
         url: apiUrl + '/trpc',
@@ -30,9 +30,15 @@ export const getTrpc = (request: Request) =>
         fetch(url, options) {
           return fetch(url, {
             ...options,
+            signal: request.signal,
             credentials: 'include',
           })
         },
       }),
     ],
   })
+
+  return createServerSideHelpers({
+    client: proxyClient,
+  })
+}

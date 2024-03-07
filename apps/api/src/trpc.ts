@@ -1,10 +1,18 @@
 import { AuthObject } from '@clerk/clerk-sdk-node'
 import { initTRPC } from '@trpc/server'
 import { CreateExpressContextOptions } from '@trpc/server/adapters/express'
+import { getContext } from './services/getContext'
 
 export type Context = Awaited<ReturnType<typeof createContext>>
+
+const context = await getContext()
+process.on('SIGINT', () => context.destroy().then(() => process.exit()))
+process.on('SIGTERM', () => context.destroy().then(() => process.exit()))
+
 export const createContext = ({ req, res }: CreateExpressContextOptions) => ({
   auth: (req as any).auth as AuthObject,
+  ip: req.headers['Fly-Client-IP'] ?? req.socket.remoteAddress,
+  ...context,
 })
 
 /**
