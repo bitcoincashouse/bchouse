@@ -1,5 +1,10 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
-import { NavLink, Outlet, useParams } from '@remix-run/react'
+import {
+  ClientLoaderFunctionArgs,
+  NavLink,
+  Outlet,
+  useParams,
+} from '@remix-run/react'
 import { $path } from 'remix-routes'
 import { z } from 'zod'
 import { ActionsPanel } from '~/components/actions'
@@ -19,8 +24,13 @@ import { Avatar } from '~/components/avatar'
 import { FollowButton } from '~/components/follow-button'
 import { ImageProxy } from '~/components/image-proxy'
 import { PostForm } from '~/components/post/post-form'
-import { useAppLoaderData } from '~/utils/appHooks'
 import { trpc } from '~/utils/trpc'
+
+declare global {
+  interface RouteDescription {
+    profile: {}
+  }
+}
 
 export const loader = async (_: LoaderFunctionArgs) => {
   const { username } = zx.parseParams(_.params, {
@@ -32,6 +42,18 @@ export const loader = async (_: LoaderFunctionArgs) => {
   })
 
   return _.context.getDehydratedState()
+}
+
+export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
+  const { username } = zx.parseParams(_.params, {
+    username: z.string(),
+  })
+
+  await window.trpcClientUtils.profile.getPublicProfile.prefetch({
+    username,
+  })
+
+  return null
 }
 
 interface ProfileHandle extends AppRouteHandle, RouteHandler<'profile'> {}
@@ -78,7 +100,19 @@ export type User = Extract<
 >
 
 export const useProfileLoader = () => {
-  return useAppLoaderData(profileHandle) as User
+  const username = useParams()?.username as string
+
+  const { data: user } = trpc.profile.getPublicProfile.useQuery(
+    {
+      username,
+    },
+    {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
+    }
+  )
+
+  return user
 }
 
 function randomInteger(min: number, max: number) {
@@ -94,17 +128,7 @@ const tabs = [
 ]
 
 export default function Index() {
-  const username = useParams()?.username as string
-
-  const { data: user } = trpc.profile.getPublicProfile.useQuery(
-    {
-      username,
-    },
-    {
-      staleTime: 5 * 60 * 1000,
-      gcTime: 15 * 60 * 1000,
-    }
-  )
+  const user = useProfileLoader()
 
   if (!user) {
     //TODO: If user not found, that's an issue;
