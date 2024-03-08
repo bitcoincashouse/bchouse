@@ -1,81 +1,46 @@
-import { isApplicationError, isClerkError, logger } from '@bchouse/utils'
 import { ArrowLeftIcon } from '@heroicons/react/20/solid'
-import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
-import { useNavigate } from '@remix-run/react'
-import { typedjson, useTypedFetcher, useTypedLoaderData } from 'remix-typedjson'
+import { LoaderFunctionArgs } from '@remix-run/node'
+import { useNavigate, useParams } from '@remix-run/react'
+import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  await _.context.ratelimit.limitByIp(_, 'api', true)
-
   const { code } = zx.parseParams(_.params, {
     code: z.string().optional(),
   })
 
-  const invitationInfo = code
-    ? await _.context.authService.getInviteCode({
-        code,
-      })
-    : null
-
-  if (!invitationInfo) {
-    return typedjson(null)
-  }
-
-  return typedjson({
-    code: invitationInfo.code,
-    invitationFrom: invitationInfo.name,
-  })
-}
-
-export const action = async (_: ActionFunctionArgs) => {
-  try {
-    const { emailAddress, code } = await zx.parseForm(_.request, {
-      emailAddress: z.string().email(),
-      code: z.string(),
-    })
-
-    const result = await _.context.authService.claimInviteCode({
-      code,
-      emailAddress,
-    })
-
-    return typedjson({
-      error: false as const,
-      emailAddress: emailAddress,
-    })
-  } catch (err) {
-    logger.error('Error inviting user', err)
-
-    if (isClerkError(err) && err.errors[0]) {
-      if (err.errors[0].message === 'duplicate allowlist identifier') {
-        return typedjson({
-          error: true as const,
-          message: 'Email already invited',
-        })
-      }
-
-      return typedjson({ error: true as const, message: err.errors[0].message })
-    }
-
-    if (isApplicationError(err) && err.errors[0]) {
-      return typedjson({ error: true as const, message: err.errors[0].message })
-    }
-
-    return typedjson({
-      error: true as const,
-      message: 'Error inviting user, please try again.',
-    })
-  }
+  await _.context.trpc.profile.getInvite.prefetch({ code })
+  return _.context.getDehydratedState()
 }
 
 export default function Index() {
-  const data = useTypedLoaderData<typeof loader>()
-  const fetcher = useTypedFetcher<typeof action>()
-  const result = fetcher.data
+  const { code } = useParams<{ code: string }>()
+  const { data } = trpc.profile.getInvite.useQuery(
+    { code: code! },
+    {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
+    }
+  )
+
+  const claimInviteMutation = trpc.profile.claimInvite.useMutation()
+  const result = claimInviteMutation.data
 
   const navigate = useNavigate()
+
+  const { register, handleSubmit } = useForm<{
+    code: string
+    emailAddress: string
+  }>({
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+    defaultValues: {
+      code: data?.code,
+      emailAddress: '',
+    },
+  })
 
   return (
     <>
@@ -116,26 +81,31 @@ export default function Index() {
               ) : null}
             </div>
             <div className="mt-6">
-              <fetcher.Form
+              <form
                 className="flex flex-col gap-4 caret-black"
                 method="POST"
+                onSubmit={handleSubmit((data) =>
+                  claimInviteMutation.mutate({
+                    code: data.code,
+                    emailAddress: data.emailAddress,
+                  })
+                )}
               >
                 <input
                   autoFocus
                   className="border border-gray-300 p-3 rounded-lg placeholder:text-gray-400 w-full text-gray-900"
                   placeholder="Code"
                   type={data?.code ? 'hidden' : 'text'}
-                  name="code"
-                  defaultValue={data?.code || ''}
-                  required
+                  id="code"
+                  {...register('code', { required: true })}
                 ></input>
                 <input
                   autoFocus
                   className="border border-gray-300 p-3 rounded-lg placeholder:text-gray-400 w-full text-gray-900"
                   placeholder="Email"
                   type="email"
-                  name="emailAddress"
-                  required
+                  id="emailAddress"
+                  {...register('emailAddress', { required: true })}
                 ></input>
                 <div className="flex items-center">
                   {result && !result.error ? (
@@ -153,10 +123,12 @@ export default function Index() {
                     type="submit"
                     className="ml-auto bg-purple-500 rounded-lg text-white font-semibold p-4"
                   >
-                    {fetcher.state === 'submitting' ? 'Claiming' : 'Claim'}
+                    {claimInviteMutation.status === 'pending'
+                      ? 'Claiming'
+                      : 'Claim'}
                   </button>
                 </div>
-              </fetcher.Form>
+              </form>
             </div>
           </div>
         </div>

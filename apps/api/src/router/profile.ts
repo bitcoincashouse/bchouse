@@ -296,4 +296,70 @@ export const profileRouter = router({
       const { username } = opts.input
       return await opts.ctx.profileService.getFollowing(userId, username)
     }),
+  getInvite: publicProcedure
+    .input(z.object({ code: z.string().optional() }))
+    .query(async (opts) => {
+      // await _.context.ratelimit.limitByIp(_, 'api', true)
+
+      const { code } = opts.input
+
+      const invitationInfo = code
+        ? await opts.ctx.authService.getInviteCode({
+            code,
+          })
+        : null
+
+      if (!invitationInfo) {
+        return null
+      }
+
+      return {
+        code: invitationInfo.code,
+        invitationFrom: invitationInfo.name,
+      }
+    }),
+  claimInvite: publicProcedure
+    .input(
+      z.object({
+        emailAddress: z.string().email(),
+        code: z.string(),
+      })
+    )
+    .mutation(async (opts) => {
+      try {
+        const { emailAddress, code } = opts.input
+
+        const result = await opts.ctx.authService.claimInviteCode({
+          code,
+          emailAddress,
+        })
+
+        return {
+          error: false as const,
+          emailAddress: emailAddress,
+        }
+      } catch (err) {
+        logger.error('Error inviting user', err)
+
+        if (isClerkError(err) && err.errors[0]) {
+          if (err.errors[0].message === 'duplicate allowlist identifier') {
+            return {
+              error: true as const,
+              message: 'Email already invited',
+            }
+          }
+
+          return { error: true as const, message: err.errors[0].message }
+        }
+
+        if (isApplicationError(err) && err.errors[0]) {
+          return { error: true as const, message: err.errors[0].message }
+        }
+
+        return {
+          error: true as const,
+          message: 'Error inviting user, please try again.',
+        }
+      }
+    }),
 })

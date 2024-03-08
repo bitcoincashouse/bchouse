@@ -1,5 +1,5 @@
 import { moment, pluralize } from '@bchouse/utils'
-import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useNavigate, useSearchParams } from '@remix-run/react'
 import { useMemo } from 'react'
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
@@ -15,16 +15,14 @@ export const loader = async (_: LoaderFunctionArgs) => {
   return _.context.getDehydratedState()
 }
 
-export const action = async (_: ActionFunctionArgs) => {}
-
 export default function Index() {
   const [searchParams] = useSearchParams()
-  const inviteMutation = trpc.profile.invite.useMutation(undefined, {})
+  const inviteMutation = trpc.profile.invite.useMutation()
 
   const result = inviteMutation.data
 
   const invitationQuery = trpc.profile.listInviteCodes.useQuery(undefined, {
-    cacheTime: 5 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
     staleTime: 15 * 60 * 1000,
   })
 
@@ -70,18 +68,15 @@ export default function Index() {
                   <Grid codes={inviteCodes}></Grid>
 
                   <div>
-                    <fetcher.Form
-                      className="flex gap-4 caret-black"
-                      method="POST"
-                    >
+                    <form className="flex gap-4 caret-black" method="POST">
                       <div className="bg-purple-500 rounded-full text-white font-semibold">
                         <button type="submit" className="p-4">
-                          {fetcher.state === 'submitting'
+                          {inviteMutation.status === 'pending'
                             ? 'Generating'
                             : 'Generate'}
                         </button>
                       </div>
-                    </fetcher.Form>
+                    </form>
 
                     {result?.error ? (
                       <div className="pt-2 text-red-400 font-readable">
@@ -106,7 +101,7 @@ function Grid({
   codes: {
     code: string
     claimedEmailAddress: string | null
-    createdAt: Date
+    createdAt: string
   }[]
 }) {
   return (
