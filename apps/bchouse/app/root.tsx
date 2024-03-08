@@ -177,7 +177,7 @@ const App = function () {
 
       window.trpcClientUtils = createTRPCQueryUtils({
         queryClient,
-        client: trpc as any,
+        client: trpcClient,
       })
     }
 
