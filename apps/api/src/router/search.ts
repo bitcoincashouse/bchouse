@@ -6,7 +6,6 @@ export const searchRouter = router({
   explore: publicProcedure
     .input(z.object({ q: z.string().optional() }))
     .query(async (opts) => {
-      console.log('Salam explore', opts.ctx.auth.userId)
       const { q } = opts.input
       const { userId } = opts.ctx.auth
 

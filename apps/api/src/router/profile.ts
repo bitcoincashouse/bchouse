@@ -52,7 +52,6 @@ export const profileRouter = router({
   get: publicProcedure.query(async (opts) => {
     //Applies to entire application
     // await opts.ctx.ratelimit.limitByIp(_, 'app', true)
-    console.log('Salam profile')
     const { userId } = opts.ctx.auth
 
     const profile =
