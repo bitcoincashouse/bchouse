@@ -1,6 +1,10 @@
 import { logger } from '@bchouse/utils'
 import { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { useLocation, useParams } from '@remix-run/react'
+import {
+  ClientLoaderFunctionArgs,
+  useLocation,
+  useParams,
+} from '@remix-run/react'
 import { generateText } from '@tiptap/core'
 import { useMemo } from 'react'
 import { z } from 'zod'
@@ -31,6 +35,20 @@ export const loader = async (_: LoaderFunctionArgs) => {
   return _.context.getDehydratedState()
 }
 
+export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
+  const { username, statusId } = zx.parseParams(_.params, {
+    username: z.string(),
+    statusId: z.string(),
+  })
+
+  await window.trpcClientUtils.post.status.prefetch({
+    username,
+    statusId,
+  })
+
+  return null
+}
+
 export const meta: MetaFunction<typeof loader> = ({
   data,
   location,
@@ -38,11 +56,16 @@ export const meta: MetaFunction<typeof loader> = ({
   params,
 }) => {
   try {
-    const { posts } = createTrpcClientUtils(
-      data?.dehydratedState! as Awaited<
-        ReturnType<typeof loader>
-      >['dehydratedState']
-    ).post.status.getData({
+    const trpcClientUtils =
+      typeof window === 'undefined'
+        ? createTrpcClientUtils(
+            data?.dehydratedState! as Awaited<
+              ReturnType<typeof loader>
+            >['dehydratedState']
+          )
+        : window.trpcClientUtils
+
+    const { posts } = trpcClientUtils.post.status.getData({
       username: params.username as string,
       statusId: params.statusId as string,
     })!
@@ -131,7 +154,8 @@ export default function Index() {
   )
 
   if (!mainPost) {
-    throw new Error('Error, main post not found!')
+    logger.error('Error, main post not found!')
+    return null
   }
 
   return (
