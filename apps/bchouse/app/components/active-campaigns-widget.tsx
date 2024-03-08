@@ -6,7 +6,7 @@ import { Widget } from '~/components/layouts/widget'
 import { ProgressBar } from '~/components/progress-bar'
 import { pluralize } from '~/components/utils'
 import { classNames } from '~/utils/classNames'
-import { trpc } from '~/utils/trpc'
+import { AppRouterOutputs, trpc } from '~/utils/trpc'
 
 export function ActiveCampaignsWidget({ username }: { username?: string }) {
   const { data, isLoading } = trpc.campaign.listActive.useQuery(
@@ -46,7 +46,7 @@ function CampaignItem({
   title,
   username,
   statusId,
-}: AppRouterOutputs['campaigns']['activeCampaigns'][number]) {
+}: AppRouterOutputs['campaign']['activeCampaigns'][number]) {
   const [requestedAmountText, requestedDenominationText] =
     prettyPrintSats(requestedAmount)
   const [amountRaisedText, amountRaisedDenominationText] =

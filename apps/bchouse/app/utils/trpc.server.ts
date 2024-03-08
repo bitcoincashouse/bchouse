@@ -3,6 +3,7 @@ import { constants } from '@clerk/clerk-sdk-node'
 import { createTRPCClient, httpLink } from '@trpc/client'
 import { createServerSideHelpers } from '@trpc/react-query/server'
 import { parse } from 'cookie'
+import type { Request } from 'express'
 let apiUrl = ((process.env.API_URL as string) || '').replace(/\/$/, '')
 
 if (process.env.NODE_ENV !== 'production' && !apiUrl) {
@@ -15,7 +16,7 @@ export const getServerClient = (request: Request) => {
       httpLink({
         url: apiUrl + '/trpc',
         headers(opts) {
-          const cookieStr = request.headers.get('Cookie') as string
+          const cookieStr = request.headers.cookie as string
           if (cookieStr) {
             const cookies = parse(cookieStr)
             const jwt = cookies[constants.Cookies.Session]
@@ -30,7 +31,6 @@ export const getServerClient = (request: Request) => {
         fetch(url, options) {
           return fetch(url, {
             ...options,
-            signal: request.signal,
             credentials: 'include',
           })
         },

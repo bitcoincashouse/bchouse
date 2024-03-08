@@ -21,7 +21,12 @@ export class FeedService {
     currentUserId: string | null,
     type: FeedKeys,
     serializedCursor?: string | undefined
-  ) {
+  ): Promise<{
+    rebuilding: boolean
+    refresh: boolean
+    posts: PostCardModel[]
+    nextCursor: string | undefined
+  }> {
     const redisState = await this.redis.getRedisStatus()
 
     if (redisState === 'idle') {
@@ -34,6 +39,9 @@ export class FeedService {
     if (redisState !== 'built') {
       return {
         rebuilding: true,
+        refresh: false,
+        posts: [],
+        nextCursor: undefined,
       } as const
     }
 
@@ -48,6 +56,9 @@ export class FeedService {
     if (!hasTimeline && !!cursor) {
       return {
         refresh: true,
+        rebuilding: false,
+        posts: [] as PostCardModel[],
+        nextCursor: undefined,
       } as const
     }
 
@@ -68,7 +79,12 @@ export class FeedService {
     currentUserId: string | null,
     type: FeedKeys,
     cursor?: Cursor
-  ) {
+  ): Promise<{
+    rebuilding: boolean
+    refresh: boolean
+    posts: PostCardModel[]
+    nextCursor: string | undefined
+  }> {
     let fn
 
     switch (type) {
@@ -118,6 +134,8 @@ export class FeedService {
     const feedResult = await fn
 
     const feed = {
+      rebuilding: false,
+      refresh: false,
       posts: feedResult.results.map(
         (
           post

@@ -3,27 +3,29 @@ import { ArrowPathIcon, HeartIcon, UserIcon } from '@heroicons/react/20/solid'
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useNavigate } from '@remix-run/react'
 import { $path } from 'remix-routes'
-import { useTypedLoaderData } from 'remix-typedjson'
 import { Avatar } from '~/components/avatar'
+import { useCurrentUser } from '~/components/context/current-user-context'
 import { BitcoinIcon } from '~/components/icons/BitcoinIcon'
 import { PostCard, PostProvider } from '~/components/post/post-card'
 import { classnames } from '~/components/utils/classnames'
 import { Activity } from '~/server/services/redis/activity'
 import { classNames } from '~/utils/classNames'
-import { useNotificationsLoaderData } from './_layout'
+import { trpc } from '~/utils/trpc'
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  const { userId } = await _.context.authService.getAuth(_)
-  const notifications = await _.context.userService.getNotifications(userId)
-
-  return {
-    notifications,
-  }
+  await _.context.trpc.profile.getNotifications.prefetch()
+  return _.context.getDehydratedState()
 }
 
 export default function Index() {
-  const { notifications } = useTypedLoaderData<typeof loader>()
-  const currentUser = useNotificationsLoaderData()
+  const getNotifications = trpc.profile.getNotifications.useQuery(undefined, {
+    cacheTime: 5 * 60 * 1000,
+    staleTime: 1 * 60 * 1000,
+  })
+
+  const notifications = getNotifications.data?.notifications || []
+
+  const currentUser = useCurrentUser()
   const navigate = useNavigate()
   return (
     <div className="flex flex-col">

@@ -1,10 +1,10 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
-import { NavLink, Outlet } from '@remix-run/react'
-import { useTypedLoaderData } from 'remix-typedjson'
+import { NavLink, Outlet, useParams } from '@remix-run/react'
 import { z } from 'zod'
 import { ActionsPanel } from '~/components/actions'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { classNames } from '~/utils/classNames'
+import { trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
 
 export const loader = async (_: LoaderFunctionArgs) => {
@@ -12,14 +12,11 @@ export const loader = async (_: LoaderFunctionArgs) => {
     username: z.string().nonempty(),
   })
 
-  const { userId } = await _.context.authService.getAuthOptional(_)
-  //TODO: Use cache for profile information
-  const profile = await _.context.profileService.getBasicProfile(
-    userId,
-    username
-  )
+  await _.context.trpc.profile.getPublicProfile.prefetch({
+    username,
+  })
 
-  return { ...profile, svg: null }
+  return _.context.getDehydratedState()
 }
 
 const tabs = [
@@ -28,7 +25,23 @@ const tabs = [
 ]
 
 export default function Index() {
-  const profile = useTypedLoaderData<typeof loader>()
+  const username = useParams()?.username as string
+  const getPublicProfile = trpc.profile.getPublicProfile.useQuery(
+    {
+      username,
+    },
+    {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
+    }
+  )
+
+  const profile = getPublicProfile.data
+
+  if (!profile) {
+    //TODO: Handle no profile data
+    return null
+  }
 
   return (
     <StandardLayout

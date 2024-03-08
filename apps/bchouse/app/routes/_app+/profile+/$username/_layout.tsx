@@ -1,7 +1,6 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
-import { NavLink, Outlet } from '@remix-run/react'
+import { NavLink, Outlet, useParams } from '@remix-run/react'
 import { $path } from 'remix-routes'
-import { useTypedLoaderData } from 'remix-typedjson'
 import { z } from 'zod'
 import { ActionsPanel } from '~/components/actions'
 import { StandardLayout } from '~/components/layouts/standard-layout'
@@ -21,29 +20,18 @@ import { FollowButton } from '~/components/follow-button'
 import { ImageProxy } from '~/components/image-proxy'
 import { PostForm } from '~/components/post/post-form'
 import { useAppLoaderData } from '~/utils/appHooks'
+import { trpc } from '~/utils/trpc'
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  const { userId } = await _.context.authService.getAuthOptional(_)
-
-  let { username } = zx.parseParams(_.params, {
+  const { username } = zx.parseParams(_.params, {
     username: z.string().nonempty(),
   })
 
-  //TODO: Use cache for basic user information
-  const profile = await _.context.profileService.getBasicProfile(
-    userId,
-    username
-  )
+  await _.context.trpc.profile.getPublicProfile.prefetch({
+    username,
+  })
 
-  return profile
-}
-
-declare global {
-  interface RouteDescription {
-    profile: {
-      data: typeof loader
-    }
-  }
+  return _.context.getDehydratedState()
 }
 
 interface ProfileHandle extends AppRouteHandle, RouteHandler<'profile'> {}
@@ -106,7 +94,22 @@ const tabs = [
 ]
 
 export default function Index() {
-  const user = useTypedLoaderData<typeof loader>()
+  const username = useParams()?.username as string
+
+  const { data: user } = trpc.profile.getPublicProfile.useQuery(
+    {
+      username,
+    },
+    {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
+    }
+  )
+
+  if (!user) {
+    //TODO: If user not found, that's an issue;
+    return null
+  }
 
   return (
     <StandardLayout

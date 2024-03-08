@@ -11,9 +11,8 @@ export function AllContributions({
   campaignId: string
   expires: number
 }) {
-  const fetcher = useAllContributionsFetcher(campaignId)
-  const isLoading = fetcher.state === 'loading'
-  const contributions = fetcher.data
+  const { data: contributions, isLoading } =
+    useAllContributionsFetcher(campaignId)
 
   return (
     <div>
@@ -54,7 +53,7 @@ function AllContributionListItem({
   campaignExpires,
 }: {
   campaignExpires: number
-  contribution: Contribution & { refundedAt: Date | null }
+  contribution: Contribution & { refundedAt: string | null }
 }) {
   const [amount, denomination] = useMemo(
     () => prettyPrintSats(Number(contribution.satoshis.toString())),

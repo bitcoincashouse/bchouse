@@ -1,10 +1,8 @@
-import { logger } from '@bchouse/utils'
 import { LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { UIMatch } from '@remix-run/react'
 import { z } from 'zod'
 import { StandardPostCard } from '~/components/post/standard-post-card'
 import { trpc } from '~/utils/trpc'
-import { getServerClient } from '~/utils/trpc.server'
 import { zx } from '~/utils/zodix'
 
 export const handle = {
@@ -14,24 +12,15 @@ export const handle = {
 }
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  try {
-    const trpc = getServerClient(_.request)
+  const { hashtag } = zx.parseParams(_.params, {
+    hashtag: z.string().optional(),
+  })
 
-    const { hashtag } = zx.parseParams(_.params, {
-      hashtag: z.string().optional(),
-    })
+  if (!hashtag) throw redirect('/explore')
 
-    if (!hashtag) throw redirect('/explore')
+  await _.context.trpc.search.searchHashtag.prefetch()
 
-    await trpc.search.searchHashtag.prefetch()
-
-    return {
-      dehydratedState: trpc.dehydrate(),
-    }
-  } catch (err) {
-    logger.info('Error fetching app shell')
-    throw err
-  }
+  return _.context.getDehydratedState()
 }
 
 export default function Index() {

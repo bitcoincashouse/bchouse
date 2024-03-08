@@ -6,10 +6,10 @@ import {
   HeartIcon,
   ShareIcon,
 } from '@heroicons/react/24/outline'
-import { Fetcher, Link, useFetcher } from '@remix-run/react'
+import { Link } from '@remix-run/react'
 import { useQueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo } from 'react'
-import { $path } from 'remix-routes'
+import { useMemo } from 'react'
+import { trpc } from '~/utils/trpc'
 import { BitcoinIcon } from '../icons/BitcoinIcon'
 import { useTipPostModal } from '../tip-modal'
 import { classNames } from '../utils'
@@ -121,56 +121,6 @@ export function Actions({ item }: { item: PostCardModel }) {
   )
 }
 
-function useInvalidateFeedPage(fetcher: Fetcher, postId: string) {
-  const queryClient = useQueryClient()
-
-  useEffect(() => {
-    if (
-      typeof fetcher.formData !== 'undefined' &&
-      fetcher.state !== 'submitting'
-    ) {
-      queryClient.invalidateQueries({
-        //TODO: invalidate the feed we're on whether home, profile (username + index/replies/likes/media)
-        queryKey: ['feed'],
-        refetchPage: (page: { posts: { id: string }[] }, i, all) => {
-          return page.posts.some((post) => post.id === postId)
-        },
-      })
-    }
-  }, [
-    typeof fetcher.formData !== 'undefined' && fetcher.state !== 'submitting',
-  ])
-}
-
-export function CardAction({
-  action,
-  item,
-  children,
-}: {
-  action: string
-  children: React.ReactNode
-  item: PostCardModel
-}) {
-  const fetcher = useFetcher()
-  useInvalidateFeedPage(fetcher, item.id)
-
-  return (
-    <fetcher.Form
-      method="POST"
-      action={action}
-      preventScrollReset={true}
-      onSubmit={(e) => {
-        if (item.deleted) {
-          e.preventDefault()
-        }
-      }}
-      className="items-center flex"
-    >
-      {children}
-    </fetcher.Form>
-  )
-}
-
 export function CommentsButton({ item }: { item: PostCardModel }) {
   const checkAuth = useAuthGuardCheck()
 
@@ -200,50 +150,53 @@ export function CommentsButton({ item }: { item: PostCardModel }) {
   )
 }
 
-export function RepostButton({ item }: { item: PostCardModel }) {
-  const fetcher = useFetcher({ key: 'repost:' + item.id })
-  useInvalidateFeedPage(fetcher, item.id)
+// function invalidateFeed(queryClient: QueryClient, postId: string) {
+//   //TODO: invalidate the feed we're on whether home, profile (username + index/replies/likes/media)
+//   queryClient.invalidateQueries({
+//     queryKey: ['feed'],
+//     refetchPage: (page: { posts: { id: string }[] }, i, all) => {
+//       return page.posts.some((post) => post.id === postId)
+//     },
+//   })
+// }
 
+export function RepostButton({ item }: { item: PostCardModel }) {
   const checkAuth = useAuthGuardCheck()
 
-  const submittedAction =
-    fetcher.state !== 'idle'
-      ? fetcher.formAction?.indexOf('repost:add') !== -1
-        ? 'repost:add'
-        : 'repost:remove'
-      : undefined
-
-  const toggled =
-    typeof submittedAction !== 'undefined'
-      ? submittedAction === 'repost:add'
-      : item.wasReposted
-
+  //TODO: optimistic update
+  const queryClient = useQueryClient()
+  const toggled = item.wasReposted
   const action = toggled ? 'repost:remove' : 'repost:add'
+  const mutation = trpc.post.postAction.useMutation({
+    onMutate(variables) {},
+    onSuccess(variables) {
+      //TODO: invalidate single post
+      // invalidateFeed(queryClient, item.id)
+    },
+    onError(variables) {},
+    onSettled(variables) {},
+  })
 
   return (
-    <fetcher.Form
+    <form
       method="POST"
-      //TODO: trpc.postAction
-      action={$path('/api/post/:postId/:authorId/action/:action', {
-        postId: item.id,
-        authorId: item.publishedById,
-        action,
-      })}
-      preventScrollReset={true}
       onSubmit={(e) => {
+        e.stopPropagation()
         checkAuth(e)
         if (item.deleted) {
           e.preventDefault()
         }
+
+        mutation.mutate({
+          postId: item.id,
+          authorId: item.publishedById,
+          action,
+        })
       }}
       className="items-center flex"
     >
-      <input type="hidden" name="postAuthorId" value={item.publishedById} />
       <button
         type="submit"
-        name="_action"
-        onClick={(e) => e.stopPropagation()}
-        value={toggled ? 'removeRepost' : 'addRepost'}
         className={classNames(
           'inline-flex gap-1 items-center cursor-pointer group',
           toggled ? 'text-emerald-600' : ''
@@ -255,52 +208,48 @@ export function RepostButton({ item }: { item: PostCardModel }) {
           className="w-6 h-6 group-hover:ring-8 group-hover:bg-emerald-600/20 group-hover:ring-emerald-600/20 rounded-full transition-all ease-in-out duration-300"
         />
       </button>
-    </fetcher.Form>
+    </form>
   )
 }
 
 export function LikeButton({ item }: { item: PostCardModel }) {
-  const fetcher = useFetcher({ key: 'like:' + item.id })
-  useInvalidateFeedPage(fetcher, item.id)
   const checkAuth = useAuthGuardCheck()
 
-  const submittedAction =
-    fetcher.state !== 'idle'
-      ? fetcher.formAction?.indexOf('like:add') !== -1
-        ? 'like:add'
-        : 'like:remove'
-      : undefined
-
-  const toggled =
-    typeof submittedAction !== 'undefined'
-      ? submittedAction === 'like:add'
-      : item.wasLiked
-
+  //TODO: optimistic update
+  const queryClient = useQueryClient()
+  const toggled = item.wasLiked
   const action = toggled ? 'like:remove' : 'like:add'
+  const mutation = trpc.post.postAction.useMutation({
+    onMutate(variables) {},
+    onSuccess(variables) {
+      //TODO: invalidate single post
+      // invalidateFeed(queryClient, item.id)
+    },
+    onError(variables) {},
+    onSettled(variables) {},
+  })
 
   return (
-    <fetcher.Form
+    <form
       method="POST"
-      //TODO: trpc.postAction
-      action={$path('/api/post/:postId/:authorId/action/:action', {
-        postId: item.id,
-        authorId: item.publishedById,
-        action,
-      })}
-      preventScrollReset={true}
       onSubmit={(e) => {
+        e.stopPropagation()
         checkAuth(e)
         if (item.deleted) {
           e.preventDefault()
         }
+
+        mutation.mutate({
+          postId: item.id,
+          authorId: item.publishedById,
+          action,
+        })
       }}
       className="items-center flex"
     >
       <input type="hidden" name="postAuthorId" value={item.publishedById} />
       <button
         type="submit"
-        name="_action"
-        value={toggled ? 'removeLike' : 'addLike'}
         className={classNames(
           'inline-flex gap-1 items-center cursor-pointer group',
           toggled ? 'text-rose-600' : ''
@@ -316,7 +265,7 @@ export function LikeButton({ item }: { item: PostCardModel }) {
           )}
         />
       </button>
-    </fetcher.Form>
+    </form>
   )
 }
 

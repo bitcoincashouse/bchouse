@@ -1,32 +1,29 @@
-import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { useNavigate } from '@remix-run/react'
 import { useEffect } from 'react'
-import { typedjson, useTypedFetcher, useTypedLoaderData } from 'remix-typedjson'
+import { useTypedFetcher } from 'remix-typedjson'
 import { ClientOnly } from '~/components/client-only'
+import { useCurrentUser } from '~/components/context/current-user-context'
 import { PostCard } from '~/components/post/post-card'
 import { classnames } from '~/components/utils/classnames'
-import { useNotificationsLoaderData } from './_layout'
+import { trpc } from '~/utils/trpc'
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  const { userId } = await _.context.authService.getAuth(_)
-  const notifications = await _.context.userService.getMentions(userId)
-
-  return {
-    notifications,
-  }
-}
-
-export const action = async (_: ActionFunctionArgs) => {
-  const { userId } = await _.context.authService.getAuth(_)
-  const updated = await _.context.userService.updateLastViewedNotifications(
-    userId
-  )
-  return typedjson(updated)
+  await _.context.trpc.profile.getMentionNotifications.prefetch()
+  return _.context.getDehydratedState()
 }
 
 export default function Index() {
-  const { notifications } = useTypedLoaderData<typeof loader>()
-  const currentUser = useNotificationsLoaderData()
+  const getMentionNotifications = trpc.profile.getMentionNotifications.useQuery(
+    undefined,
+    {
+      gcTime: 5 * 60 * 1000,
+      staleTime: 1 * 60 * 1000,
+    }
+  )
+
+  const notifications = getMentionNotifications.data?.notifications || []
+  const currentUser = useCurrentUser()
   const navigate = useNavigate()
 
   return (

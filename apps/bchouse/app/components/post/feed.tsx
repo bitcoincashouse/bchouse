@@ -1,13 +1,12 @@
 import type { FeedKeys } from '@bchouse/api/src/services/services/redis/keys'
 import { Link, useLocation, useNavigation } from '@remix-run/react'
-import { useInfiniteQuery } from '@tanstack/react-query'
 import { atom, useAtom } from 'jotai'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { StateSnapshot, Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 import { $path } from 'remix-routes'
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { LoadingIndicator } from '~/components/loading'
-import { FeedResponse } from '~/routes/api.feed.$type.$id.($cursor)'
+import { trpc } from '~/utils/trpc'
 import { Avatar } from '../avatar'
 import { PostCard } from './post-card'
 import { RepostedBy } from './reposted-by'
@@ -66,44 +65,18 @@ export const Feed: React.FC<
     isLoading,
     isInitialLoading,
     isError,
-  } = useInfiniteQuery({
-    queryKey: ['feed', queryKey, id],
-    //TODO: trpc.feed
-    queryFn: async ({ pageParam, meta }) => {
-      const data = (await (
-        await fetch(
-          $path('/api/feed/:type/:id/:cursor?', {
-            type: queryKey,
-            cursor: pageParam,
-            id: id,
-          })
-        )
-      ).json()) as FeedResponse | { refresh: true }
-
-      const shouldRefresh = 'refresh' in data
-      const isRebuilding = 'rebuilding' in data
-
-      return shouldRefresh || isRebuilding
-        ? {
-            shouldRefresh,
-            isRebuilding,
-            posts: [] as Extract<FeedResponse, { posts: any }>['posts'],
-            nextCursor: undefined,
-          }
-        : {
-            shouldRefresh: false,
-            isRebuilding: false,
-            posts: data?.posts || [],
-            nextCursor: data?.nextCursor || undefined,
-          }
+  } = trpc.post.feed.useInfiniteQuery(
+    {
+      id,
+      type: queryKey,
     },
-    getNextPageParam: (lastPage, allPages) => {
-      return lastPage.nextCursor
-    },
-    staleTime: 1000 * 60 * 2,
-    gcTime: Infinity,
-    refetchOnWindowFocus: false,
-  })
+    {
+      staleTime: 1000 * 60 * 2,
+      gcTime: Infinity,
+      refetchOnWindowFocus: false,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  )
 
   const feedRef = useRef<VirtuosoHandle>()
   const location = useLocation()
@@ -128,8 +101,8 @@ export const Feed: React.FC<
         (data?.pages
           .flatMap((page) => page.posts)
           .filter((p) => !p.deleted) as PostCardModel[]) || [],
-      shouldRefresh: data?.pages.some((page) => page.shouldRefresh),
-      isRebuilding: data?.pages.some((page) => page.isRebuilding),
+      shouldRefresh: data?.pages.some((page) => page.refresh),
+      isRebuilding: data?.pages.some((page) => page.rebuilding),
     }
   }, [data])
 

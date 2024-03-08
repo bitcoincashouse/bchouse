@@ -1,4 +1,5 @@
 /* eslint-disable react/display-name */
+import type { PostActionType } from '@bchouse/api/src/types/postAction'
 import { Menu } from '@headlessui/react'
 import { EllipsisHorizontalIcon } from '@heroicons/react/20/solid'
 import {
@@ -14,14 +15,7 @@ import {
   UserMinusIcon,
   UserPlusIcon,
 } from '@heroicons/react/24/outline'
-import {
-  Fetcher,
-  Link,
-  useFetcher,
-  useLocation,
-  useNavigate,
-  useRevalidator,
-} from '@remix-run/react'
+import { Link, useLocation, useNavigate } from '@remix-run/react'
 import { useQueryClient } from '@tanstack/react-query'
 import React, {
   createContext,
@@ -30,6 +24,7 @@ import React, {
   useMemo,
   useState,
 } from 'react'
+import { trpc } from '~/utils/trpc'
 // import { HtmlPortalNode, OutPortal } from 'react-reverse-portal'
 import { Network, prettyPrintSats } from '@bchouse/utils'
 import { $path } from 'remix-routes'
@@ -37,7 +32,6 @@ import { useDebounce } from 'usehooks-ts'
 import { Avatar } from '~/components/avatar'
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { classNames } from '~/utils/classNames'
-import { PostActionType } from '~/utils/usePostActionSubmit'
 import { BitcoinIcon } from '../icons/BitcoinIcon'
 import { useTipPostModal } from '../tip-modal'
 import { UserPopover, useUserPopover } from '../user-popover'
@@ -296,22 +290,33 @@ const MenuAction = React.forwardRef<
     close: () => void
   }
 >(({ active, menuItem, post, close }, ref) => {
-  const fetcher = useFetcher({ key: menuItem.key })
-  const props = useMemo(() => {
-    if (menuItem.type === 'button') {
-      return menuItem
-    }
+  // const props = useMemo(() => {
+  //   if (menuItem.type === 'button') {
+  //     return menuItem
+  //   }
 
-    const currentProps = menuItem.props(menuItem.value)
-    if (fetcher.state === 'idle') {
-      return currentProps
-    }
+  //   const currentProps = menuItem.props(menuItem.value)
+  //   if (fetcher.state === 'idle') {
+  //     return currentProps
+  //   }
 
-    //Return optimistic props
-    return fetcher.formAction?.indexOf(currentProps.action) !== -1
-      ? menuItem.props(!menuItem.value)
-      : currentProps
-  }, [menuItem, fetcher.state])
+  //   //Return optimistic props
+  //   return fetcher.formAction?.indexOf(currentProps.action) !== -1
+  //     ? menuItem.props(!menuItem.value)
+  //     : currentProps
+  // }, [menuItem, fetcher.state])
+
+  //TODO: optimistic update
+  const queryClient = useQueryClient()
+  const [props, setProps] = useState(() =>
+    menuItem.type === 'button' ? menuItem : menuItem.props(menuItem.value)
+  )
+  const mutation = trpc.post.postAction.useMutation({
+    onMutate(variables) {},
+    onSuccess(variables) {},
+    onError(variables) {},
+    onSettled(variables) {},
+  })
 
   return (
     <button
@@ -323,15 +328,11 @@ const MenuAction = React.forwardRef<
       )}
       onClick={(e) => {
         e.stopPropagation()
-        fetcher.submit(null, {
-          //TODO: trpc.postAction
-          action: $path('/api/post/:postId/:authorId/action/:action', {
-            action: props.action,
-            authorId: post.publishedById,
-            postId: post.id,
-          }),
-          method: 'POST',
-          navigate: false,
+
+        mutation.mutate({
+          action: props.action,
+          authorId: post.publishedById,
+          postId: post.id,
         })
 
         close()
@@ -539,51 +540,6 @@ PostCard.Actions = function ({ className }: { className?: string }) {
   )
 }
 
-function useInvalidateFeedPage(fetcher: Fetcher, postId: string) {
-  const queryClient = useQueryClient()
-  const revalidator = useRevalidator()
-  useEffect(() => {
-    if (
-      typeof fetcher.formData !== 'undefined' &&
-      fetcher.state !== 'submitting'
-    ) {
-      queryClient.invalidateQueries({
-        //TODO: invalidate the feed we're on whether home, profile (username + index/replies/likes/media)
-        queryKey: ['feed'],
-        refetchPage: (page: { posts: { id: string }[] }, i, all) => {
-          return page.posts.some((post) => post.id === postId)
-        },
-      })
-    }
-  }, [
-    typeof fetcher.formData !== 'undefined' && fetcher.state !== 'submitting',
-  ])
-}
-
-function CardAction({
-  action,
-  item,
-  children,
-}: {
-  action: string
-  children: React.ReactNode
-  item: PostCardModel
-}) {
-  const fetcher = useFetcher()
-  useInvalidateFeedPage(fetcher, item.id)
-
-  return (
-    <fetcher.Form
-      className="flex items-center"
-      method="POST"
-      action={action}
-      preventScrollReset={true}
-    >
-      {children}
-    </fetcher.Form>
-  )
-}
-
 function CommentsButton({ item }: { item: PostCardModel }) {
   const checkAuth = useAuthGuardCheck()
 
@@ -610,52 +566,39 @@ function CommentsButton({ item }: { item: PostCardModel }) {
 }
 
 function RepostButton({ item }: { item: PostCardModel }) {
-  const fetcher = useFetcher({ key: 'repost:' + item.id })
-
-  const submittedAction =
-    fetcher.state !== 'idle'
-      ? fetcher.formAction?.indexOf('repost:add') !== -1
-        ? 'repost:add'
-        : 'repost:remove'
-      : undefined
-
-  const toggled =
-    typeof submittedAction !== 'undefined'
-      ? submittedAction === 'repost:add'
-      : item.wasReposted
-
-  const count =
-    typeof submittedAction !== 'undefined'
-      ? item.repostCount +
-        (submittedAction === 'repost:add' && !item.wasReposted
-          ? 1
-          : submittedAction === 'repost:remove' && item.wasReposted
-          ? -1
-          : 0)
-      : item.repostCount
-
-  const action = toggled ? 'repost:remove' : 'repost:add'
   const checkAuth = useAuthGuardCheck()
+  //TODO: optimistic update
+  const queryClient = useQueryClient()
+  const toggled = item.wasReposted
+  const count = item.likeCount
+  const action = toggled ? 'like:remove' : 'like:add'
+  const mutation = trpc.post.postAction.useMutation({
+    onMutate(variables) {},
+    onSuccess(variables) {
+      //TODO: update that specific post
+      // invalidateFeed(queryClient, item.id)
+    },
+    onError(variables) {},
+    onSettled(variables) {},
+  })
 
   return (
-    <fetcher.Form
+    <form
       className="flex items-center"
       method="POST"
-      //TODO: trpc.postAction
-      action={$path('/api/post/:postId/:authorId/action/:action', {
-        postId: item.id,
-        authorId: item.publishedById,
-        action,
-      })}
-      preventScrollReset={true}
+      onSubmit={(e) => {
+        e.stopPropagation()
+        checkAuth(e)
+
+        mutation.mutate({
+          postId: item.id,
+          authorId: item.publishedById,
+          action,
+        })
+      }}
     >
-      <input type="hidden" name="postAuthorId" value={item.publishedById} />
       <button
         type="submit"
-        onClick={(e) => {
-          e.stopPropagation()
-          checkAuth(e)
-        }}
         className={classNames(
           'inline-flex gap-1 items-center cursor-pointer group',
           toggled ? 'text-emerald-600' : ''
@@ -668,49 +611,42 @@ function RepostButton({ item }: { item: PostCardModel }) {
         />
         <span>{count}</span>
       </button>
-    </fetcher.Form>
+    </form>
   )
 }
 
 function LikeButton({ item }: { item: PostCardModel }) {
-  const fetcher = useFetcher({ key: 'like:' + item.id })
-
-  const submittedAction =
-    fetcher.state !== 'idle'
-      ? fetcher.formAction?.indexOf('like:add') !== -1
-        ? 'like:add'
-        : 'like:remove'
-      : undefined
-
-  const toggled =
-    typeof submittedAction !== 'undefined'
-      ? submittedAction === 'like:add'
-      : item.wasLiked
-
-  const count =
-    typeof submittedAction !== 'undefined'
-      ? item.likeCount +
-        (submittedAction === 'like:add' && !item.wasLiked
-          ? 1
-          : submittedAction === 'like:remove' && item.wasLiked
-          ? -1
-          : 0)
-      : item.likeCount
-
-  const action = toggled ? 'like:remove' : 'like:add'
   const checkAuth = useAuthGuardCheck()
 
+  //TODO: optimistic update
+  const queryClient = useQueryClient()
+  const toggled = item.wasReposted
+  const count = item.likeCount
+  const action = toggled ? 'like:remove' : 'like:add'
+  const mutation = trpc.post.postAction.useMutation({
+    onMutate(variables) {},
+    onSuccess(variables) {
+      //TODO: update that specific post
+      // invalidateFeed(queryClient, item.id)
+    },
+    onError(variables) {},
+    onSettled(variables) {},
+  })
+
   return (
-    <fetcher.Form
+    <form
       className="flex items-center"
       method="POST"
-      //TODO: trpc.postAction
-      action={$path('/api/post/:postId/:authorId/action/:action', {
-        postId: item.id,
-        authorId: item.publishedById,
-        action,
-      })}
-      preventScrollReset={true}
+      onSubmit={(e) => {
+        e.stopPropagation()
+        checkAuth(e)
+
+        mutation.mutate({
+          postId: item.id,
+          authorId: item.publishedById,
+          action,
+        })
+      }}
     >
       <button
         type="submit"
@@ -719,10 +655,6 @@ function LikeButton({ item }: { item: PostCardModel }) {
           toggled ? 'text-rose-600' : ''
         )}
         title={toggled ? 'Unlike' : 'Like'}
-        onClick={(e) => {
-          e.stopPropagation()
-          checkAuth(e)
-        }}
       >
         <HeartIcon
           title={toggled ? 'Unlike' : 'Like'}
@@ -733,7 +665,7 @@ function LikeButton({ item }: { item: PostCardModel }) {
         />
         <span>{count}</span>
       </button>
-    </fetcher.Form>
+    </form>
   )
 }
 

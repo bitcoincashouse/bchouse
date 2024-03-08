@@ -10,7 +10,6 @@ import { StatsWidget } from '~/components/stats-widget'
 import { getAuthOptional } from '~/utils/auth'
 import { classNames } from '~/utils/classNames'
 import { trpc } from '~/utils/trpc'
-import { getServerClient } from '~/utils/trpc.server'
 
 export const handle = {
   title: 'Home',
@@ -28,13 +27,8 @@ export const loader = async (_: LoaderFunctionArgs) => {
     }
   }
 
-  const trpc = getServerClient(_.request)
-
-  await trpc.metrics.stats.prefetch()
-
-  return {
-    dehydratedState: trpc.dehydrate(),
-  }
+  await _.context.trpc.metrics.stats.prefetch()
+  return _.context.getDehydratedState()
 }
 
 export default function Index() {

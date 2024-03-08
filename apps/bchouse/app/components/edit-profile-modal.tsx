@@ -1,38 +1,13 @@
 import { logger } from '@bchouse/utils'
-import { useClerk } from '@clerk/remix'
 import { ErrorMessage } from '@hookform/error-message'
 import { isValidAddress } from 'bchaddrjs'
-import { serialize } from 'object-to-formdata'
 import { forwardRef, useEffect, useMemo } from 'react'
-import {
-  Controller,
-  ControllerRenderProps,
-  SubmitHandler,
-  useForm,
-} from 'react-hook-form'
-import { $path } from 'remix-routes'
-import { UseDataFunctionReturn, useTypedFetcher } from 'remix-typedjson'
+import { Controller, ControllerRenderProps, useForm } from 'react-hook-form'
 import { Avatar } from '~/components/avatar'
-import { action as mediaUploadLoader } from '~/routes/api.media.upload.$type.($count)'
-import { action as updateProfileLoader } from '~/routes/api.profile.($userId)'
 import { ImageProxy } from './image-proxy'
 import { Modal } from './modal'
 import { classnames } from './utils/classnames'
-
-type EditUserFields = {
-  id: string
-  username: string
-  firstName: string | undefined | null
-  lastName: string | undefined | null
-  coverPhotoUrl: string | undefined | null
-  about: string | undefined | null
-  website: string | undefined | null
-  title: string | undefined | null
-  company: string | undefined | null
-  bchAddress: string | undefined | null
-  avatarFile?: File | undefined
-  coverPhotoFile?: File | undefined
-}
+import { EditUserFields, saveProfile } from './utils/saveProfile'
 
 export function EditProfileModal({
   open,
@@ -55,80 +30,6 @@ export function EditProfileModal({
   open: boolean
   closeModal: () => void
 }) {
-  const fetcher = useTypedFetcher<typeof updateProfileLoader>()
-  const clerk = useClerk()
-
-  const saveProfile: SubmitHandler<
-    EditUserFields & {
-      avatarFile?: File
-      coverPhotoFile?: File
-    }
-  > = async ({ coverPhotoFile, avatarFile, firstName, lastName }, e) => {
-    if (!e) return
-    const formData = new FormData(e.target)
-
-    if (coverPhotoFile) {
-      const errors: Error[] = []
-
-      //TODO: trpc.uploadMedia
-      const results = (await (
-        await fetch(
-          $path('/api/media/upload/:type/:count?', {
-            type: 'coverPhoto',
-            count: 1,
-          }),
-          {
-            method: 'POST',
-          }
-        )
-      ).json()) as UseDataFunctionReturn<typeof mediaUploadLoader>
-
-      await Promise.all(
-        results.map(async ({ form, type, key }) => {
-          let uploadRequestForm = serialize(form.fields)
-
-          uploadRequestForm.append('file', coverPhotoFile!)
-          formData.append('coverPhotoMediaId', key)
-
-          const response = await fetch(form.url, {
-            method: 'POST',
-            body: uploadRequestForm,
-          }).catch((e) => ({ ok: false as const, statusText: e.message }))
-
-          if (!response.ok) {
-            errors.push(new Error(response.statusText))
-            return
-          }
-        })
-      )
-
-      if (errors.length) {
-        logger.error(errors)
-        throw new Error('Error uploading files')
-      }
-    }
-
-    if (avatarFile) {
-      await clerk.user?.setProfileImage({
-        file: avatarFile,
-      })
-    }
-
-    await clerk.user?.update({
-      firstName: firstName || '',
-      lastName: lastName || '',
-    })
-
-    //TODO: trpc.updateProfile
-    fetcher.submit(formData, {
-      method: 'POST',
-      action: $path('/api/profile/:userId?', {
-        userId: user.id,
-      }),
-      preventScrollReset: true,
-    })
-  }
-
   const defaults = useMemo(() => {
     return {
       ...user,
@@ -152,35 +53,27 @@ export function EditProfileModal({
   })
 
   useEffect(() => {
-    const isDone = fetcher.state !== 'idle' && fetcher.data != null
-    const isError =
-      typeof fetcher.data !== 'undefined' && 'error' in fetcher.data
-
-    if (!isDone) return
-
-    if (!isError) {
-      closeModal()
-    } else {
-      setError('root.serverCatch', {
-        type: 'server',
-        message: 'An error occurred saving your profile',
-      })
-    }
-  }, [fetcher.data])
-
-  useEffect(() => {
     setFocus('firstName')
   }, [setFocus])
 
   const aboutLength = watch('about')?.length || 0
 
+  const onSubmit = async (data: EditUserFields) => {
+    try {
+      await saveProfile(data)
+      closeModal()
+    } catch (err) {
+      logger.error('Error saving profile: ', err)
+      setError('root.serverCatch', {
+        type: 'server',
+        message: 'An error occurred saving your profile',
+      })
+    }
+  }
+
   return (
     <Modal open={open} onClose={closeModal} title="Edit Profile">
-      <fetcher.Form
-        method="POST"
-        onSubmit={handleSubmit(saveProfile)}
-        preventScrollReset={true}
-      >
+      <form method="POST" onSubmit={handleSubmit(onSubmit)}>
         <div>
           <div className="bg-primary">
             <Controller
@@ -404,7 +297,7 @@ export function EditProfileModal({
             </div>
           </div>
         </div>
-      </fetcher.Form>
+      </form>
     </Modal>
   )
 }

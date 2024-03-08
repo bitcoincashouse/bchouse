@@ -1,11 +1,10 @@
 import { CreditCardIcon, EnvelopeIcon } from '@heroicons/react/24/outline'
 import { Link } from '@remix-run/react'
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useMemo, useState } from 'react'
 import { usePopper } from 'react-popper'
 import { $path } from 'remix-routes'
-import { useTypedFetcher } from 'remix-typedjson'
 import { Avatar } from '~/components/avatar'
-import { loader as apiProfileLoader } from '~/routes/api.profile.($userId)'
+import { trpc } from '~/utils/trpc'
 import { FollowButton } from './follow-button'
 
 const UserPopoverContext = createContext<{
@@ -66,14 +65,15 @@ export function UserPopoverProvider({
 }
 
 export function UserPopover({ id }: { id: string }) {
-  const fetcher = useTypedFetcher<typeof apiProfileLoader>()
-
-  //TODO: trpc.getProfile
-  useEffect(() => {
-    fetcher.load(`/api/profile/${id}`)
-  }, [id])
-
-  const user = fetcher.data
+  const { data: user, isLoading } = trpc.profile.getPublicProfile.useQuery(
+    {
+      userId: id,
+    },
+    {
+      gcTime: 5 * 60 * 1000,
+      staleTime: 1 * 60 * 1000,
+    }
+  )
 
   return user ? (
     <div onClick={(e) => e.stopPropagation()}>

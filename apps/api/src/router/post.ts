@@ -18,6 +18,7 @@ const feedInput = z.object({
     'likes',
     'replies',
     'media',
+    'tips',
     'campaigns',
     'all_campaigns',
     'all_posts',
@@ -189,6 +190,29 @@ export const postRouter = router({
         mainPost,
         ...children,
       ],
+      nextCursor: nextCursor,
+      previousCursor,
+    }
+  }),
+  campaign: publicProcedure.input(statusInput).query(async (opts) => {
+    const { userId } = opts.ctx.auth
+    const { username, statusId: postId } = opts.input
+
+    const {
+      ancestors,
+      previousCursor,
+      mainPost,
+      donorPosts,
+      children,
+      nextCursor,
+    } = await opts.ctx.postService.getCampaignPostWithChildren(userId, postId)
+
+    //TODO: Fetch parents dynamically
+    return {
+      ancestors,
+      mainPost,
+      children,
+      donorPosts,
       nextCursor: nextCursor,
       previousCursor,
     }

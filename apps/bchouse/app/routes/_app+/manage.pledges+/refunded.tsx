@@ -1,10 +1,13 @@
 import { useMemo } from 'react'
 import { Pledge } from '~/components/pledge'
 import { TimelineMessage } from '~/components/post/timeline-message'
-import { usePledgesLoaderData } from './_layout'
+import { trpc } from '~/utils/trpc'
 
 export default function Index() {
-  const { pledges: allPledges } = usePledgesLoaderData()
+  const { data: allPledges } = trpc.campaign.listPledges.useQuery(undefined, {
+    gcTime: 5 * 60 * 1000,
+    staleTime: 1 * 60 * 1000,
+  })
 
   const pledges = useMemo(() => {
     return allPledges.filter((p) => !!p.refundTxId)

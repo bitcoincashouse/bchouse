@@ -116,6 +116,7 @@ declare global {
     queryClient: QueryClient
     trpcClient: CreateTRPCClient<AppRouter>
     trpcClientUtils: CreateQueryUtils<AppRouter>
+    clerk: ReturnType<typeof useClerk>
   }
 }
 
@@ -206,6 +207,10 @@ const App = function () {
   }, [])
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.clerk = clerk
+    }
+
     console.log('CLERK SUBSCRIBE')
     const unsubscribe = clerk.addListener((resources) => {
       console.log('CLERK UPDATE', resources)

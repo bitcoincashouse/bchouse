@@ -1,14 +1,20 @@
 import type { DataFunctionArgs } from '@remix-run/node'
 import type { RouteMatch } from '@remix-run/react'
-import type { Context } from '../getContext'
+import { DehydratedState } from '@tanstack/react-query'
+import { getServerClient } from '~/utils/trpc.server'
 
 declare module '@remix-run/node' {
   export interface LoaderFunctionArgs extends DataFunctionArgs {
-    context: Context
+    context: {
+      trpc: ReturnType<typeof getServerClient>
+      getDehydratedState: () => { dehydratedState: DehydratedState }
+    }
   }
 
   export interface ActionFunctionArgs extends DataFunctionArgs {
-    context: Context
+    context: {
+      trpc: ReturnType<typeof getServerClient>
+    }
   }
 }
 

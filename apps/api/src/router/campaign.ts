@@ -24,6 +24,28 @@ const commentInput = z.object({
 })
 
 export const campaignRouter = router({
+  listPledges: publicProcedure.query(async (opts) => {
+    const { userId } = opts.ctx.auth
+
+    // const pledgeSession = await getPledgeSession(_.request)
+    // const pledgeSecrets = pledgeSession.getPledgeSecrets()
+
+    const pledges = await opts.ctx.pledgeService.getPledges({
+      userId,
+      pledgeSecrets: [],
+    })
+
+    return pledges.map((pledge) => ({
+      ...pledge,
+      satoshis: pledge.satoshis.toString(),
+      forwardTx: pledge.forwardTx
+        ? {
+            ...pledge.forwardTx,
+            pledgedAmount: pledge.forwardTx.pledgedAmount.toString(),
+          }
+        : null,
+    }))
+  }),
   listActive: publicProcedure
     .input(z.object({ username: z.string().optional() }))
     .query(async (opts) => {
@@ -73,7 +95,7 @@ export const campaignRouter = router({
       )
       return result
     }),
-  submitComment: publicProcedure.input(commentInput).query(async (opts) => {
+  submitComment: publicProcedure.input(commentInput).mutation(async (opts) => {
     try {
       // await opts.ctx.ratelimit.limitByIp(_, 'api', true)
 

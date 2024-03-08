@@ -1,4 +1,3 @@
-import { logger } from '@bchouse/utils'
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -17,19 +16,14 @@ import {
 import { AnimatePresence } from 'framer-motion'
 import { useMemo, useState } from 'react'
 import { $path, $routeId } from 'remix-routes'
-import {
-  typedjson,
-  useTypedLoaderData,
-  useTypedRouteLoaderData,
-} from 'remix-typedjson'
+import { useTypedRouteLoaderData } from 'remix-typedjson'
 import { useMediaQuery } from 'usehooks-ts'
 import { z } from 'zod'
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { PostCard, PostProvider } from '~/components/post/post-card'
 import { Thread } from '~/components/post/thread'
-import { getAuthOptional } from '~/utils/auth'
 import { classNames } from '~/utils/classNames'
-import { getServerClient } from '~/utils/trpc.server'
+import { trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
 
 export const handle: AppRouteHandle = {
@@ -49,30 +43,44 @@ export const usePhotoLoaderData = () => {
 }
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  try {
-    const { userId } = await getAuthOptional(_)
-    const { username, statusId } = zx.parseParams(_.params, {
-      username: z.string(),
-      statusId: z.string(),
-    })
+  const { username, statusId } = zx.parseParams(_.params, {
+    username: z.string(),
+    statusId: z.string(),
+  })
 
-    return typedjson(
-      await getServerClient(_.request).status.fetch({
-        username,
-        statusId,
-      })
-    )
-  } catch (err) {
-    logger.info(err)
-    throw err
-  }
+  await _.context.trpc.post.status.prefetch({
+    username,
+    statusId,
+  })
+
+  return _.context.getDehydratedState()
 }
 
 export default function Page() {
-  const { posts, previousCursor, nextCursor } =
-    useTypedLoaderData<typeof loader>()
-  const params = useParams()
-  const photoNum = Number(params.index as string)
+  const { username, statusId, index } = useParams<{
+    username: string
+    statusId: string
+    index: string
+  }>()
+
+  const status = trpc.post.status.useQuery(
+    {
+      username: username!,
+      statusId: statusId!,
+    },
+    {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
+    }
+  )
+
+  const {
+    posts = [],
+    previousCursor = undefined,
+    nextCursor = undefined,
+  } = status.data || {}
+
+  const photoNum = Number(index!)
   const imageIndex = photoNum - 1
 
   const [collapsePosts, setCollapsePosts] = useState<boolean>(false)
@@ -81,7 +89,7 @@ export default function Page() {
   const location = useLocation()
 
   const mainPost = useMemo(
-    () => posts.find((post) => post.id === params.statusId),
+    () => posts.find((post) => post.id === statusId),
     [posts]
   )
 
@@ -96,8 +104,8 @@ export default function Page() {
     if ((direction === -1 && hasPrevious) || (direction === 1 && hasNext)) {
       navigate(
         $path('/profile/:username/status/:statusId/photo/:index', {
-          statusId: params.statusId as string,
-          username: params.username as string,
+          statusId: statusId!,
+          username: username!,
           index: photoNum + direction,
         }),
         {
@@ -149,8 +157,8 @@ export default function Page() {
               ) : (
                 <Link
                   to={$path('/profile/:username/status/:statusId', {
-                    statusId: params.statusId as string,
-                    username: params.username as string,
+                    statusId: statusId!,
+                    username: username!,
                   })}
                   prefetch="render"
                 >

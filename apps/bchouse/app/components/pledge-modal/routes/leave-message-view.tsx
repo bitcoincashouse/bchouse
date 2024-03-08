@@ -1,6 +1,5 @@
 import { InfoFooter, MessageView, WCText } from '@bchouse/cashconnect'
-import { useFetcher } from '@remix-run/react'
-import { useEffect } from 'react'
+import { trpc } from '~/utils/trpc'
 
 export function LeaveMessageView({
   campaignId,
@@ -15,33 +14,21 @@ export function LeaveMessageView({
   showName: boolean
   nextStep: () => void
 }) {
-  const fetcher = useFetcher()
-
-  useEffect(() => {
-    if (fetcher.data) {
-      nextStep()
-    }
-  }, [fetcher.data])
+  const commentMutation = trpc.campaign.submitComment.useMutation({
+    onSuccess: () => nextStep(),
+  })
 
   return (
     <MessageView
       showName={showName}
       username={campaignerName}
-      onSubmit={(name, comment) => {
-        fetcher.submit(
-          {
-            name,
-            comment,
-            secret,
-          },
-          {
-            //TODO: trpc.commentOnCampaign
-            action: `/api/campaign/comment`,
-            method: 'POST',
-            encType: 'application/json',
-          }
-        )
-      }}
+      onSubmit={(name, comment) =>
+        commentMutation.mutate({
+          name,
+          comment,
+          secret,
+        })
+      }
       onSkip={() => nextStep()}
       footer={
         <div className="wcm-legal-notice">

@@ -7,13 +7,8 @@ export type CreateTopLevelPostParams = z.input<typeof topLevelPost>
 export type CreateChildPostParams = z.input<typeof childPost>
 export type CreatePostParams = CreateTopLevelPostParams | CreateChildPostParams
 
-const commentSchema = z
-  .string()
-  .transform((val) => JSON.parse(val))
-  .pipe(docSchema)
-
 const topLevelPost = z.object({
-  comment: commentSchema,
+  comment: docSchema,
   mediaIds: z
     .string()
     .optional()
@@ -41,7 +36,7 @@ const topLevelPost = z.object({
 })
 
 const childPost = z.object({
-  comment: commentSchema,
+  comment: docSchema,
   mediaIds: z
     .string()
     .optional()

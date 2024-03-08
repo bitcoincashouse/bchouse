@@ -109,11 +109,10 @@ export const PostModal: React.FC<{
   )
 
   const {
-    fetcher,
-    submitPost,
-    postId: newPostId,
-    submissionState,
-    postError,
+    mutate: submitPost,
+    data: newPostId,
+    status: submissionState,
+    error: postError,
   } = useSubmitPost()
 
   const { setReferenceElement, close: closeWalletConnect } = useWalletConnect()
@@ -121,10 +120,10 @@ export const PostModal: React.FC<{
 
   const doSubmit = (monetization?: Monetization) =>
     editor &&
-    submitPost(
-      editor.getJSON(),
-      files.map((file) => file.url),
-      parentPost
+    submitPost({
+      body: editor.getJSON(),
+      galleryImageUrls: files.map((file) => file.url),
+      options: parentPost
         ? {
             parentPost: {
               id: parentPost.id,
@@ -134,8 +133,8 @@ export const PostModal: React.FC<{
         : {
             audienceType: 'everyone',
             monetization,
-          }
-    )
+          },
+    })
 
   useEffect(() => {
     ;(async () => {
@@ -143,16 +142,14 @@ export const PostModal: React.FC<{
       for (let i = 0; i < embeds.length; i++) {
         const url = embeds[i] as string
 
-        const result = await queryClient.fetchQuery(
-          ['check-embed', url],
-          () => {
+        const result = await queryClient.fetchQuery({
+          queryKey: ['check-embed', url],
+          queryFn: () => {
             return fetchEmbed(url)
           },
-          {
-            cacheTime: 1000 * 60,
-            staleTime: 1000 * 60 * 5,
-          }
-        )
+          cacheTime: 1000 * 60,
+          staleTime: 1000 * 60 * 5,
+        })
 
         if (result) {
           embed = url
@@ -192,8 +189,8 @@ export const PostModal: React.FC<{
     onClose()
   }
 
-  const isSubmitting = submissionState === 'submitting'
-  const isDoneSubmitting = submissionState === 'done'
+  const isSubmitting = submissionState === 'pending'
+  const isDoneSubmitting = submissionState === 'success'
 
   useEffect(() => {
     if (isDoneSubmitting && !postError) {
@@ -201,10 +198,20 @@ export const PostModal: React.FC<{
     }
   }, [isDoneSubmitting])
 
+  const postErrorMessage = useMemo(() => {
+    if (typeof postError !== 'object' || postError == null) {
+      return
+    }
+
+    return 'message' in postError && typeof postError.message === 'string'
+      ? postError.message
+      : 'Sorry, something went wrong publishing your post.'
+  }, [postError])
+
   return (
     <>
       <Modal open={isOpen} onClose={onClose} size={'small'}>
-        <fetcher.Form
+        <form
           ref={formRef}
           method="POST"
           action={$path('/api/post')}
@@ -397,10 +404,10 @@ export const PostModal: React.FC<{
               </button>
             }
           />
-        </fetcher.Form>
-        {postError && (
-          <div className="text-red-600 p-2">{postError.message}</div>
-        )}
+        </form>
+        {postErrorMessage ? (
+          <div className="text-red-600 p-2">{postErrorMessage}</div>
+        ) : null}
       </Modal>
       {openWalletConnect ? (
         <SetupFundraiserModal

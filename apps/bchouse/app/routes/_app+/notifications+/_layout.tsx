@@ -1,4 +1,3 @@
-import { LoaderFunctionArgs } from '@remix-run/node'
 import { NavLink, Outlet } from '@remix-run/react'
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { StandardLayout } from '~/components/layouts/standard-layout'
@@ -9,7 +8,7 @@ import { classNames } from '~/utils/classNames'
 declare global {
   interface RouteDescription {
     notifications: {
-      data: typeof loader
+      data: undefined
     }
   }
 }
@@ -31,11 +30,6 @@ export const handle: NotificationsHandle = {
 
 export function useNotificationsLoaderData() {
   return useAppLoaderData(handle)
-}
-
-export const loader = async (_: LoaderFunctionArgs) => {
-  const { userId } = await _.context.authService.getAuth(_)
-  return await _.context.profileService.getProfile(userId)
 }
 
 export default function Index() {

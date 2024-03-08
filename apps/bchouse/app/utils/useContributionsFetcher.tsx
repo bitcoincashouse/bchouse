@@ -1,15 +1,13 @@
-import { useEffect } from 'react'
-import { useTypedFetcher } from 'remix-typedjson'
+import { trpc } from './trpc'
 
 export function useContributionsFetcher(campaignId: string) {
-  const fetcher = useTypedFetcher<typeof loader>()
-
-  useEffect(() => {
-    if (campaignId) {
-      //TODO: trpc.contributions
-      fetcher.load('/api/contributions/' + campaignId)
+  return trpc.campaign.listContributionHighlights.useQuery(
+    {
+      campaignId,
+    },
+    {
+      staleTime: 1 * 60 * 1000,
+      gcTime: 5 * 60 * 1000,
     }
-  }, [])
-
-  return fetcher
+  )
 }

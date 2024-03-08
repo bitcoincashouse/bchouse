@@ -1235,6 +1235,8 @@ export class RedisService extends Redis {
       feed.reverse()
 
       return {
+        rebuilding: false,
+        refresh: false,
         posts: feed,
         nextCursor: nextCursor,
       }

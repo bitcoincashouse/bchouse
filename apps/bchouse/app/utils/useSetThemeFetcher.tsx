@@ -3,8 +3,8 @@ import { $path } from 'remix-routes'
 import { Theme } from '~/components/theme-provider'
 
 export function useSetThemeFetcher() {
-  //TODO: trpc.setTheme
   const fetcher = useFetcher()
+
   return {
     fetcher,
     submit: (theme: Theme) =>

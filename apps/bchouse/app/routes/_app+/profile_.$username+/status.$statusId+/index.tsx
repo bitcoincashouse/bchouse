@@ -3,18 +3,13 @@ import { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { useLocation, useParams } from '@remix-run/react'
 import { generateText } from '@tiptap/core'
 import { useMemo } from 'react'
-import {
-  UseDataFunctionReturn,
-  typedjson,
-  useTypedLoaderData,
-} from 'remix-typedjson'
 import { z } from 'zod'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { Thread } from '~/components/post/thread'
 import { getExtensions } from '~/components/post/tiptap-extensions'
-import { getAuthOptional } from '~/utils/auth'
-import { getServerClient } from '~/utils/trpc.server'
+import { createTrpcClientUtils, trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
+
 export const handle = {
   title: 'Post',
   preventScrollRestoration: true,
@@ -23,29 +18,36 @@ export const handle = {
 }
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  try {
-    const { userId } = await getAuthOptional(_)
-    const { username, statusId } = zx.parseParams(_.params, {
-      username: z.string(),
-      statusId: z.string(),
-    })
+  const { username, statusId } = zx.parseParams(_.params, {
+    username: z.string(),
+    statusId: z.string(),
+  })
 
-    return typedjson(
-      await getServerClient(_.request).status.fetch({
-        username,
-        statusId,
-      })
-    )
-  } catch (err) {
-    logger.info(err)
-    throw err
-  }
+  await _.context.trpc.post.status.prefetch({
+    username,
+    statusId,
+  })
+
+  return _.context.getDehydratedState()
 }
 
-export const meta: MetaFunction = ({ data, location, matches, params }) => {
+export const meta: MetaFunction<typeof loader> = ({
+  data,
+  location,
+  matches,
+  params,
+}) => {
   try {
-    const loaderData = data as UseDataFunctionReturn<typeof loader>
-    const mainPost = loaderData.posts.find((p) => p.id === params.statusId)
+    const { posts } = createTrpcClientUtils(
+      data?.dehydratedState! as Awaited<
+        ReturnType<typeof loader>
+      >['dehydratedState']
+    ).post.status.getData({
+      username: params.username as string,
+      statusId: params.statusId as string,
+    })!
+
+    const mainPost = posts.find((p) => p.id === params.statusId)
 
     if (!mainPost) return []
 
@@ -94,15 +96,34 @@ export const meta: MetaFunction = ({ data, location, matches, params }) => {
       { name: 'twitter:image', content: logoUrl },
     ]
   } catch (err) {
-    logger.info(err)
-    throw err
+    logger.error(err)
+    return []
   }
 }
 
 export default function Index() {
-  const { posts, previousCursor, nextCursor } =
-    useTypedLoaderData<typeof loader>()
-  const { statusId } = useParams()
+  const { username, statusId } = useParams<{
+    username: string
+    statusId: string
+  }>()
+
+  const status = trpc.post.status.useQuery(
+    {
+      username: username!,
+      statusId: statusId!,
+    },
+    {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
+    }
+  )
+
+  const {
+    posts = [],
+    previousCursor = undefined,
+    nextCursor = undefined,
+  } = status.data || {}
+
   const location = useLocation()
   const mainPost = useMemo(
     () => posts.find((post) => post.id === statusId),

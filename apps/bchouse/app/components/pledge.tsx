@@ -2,10 +2,10 @@ import { prettyPrintSats } from '@bchouse/utils'
 import { Link } from '@remix-run/react'
 import { useMemo } from 'react'
 import { classnames } from '~/components/utils/classnames'
-import { PledgeData } from '~/routes/_app.manage.pledges'
-import { trpc } from '~/utils/trpc'
+import { AppRouterOutputs, trpc } from '~/utils/trpc'
 
-export function Pledge({ pledge }: { pledge: PledgeData }) {
+type Pledge = AppRouterOutputs['campaign']['listPledges'][number]
+export function Pledge({ pledge }: { pledge: Pledge }) {
   const [amount, denomination] = useMemo(() => {
     return prettyPrintSats(
       Number(
@@ -14,7 +14,6 @@ export function Pledge({ pledge }: { pledge: PledgeData }) {
     )
   }, [pledge])
 
-  //TODO: trpc.refundPledge
   const {
     mutate: refundPledgeMutation,
     error,

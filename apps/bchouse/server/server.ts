@@ -12,6 +12,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { getServerClient } from '~/utils/trpc.server'
 
 const createRequestHandler = wrapExpressCreateRequestHandler(
   expressCreateRequestHandler
@@ -83,6 +84,18 @@ async function startup() {
       : createRequestHandler({
           build: build,
           mode: process.env.NODE_ENV,
+          getLoadContext(req: express.Request) {
+            const trpc = getServerClient(req)
+
+            return {
+              trpc,
+              getDehydratedState: () => {
+                return {
+                  dehydratedState: trpc.dehydrate(),
+                }
+              },
+            }
+          },
         })
   )
 
@@ -111,6 +124,18 @@ async function startup() {
         return createRequestHandler({
           build: build,
           mode: 'development',
+          getLoadContext(req: express.Request) {
+            const trpc = getServerClient(req)
+
+            return {
+              trpc,
+              getDehydratedState: () => {
+                return {
+                  dehydratedState: trpc.dehydrate(),
+                }
+              },
+            }
+          },
         })(req, res, next)
       } catch (error) {
         next(error)

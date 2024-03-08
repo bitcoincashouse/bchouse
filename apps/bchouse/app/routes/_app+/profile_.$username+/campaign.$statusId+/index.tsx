@@ -1,11 +1,6 @@
 import { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { useLocation } from '@remix-run/react'
+import { useLocation, useParams } from '@remix-run/react'
 import { generateText } from '@tiptap/core'
-import {
-  UseDataFunctionReturn,
-  typedjson,
-  useTypedLoaderData,
-} from 'remix-typedjson'
 import { z } from 'zod'
 import { ClientOnly } from '~/components/client-only'
 import { DonationWidget } from '~/components/donation-widget'
@@ -14,6 +9,7 @@ import { usePledgeModal } from '~/components/pledge-modal'
 import { CampaignThread } from '~/components/post/campaign'
 import { getExtensions } from '~/components/post/tiptap-extensions'
 import { CampaignSubscription } from '~/routes/api+/campaign.subscribe.$campaignId'
+import { createTrpcClientUtils, trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
 
 export const handle = {
@@ -24,51 +20,50 @@ export const handle = {
 }
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  const { userId } = await _.context.authService.getAuthOptional(_)
-  const { statusId: postId } = zx.parseParams(_.params, {
+  const { username, statusId } = zx.parseParams(_.params, {
     username: z.string(),
     statusId: z.string(),
   })
 
-  const {
-    ancestors,
-    previousCursor,
-    mainPost,
-    donorPosts,
-    children,
-    nextCursor,
-  } = await _.context.postService.getCampaignPostWithChildren(userId, postId)
-
-  //TODO: Fetch parents dynamically
-  return typedjson({
-    ancestors,
-    mainPost,
-    children,
-    donorPosts,
-    nextCursor: nextCursor,
-    previousCursor,
+  await _.context.trpc.post.campaign.prefetch({
+    username,
+    statusId,
   })
+
+  return _.context.getDehydratedState()
 }
 
-export const meta: MetaFunction = ({ data, location, matches, params }) => {
-  const loaderData = data as UseDataFunctionReturn<typeof loader>
-  const author =
-    loaderData.mainPost.person.name || loaderData.mainPost.person.handle
+export const meta: MetaFunction<typeof loader> = ({
+  data,
+  location,
+  matches,
+  params,
+}) => {
+  const { mainPost } = createTrpcClientUtils(
+    data?.dehydratedState! as Awaited<
+      ReturnType<typeof loader>
+    >['dehydratedState']
+  ).post.campaign.getData({
+    username: params.username as string,
+    statusId: params.statusId as string,
+  })!
+
+  const author = mainPost.person.name || mainPost.person.handle
   let content = 'A post on BCHouse by ' + author
 
   try {
     content =
-      loaderData.mainPost.monetization?.title +
+      mainPost.monetization?.title +
       '\n' +
       generateText(
-        loaderData.mainPost.content,
+        mainPost.content,
         getExtensions('Placeholder', () => {})
       ).substring(0, 200)
   } catch (err) {}
 
-  const title = loaderData.mainPost.person.name
-    ? `${loaderData.mainPost.person.name}'s (@${loaderData.mainPost.person.handle}) Fundraising Campaign on BCHouse`
-    : `${loaderData.mainPost.person.handle} Fundraising Campaign on BCHouse`
+  const title = mainPost.person.name
+    ? `${mainPost.person.name}'s (@${mainPost.person.handle}) Fundraising Campaign on BCHouse`
+    : `${mainPost.person.handle} Fundraising Campaign on BCHouse`
 
   const logoUrl = 'https://bchouse.fly.dev/assets/images/bchouse.png'
   const url = `https://bchouse.fly.dev/profile/${params.username}/campaign/${params.statusId}`
@@ -102,18 +97,35 @@ export const meta: MetaFunction = ({ data, location, matches, params }) => {
 }
 
 export default function Index() {
+  const { username, statusId } = useParams<{
+    username: string
+    statusId: string
+  }>()
+
+  const campaign = trpc.post.campaign.useQuery(
+    {
+      username: username!,
+      statusId: statusId!,
+    },
+    {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
+    }
+  )
+
   const {
-    previousCursor,
-    nextCursor,
-    mainPost,
-    ancestors,
-    children,
-    donorPosts,
-  } = useTypedLoaderData<typeof loader>()
+    previousCursor = undefined,
+    nextCursor = undefined,
+    mainPost = undefined,
+    ancestors = [],
+    children = [],
+    donorPosts = [],
+  } = campaign.data || {}
+
   const location = useLocation()
   const { pledge, setPledge } = usePledgeModal()
   const openPledgeModal = () =>
-    mainPost.monetization &&
+    mainPost?.monetization &&
     setPledge({
       campaign: {
         id: mainPost.monetization.campaignId,
@@ -133,6 +145,11 @@ export default function Index() {
         version: mainPost.monetization.version,
       },
     })
+
+  if (!mainPost) {
+    //TODO: handle if undefined
+    return null
+  }
 
   return (
     <StandardLayout

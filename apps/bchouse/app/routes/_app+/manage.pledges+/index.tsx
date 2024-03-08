@@ -1,7 +1,7 @@
 import { ShouldRevalidateFunctionArgs } from '@remix-run/react'
 import { Pledge } from '~/components/pledge'
 import { TimelineMessage } from '~/components/post/timeline-message'
-import { usePledgesLoaderData } from './_layout'
+import { trpc } from '~/utils/trpc'
 
 export function shouldRevalidate({
   currentUrl,
@@ -14,7 +14,10 @@ export function shouldRevalidate({
 }
 
 export default function Index() {
-  const { pledges } = usePledgesLoaderData()
+  const { data: pledges } = trpc.campaign.listPledges.useQuery(undefined, {
+    gcTime: 5 * 60 * 1000,
+    staleTime: 1 * 60 * 1000,
+  })
 
   return (
     <div className="flex flex-col">

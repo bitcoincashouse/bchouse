@@ -1,6 +1,6 @@
 export type Contribution = {
   pledgeRequestId: string
-  createdAt: Date
+  createdAt: string
   satoshis: bigint
   username: string | null
   firstName: string | null

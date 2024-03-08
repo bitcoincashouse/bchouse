@@ -1,60 +1,38 @@
-import {
-  isApplicationError,
-  isClerkError,
-  moment,
-  pluralize,
-} from '@bchouse/utils'
+import { moment, pluralize } from '@bchouse/utils'
 import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useNavigate, useSearchParams } from '@remix-run/react'
 import { useMemo } from 'react'
-import { typedjson, useTypedFetcher, useTypedLoaderData } from 'remix-typedjson'
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { TimelineMessage } from '~/components/post/timeline-message'
 import { StatsWidget } from '~/components/stats-widget'
 import { classnames } from '~/components/utils/classnames'
+import { trpc } from '~/utils/trpc'
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  const { userId } = await _.context.authService.getAuth(_)
-  const inviteCodes = await _.context.authService.getInviteCodes({
-    userId,
-  })
-  return typedjson(inviteCodes)
+  await _.context.trpc.profile.listInviteCodes.prefetch()
+
+  return _.context.getDehydratedState()
 }
 
-export const action = async (_: ActionFunctionArgs) => {
-  try {
-    const { userId } = await _.context.authService.getAuth(_)
-
-    const result = await _.context.authService.createInviteCode({
-      userId,
-    })
-
-    return typedjson({
-      error: false as const,
-    })
-  } catch (err) {
-    if (isClerkError(err) && err.errors[0]) {
-      return typedjson({ error: true as const, message: err.errors[0].message })
-    }
-
-    if (isApplicationError(err) && err.errors[0]) {
-      return typedjson({ error: true as const, message: err.errors[0].message })
-    }
-
-    return typedjson({
-      error: true as const,
-      message: 'Error inviting user, please try again.',
-    })
-  }
-}
+export const action = async (_: ActionFunctionArgs) => {}
 
 export default function Index() {
   const [searchParams] = useSearchParams()
-  const fetcher = useTypedFetcher<typeof action>()
-  const result = fetcher.data
-  const { inviteCodes, allowedCodes, remainingCodes } =
-    useTypedLoaderData<typeof loader>()
+  const inviteMutation = trpc.profile.invite.useMutation(undefined, {})
+
+  const result = inviteMutation.data
+
+  const invitationQuery = trpc.profile.listInviteCodes.useQuery(undefined, {
+    cacheTime: 5 * 60 * 1000,
+    staleTime: 15 * 60 * 1000,
+  })
+
+  const {
+    inviteCodes = [],
+    allowedCodes = 0,
+    remainingCodes = 0,
+  } = invitationQuery.data || {}
 
   const inviteMsg = useMemo(
     () =>

@@ -1,5 +1,4 @@
 import { WalletConnectProvider } from '@bchouse/cashconnect'
-import { logger } from '@bchouse/utils'
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { Link, Outlet, useLocation, useSearchParams } from '@remix-run/react'
 import { useMemo } from 'react'
@@ -24,7 +23,6 @@ import { useDismissUpdateProfileBanner } from '~/routes/api+/dismissUpdateProfil
 import { usePageDisplay } from '~/utils/appHooks'
 import { classNames } from '~/utils/classNames'
 import { trpc } from '~/utils/trpc'
-import { getServerClient } from '~/utils/trpc.server'
 import { useCloseCreatePostModal } from '~/utils/useCloseCreatePostModal'
 import { useUpdateLastActive } from '~/utils/useUpdateLastActive'
 import { useWalletConnectConfig } from '~/utils/useWalletConnect'
@@ -45,17 +43,8 @@ export const layoutHandle = handle
 
 //@ts-ignore
 export const loader = async (_: LoaderFunctionArgs) => {
-  try {
-    const trpc = getServerClient(_.request)
-    await trpc.profile.get.prefetch()
-
-    return {
-      dehydratedState: trpc.dehydrate(),
-    }
-  } catch (err) {
-    logger.info('Error fetching app shell')
-    throw err
-  }
+  await _.context.trpc.profile.get.prefetch()
+  return _.context.getDehydratedState()
 }
 
 export const useLayoutLoaderData = () => {
@@ -104,6 +93,7 @@ export default function Index() {
           avatarUrl: undefined,
           fullName: undefined,
           username: undefined,
+          notificationCount: 0,
         }
       : {
           isAnonymous: false,
@@ -112,6 +102,7 @@ export default function Index() {
           fullName: data.profile.fullName,
           id: data.profile.id,
           username: data.profile.username,
+          notificationCount: data.profile.notificationCount,
         }
 
   const pageProps = usePageDisplay()
@@ -256,7 +247,7 @@ function ShowEditProfileModal() {
     data: applicationData = {
       anonymousView: true,
     },
-  } = trp.profile.profile.useQuery(undefined, {
+  } = trpc.profile.get.useQuery(undefined, {
     staleTime: 5 * 60 * 1000,
   })
 

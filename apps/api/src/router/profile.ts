@@ -1,4 +1,4 @@
-import { logger } from '@bchouse/utils'
+import { isApplicationError, isClerkError, logger } from '@bchouse/utils'
 import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
 import { publicProcedure, router } from '../trpc'
@@ -10,13 +10,41 @@ const updateFollowInput = z.object({
 
 const updateProfileInput = z
   .object({
-    about: z.string().optional(),
-    bchAddress: z.string().optional(),
-    company: z.string().optional(),
-    coverPhotoMediaId: z.string().optional(),
-    location: z.string().optional(),
-    title: z.string().optional(),
-    website: z.string().optional(),
+    about: z
+      .string()
+      .optional()
+      .nullable()
+      .transform((str) => str || undefined),
+    bchAddress: z
+      .string()
+      .optional()
+      .nullable()
+      .transform((str) => str || undefined),
+    company: z
+      .string()
+      .optional()
+      .nullable()
+      .transform((str) => str || undefined),
+    coverPhotoMediaId: z
+      .string()
+      .optional()
+      .nullable()
+      .transform((str) => str || undefined),
+    location: z
+      .string()
+      .optional()
+      .nullable()
+      .transform((str) => str || undefined),
+    title: z
+      .string()
+      .optional()
+      .nullable()
+      .transform((str) => str || undefined),
+    website: z
+      .string()
+      .optional()
+      .nullable()
+      .transform((str) => str || undefined),
   })
   .strip()
 
@@ -46,22 +74,23 @@ export const profileRouter = router({
     }
   }),
   getPublicProfile: publicProcedure
-    .input(z.object({ userId: z.string() }))
-    .mutation(async (opts) => {
+    .input(
+      z.object({ userId: z.string() }).or(z.object({ username: z.string() }))
+    )
+    .query(async (opts) => {
       // await opts.ctx.ratelimit.limitByIp(_, 'api', true)
-      const { userId } = opts.input
       const { userId: currentUserId } = opts.ctx.auth
 
-      if (!currentUserId) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-        })
-      }
-
-      const user = await opts.ctx.profileService.getBasicProfileById(
-        currentUserId,
-        userId
-      )
+      const user =
+        (await 'userId') in opts.input
+          ? opts.ctx.profileService.getBasicProfileById(
+              currentUserId,
+              opts.input.userId
+            )
+          : opts.ctx.profileService.getBasicProfile(
+              currentUserId,
+              opts.input.username
+            )
 
       return user
     }),
@@ -147,5 +176,125 @@ export const profileRouter = router({
       } catch (err) {
         return { error: err }
       }
+    }),
+  listInviteCodes: publicProcedure.query(async (opts) => {
+    const { userId } = opts.ctx.auth
+
+    if (!userId) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+      })
+    }
+
+    const inviteCodes = await opts.ctx.authService.getInviteCodes({
+      userId,
+    })
+
+    return inviteCodes
+  }),
+  invite: publicProcedure.mutation(async (opts) => {
+    try {
+      const { userId } = await opts.ctx.auth
+
+      if (!userId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+        })
+      }
+
+      const result = await opts.ctx.authService.createInviteCode({
+        userId,
+      })
+
+      return {
+        error: false as const,
+      }
+    } catch (err) {
+      if (isClerkError(err) && err.errors[0]) {
+        return { error: true as const, message: err.errors[0].message }
+      }
+
+      if (isApplicationError(err) && err.errors[0]) {
+        return { error: true as const, message: err.errors[0].message }
+      }
+
+      return {
+        error: true as const,
+        message: 'Error inviting user, please try again.',
+      }
+    }
+  }),
+  getNotifications: publicProcedure.query(async (opts) => {
+    const { userId } = await opts.ctx.auth
+
+    if (!userId) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+      })
+    }
+
+    const notifications = await opts.ctx.userService.getNotifications(userId)
+
+    return {
+      notifications,
+    }
+  }),
+  getMentionNotifications: publicProcedure.query(async (opts) => {
+    const { userId } = await opts.ctx.auth
+
+    if (!userId) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+      })
+    }
+
+    const notifications = await opts.ctx.userService.getMentions(userId)
+
+    return {
+      notifications,
+    }
+  }),
+  updateLastViewedNotifications: publicProcedure.mutation(async (opts) => {
+    const { userId } = await opts.ctx.auth
+
+    if (!userId) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+      })
+    }
+
+    const updated = await opts.ctx.userService.updateLastViewedNotifications(
+      userId
+    )
+
+    return updated
+  }),
+  listFollowers: publicProcedure
+    .input(z.object({ username: z.string() }))
+    .query(async (opts) => {
+      const { userId } = await opts.ctx.auth
+
+      if (!userId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+        })
+      }
+
+      const { username } = opts.input
+      return await opts.ctx.profileService.getFollowers(userId, username)
+    }),
+  listFollowing: publicProcedure
+    .input(z.object({ username: z.string() }))
+    .query(async (opts) => {
+      const { userId } = opts.ctx.auth
+
+      if (!userId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+        })
+      }
+
+      const { username } = opts.input
+      return await opts.ctx.profileService.getFollowing(userId, username)
     }),
 })

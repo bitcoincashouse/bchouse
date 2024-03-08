@@ -3,23 +3,16 @@ import { ClientLoaderFunctionArgs, useSearchParams } from '@remix-run/react'
 import { z } from 'zod'
 import { StandardPostCard } from '~/components/post/standard-post-card'
 import { trpc } from '~/utils/trpc'
-import { getServerClient } from '~/utils/trpc.server'
 import { zx } from '~/utils/zodix'
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  const trpc = getServerClient(_.request)
-
   const { q } = zx.parseQuery(_.request, {
     q: z.string().optional(),
   })
 
-  console.log('Salam explore prefetch')
+  await _.context.trpc.search.explore.prefetch({ q })
 
-  await trpc.search.explore.prefetch({ q })
-
-  return {
-    dehydratedState: trpc.dehydrate(),
-  }
+  return _.context.getDehydratedState()
 }
 
 export const clientLoader = async (_: ClientLoaderFunctionArgs) => {

@@ -1,20 +1,4 @@
-import { useMutation } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { z } from 'zod'
-
-export function useValidateAnyonecanpayPledgeFetcher(campaignId: string) {
-  //TODO: trpc.validateAnyonecanpay
-  return useMutation(async (payload: string) => {
-    return fetch(`/api/campaign/${campaignId}/anyonecanpay/validate`, {
-      method: 'POST',
-      body: JSON.stringify({ payload }),
-    })
-      .then(async (res) => {
-        return z.object({ isValid: z.boolean() }).parse(await res.json())
-      })
-      .catch(() => ({ isValid: false }))
-  })
-}
 
 type Recipient = {
   satoshis: number

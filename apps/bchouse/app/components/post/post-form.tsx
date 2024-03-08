@@ -2,7 +2,7 @@ import { useWalletConnect } from '@bchouse/cashconnect'
 import { Link, useLocation } from '@remix-run/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { EditorContent, useEditor } from '@tiptap/react'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { $path } from 'remix-routes'
 import { Avatar } from '~/components/avatar'
@@ -110,11 +110,10 @@ const PostForm: React.FC<PostFormProps> = ({
   const queryClient = useQueryClient()
   const [postType, setPostType] = useState<PostType>('post')
   const {
-    fetcher,
-    submitPost,
-    postId: newPostId,
-    submissionState,
-    postError,
+    mutate: submitPost,
+    data: newPostId,
+    status: submissionState,
+    error: postError,
   } = useSubmitPost()
 
   const { setReferenceElement, close: closeWalletConnect } = useWalletConnect()
@@ -122,18 +121,18 @@ const PostForm: React.FC<PostFormProps> = ({
 
   const doSubmit = (monetization?: Monetization) =>
     editor &&
-    submitPost(
-      editor.getJSON(),
-      files.map((f) => f.url),
-      parentPost
+    submitPost({
+      body: editor.getJSON(),
+      galleryImageUrls: files.map((f) => f.url),
+      options: parentPost
         ? {
             parentPost,
           }
         : {
             audienceType: 'everyone',
             monetization,
-          }
-    )
+          },
+    })
 
   const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault()
@@ -158,8 +157,8 @@ const PostForm: React.FC<PostFormProps> = ({
     }
   }, [files])
 
-  const isSubmitting = submissionState === 'submitting'
-  const isDoneSubmitting = submissionState === 'done'
+  const isSubmitting = submissionState === 'pending'
+  const isDoneSubmitting = submissionState === 'success'
   const [embeds, setEmbeds] = useState<string[]>([])
   const [embedUrl, setEmbed] = useState<string | null>(null)
   const [theme] = useClientTheme()
@@ -195,16 +194,14 @@ const PostForm: React.FC<PostFormProps> = ({
       for (let i = 0; i < embeds.length; i++) {
         const url = embeds[i] as string
 
-        const result = await queryClient.fetchQuery(
-          ['check-embed', url],
-          () => {
+        const result = await queryClient.fetchQuery({
+          queryKey: ['check-embed', url],
+          queryFn: () => {
             return fetchEmbed(url)
           },
-          {
-            cacheTime: 1000 * 60,
-            staleTime: 1000 * 60 * 5,
-          }
-        )
+          cacheTime: 1000 * 60,
+          staleTime: 1000 * 60 * 5,
+        })
 
         if (result) {
           embed = url
@@ -232,6 +229,16 @@ const PostForm: React.FC<PostFormProps> = ({
     }
   }, [isDoneSubmitting])
 
+  const postErrorMessage = useMemo(() => {
+    if (typeof postError !== 'object' || postError == null) {
+      return
+    }
+
+    return 'message' in postError && typeof postError.message === 'string'
+      ? postError.message
+      : 'Sorry, something went wrong publishing your post.'
+  }, [postError])
+
   return (
     <div className="flex space-x-3">
       <div className={classNames('flex-shrink-0', visited && 'pt-2')}>
@@ -245,7 +252,7 @@ const PostForm: React.FC<PostFormProps> = ({
       </div>
       <div className="flex flex-col gap-3 min-w-0 flex-1">
         {!!visited && heading}
-        <fetcher.Form
+        <form
           ref={formRef}
           method="POST"
           onSubmit={onSubmit}
@@ -388,8 +395,10 @@ const PostForm: React.FC<PostFormProps> = ({
               />
             </div>
           </div>
-        </fetcher.Form>
-        {postError && <div className="text-red-600">{postError.message}</div>}
+        </form>
+        {postErrorMessage ? (
+          <div className="text-red-600 p-2">{postErrorMessage}</div>
+        ) : null}
       </div>
       {openWalletConnect ? (
         <SetupFundraiserModal

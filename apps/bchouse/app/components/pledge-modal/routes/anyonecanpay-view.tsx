@@ -9,11 +9,9 @@ import {
 } from '@bchouse/cashconnect'
 import { useCallback, useRef } from 'react'
 import { classnames } from '~/components/utils/classnames'
+import { trpc } from '~/utils/trpc'
 import useCopy from '~/utils/useCopy'
-import {
-  useExternalWalletPayload,
-  useValidateAnyonecanpayPledgeFetcher,
-} from '~/utils/useValidateAnyonecanpayPledgeFetcher'
+import { useExternalWalletPayload } from '~/utils/useValidateAnyonecanpayPledgeFetcher'
 
 export function AnyonecanpayView({
   nextStep,
@@ -54,12 +52,15 @@ export function AnyonecanpayView({
     comment,
   })
 
-  const validateFetcher = useValidateAnyonecanpayPledgeFetcher(campaignId)
+  const validateFetcher = trpc.campaign.validateAnyonecanpay.useMutation()
 
   const onCommitmentResultChange = (payload: string) => {
     validateFetcher.reset()
     if (payload) {
-      validateFetcher.mutate(payload)
+      validateFetcher.mutate({
+        campaignId,
+        payload,
+      })
     }
   }
 
@@ -137,9 +138,15 @@ export function AnyonecanpayView({
           <div className="flex flex-row justify-between gap-2">
             <WCText
               variant="small-regular"
-              color={validateFetcher.isLoading ? 'success' : 'error'}
+              color={
+                validateFetcher.isSuccess
+                  ? 'success'
+                  : validateFetcher.isError
+                  ? 'error'
+                  : 'error'
+              }
             >
-              {validateFetcher.isLoading ? 'Validating' : ''}
+              {validateFetcher.isPending ? 'Validating' : ''}
               {validateFetcher.data?.isValid === false ? 'Invalid payload' : ''}
             </WCText>
             <WCButton

@@ -1,19 +1,36 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { useParams } from '@remix-run/react'
-import { useTypedLoaderData } from 'remix-typedjson'
 import { z } from 'zod'
+import { useCurrentUser } from '~/components/context/current-user-context'
 import { UserCard } from '~/components/user-card'
+import { trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  const { userId } = await _.context.authService.getAuthOptional(_)
   const { username } = zx.parseParams(_.params, { username: z.string() })
-  return await _.context.profileService.getFollowers(userId, username)
+  await _.context.trpc.profile.listFollowers.prefetch({ username })
+  return _.context.getDehydratedState()
 }
 
 export default function Index() {
-  const { followers, isCurrentUser } = useTypedLoaderData<typeof loader>()
-  const { username } = useParams()
+  const username = useParams()?.username as string
+  const listFollowers = trpc.profile.listFollowers.useQuery(
+    {
+      username,
+    },
+    {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
+    }
+  )
+
+  const currentUser = useCurrentUser()
+
+  const isCurrentUser = currentUser.isAnonymous
+    ? false
+    : currentUser.username === username
+
+  const { followers = [] } = listFollowers.data || {}
 
   return (
     <>
