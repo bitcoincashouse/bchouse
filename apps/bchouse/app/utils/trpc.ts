@@ -6,12 +6,13 @@ import {
   createTRPCQueryUtils,
   createTRPCReact,
 } from '@trpc/react-query'
-import type { inferRouterOutputs } from '@trpc/server'
+import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server'
 
 export const trpc: CreateTRPCReact<AppRouter, any> =
   createTRPCReact<AppRouter>() as any
 
 export type AppRouterOutputs = inferRouterOutputs<AppRouter>
+export type AppRouterInputs = inferRouterInputs<AppRouter>
 
 export const createTrpcClientUtils = (dehydratedState: DehydratedState) => {
   const queryClient = new QueryClient({})

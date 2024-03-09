@@ -1,5 +1,4 @@
 /* eslint-disable react/display-name */
-import type { PostActionType } from '@bchouse/api/src/types/postAction'
 import { Menu } from '@headlessui/react'
 import { EllipsisHorizontalIcon } from '@heroicons/react/20/solid'
 import {
@@ -24,7 +23,7 @@ import React, {
   useMemo,
   useState,
 } from 'react'
-import { trpc } from '~/utils/trpc'
+import { AppRouterInputs, trpc } from '~/utils/trpc'
 // import { HtmlPortalNode, OutPortal } from 'react-reverse-portal'
 import { Network, prettyPrintSats } from '@bchouse/utils'
 import { $path } from 'remix-routes'
@@ -41,6 +40,8 @@ import { View as FileGridView } from './file-grid'
 import Iframely from './iframely'
 import { PostContentRenderer } from './post-content-renderer'
 import { PostCardModel } from './types'
+
+type PostActionType = AppRouterInputs['post']['postAction']['action']
 
 const PostContext = createContext<PostCardModel | null>(null)
 const usePost = () => {
@@ -63,7 +64,7 @@ export const PostProvider = ({
 }
 
 export function PostCard({
-  item,
+  item: post,
   children,
   footer,
   className,
@@ -75,6 +76,21 @@ export function PostCard({
 }) {
   const navigate = useNavigate()
   const location = useLocation()
+  const { data } = trpc.post.getPost.useQuery(
+    {
+      postId: post.id,
+    },
+    {
+      //TODO: stagger stale time, not to fetch all at same time,
+      //TODO: only set while in view
+      staleTime: 5 * 60 * 1000,
+      gcTime: Infinity,
+    }
+  )
+
+  //TODO: data should always exist due to feed queries, otherwise should render skeleton
+  const item = data!
+
   const handleClick: React.MouseEventHandler<HTMLDivElement> = (e) => {
     if (e.target instanceof HTMLAnchorElement) return
 
@@ -570,10 +586,22 @@ function RepostButton({ item }: { item: PostCardModel }) {
   //TODO: optimistic update
   const queryClient = useQueryClient()
   const toggled = item.wasReposted
-  const count = item.likeCount
+  const count = item.repostCount
   const action = toggled ? 'like:remove' : 'like:add'
+  const utils = trpc.useUtils()
   const mutation = trpc.post.postAction.useMutation({
-    onMutate(variables) {},
+    onMutate(variables) {
+      const isAddRepost = !toggled
+
+      utils.post.getPost.setData(
+        { postId: item.id },
+        {
+          ...item,
+          wasReposted: isAddRepost,
+          repostCount: Math.max(item.repostCount + (isAddRepost ? 1 : -1), 0),
+        }
+      )
+    },
     onSuccess(variables) {
       //TODO: update that specific post
       // invalidateFeed(queryClient, item.id)
@@ -587,7 +615,8 @@ function RepostButton({ item }: { item: PostCardModel }) {
       className="flex items-center"
       method="POST"
       onSubmit={(e) => {
-        e.stopPropagation()
+        e.preventDefault()
+
         checkAuth(e)
 
         mutation.mutate({
@@ -596,6 +625,7 @@ function RepostButton({ item }: { item: PostCardModel }) {
           action,
         })
       }}
+      onClick={(e) => e.stopPropagation()}
     >
       <button
         type="submit"
@@ -620,11 +650,22 @@ function LikeButton({ item }: { item: PostCardModel }) {
 
   //TODO: optimistic update
   const queryClient = useQueryClient()
-  const toggled = item.wasReposted
+  const toggled = item.wasLiked
   const count = item.likeCount
   const action = toggled ? 'like:remove' : 'like:add'
+  const utils = trpc.useUtils()
   const mutation = trpc.post.postAction.useMutation({
-    onMutate(variables) {},
+    onMutate(variables) {
+      const isAddLike = !toggled
+      utils.post.getPost.setData(
+        { postId: item.id },
+        {
+          ...item,
+          wasLiked: isAddLike,
+          likeCount: Math.max(item.likeCount + (isAddLike ? 1 : -1), 0),
+        }
+      )
+    },
     onSuccess(variables) {
       //TODO: update that specific post
       // invalidateFeed(queryClient, item.id)
@@ -638,7 +679,8 @@ function LikeButton({ item }: { item: PostCardModel }) {
       className="flex items-center"
       method="POST"
       onSubmit={(e) => {
-        e.stopPropagation()
+        e.preventDefault()
+
         checkAuth(e)
 
         mutation.mutate({
@@ -647,6 +689,7 @@ function LikeButton({ item }: { item: PostCardModel }) {
           action,
         })
       }}
+      onClick={(e) => e.stopPropagation()}
     >
       <button
         type="submit"

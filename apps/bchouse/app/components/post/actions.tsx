@@ -10,6 +10,7 @@ import { Link } from '@remix-run/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { trpc } from '~/utils/trpc'
+import { useCurrentUser } from '../context/current-user-context'
 import { BitcoinIcon } from '../icons/BitcoinIcon'
 import { useTipPostModal } from '../tip-modal'
 import { classNames } from '../utils'
@@ -167,8 +168,21 @@ export function RepostButton({ item }: { item: PostCardModel }) {
   const queryClient = useQueryClient()
   const toggled = item.wasReposted
   const action = toggled ? 'repost:remove' : 'repost:add'
+  const utils = trpc.useUtils()
+  const currentUser = useCurrentUser()
   const mutation = trpc.post.postAction.useMutation({
-    onMutate(variables) {},
+    onMutate(variables) {
+      const isAddRepost = !toggled
+
+      utils.post.getPost.setData(
+        { postId: item.id },
+        {
+          ...item,
+          wasReposted: isAddRepost,
+          repostCount: Math.max(item.repostCount + (isAddRepost ? 1 : -1), 0),
+        }
+      )
+    },
     onSuccess(variables) {
       //TODO: invalidate single post
       // invalidateFeed(queryClient, item.id)
@@ -181,10 +195,11 @@ export function RepostButton({ item }: { item: PostCardModel }) {
     <form
       method="POST"
       onSubmit={(e) => {
-        e.stopPropagation()
+        e.preventDefault()
+
         checkAuth(e)
         if (item.deleted) {
-          e.preventDefault()
+          return
         }
 
         mutation.mutate({
@@ -193,6 +208,7 @@ export function RepostButton({ item }: { item: PostCardModel }) {
           action,
         })
       }}
+      onClick={(e) => e.stopPropagation()}
       className="items-center flex"
     >
       <button
@@ -219,8 +235,19 @@ export function LikeButton({ item }: { item: PostCardModel }) {
   const queryClient = useQueryClient()
   const toggled = item.wasLiked
   const action = toggled ? 'like:remove' : 'like:add'
+  const utils = trpc.useUtils()
   const mutation = trpc.post.postAction.useMutation({
-    onMutate(variables) {},
+    onMutate(variables) {
+      const isAddLike = !toggled
+      utils.post.getPost.setData(
+        { postId: item.id },
+        {
+          ...item,
+          wasLiked: isAddLike,
+          likeCount: Math.max(item.likeCount + (isAddLike ? 1 : -1), 0),
+        }
+      )
+    },
     onSuccess(variables) {
       //TODO: invalidate single post
       // invalidateFeed(queryClient, item.id)
@@ -233,10 +260,11 @@ export function LikeButton({ item }: { item: PostCardModel }) {
     <form
       method="POST"
       onSubmit={(e) => {
-        e.stopPropagation()
+        e.preventDefault()
+
         checkAuth(e)
         if (item.deleted) {
-          e.preventDefault()
+          return
         }
 
         mutation.mutate({
@@ -245,6 +273,7 @@ export function LikeButton({ item }: { item: PostCardModel }) {
           action,
         })
       }}
+      onClick={(e) => e.stopPropagation()}
       className="items-center flex"
     >
       <input type="hidden" name="postAuthorId" value={item.publishedById} />
