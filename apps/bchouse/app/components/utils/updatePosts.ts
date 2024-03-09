@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { PostCardModel } from '~/types'
+import { PostCardModel } from '../post/types'
 
 export const postActionSchema = z.object({
   postId: z.string(),
@@ -145,9 +145,7 @@ function updatePage(
   return posts
 }
 
-export async function optimisticUpdate(
-  params: z.infer<typeof postActionSchema>
-) {
+export async function updatePosts(params: z.infer<typeof postActionSchema>) {
   const updater = (type: string) => (old: FeedData) => {
     if (!old) return undefined
 

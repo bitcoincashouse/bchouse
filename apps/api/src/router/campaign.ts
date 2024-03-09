@@ -192,6 +192,22 @@ export const campaignRouter = router({
         secret,
       }
     }),
+  getPledge: publicProcedure
+    .input(z.object({ secret: z.string() }))
+    .query(async (opts) => {
+      const { secret } = opts.input
+      const pledge = await opts.ctx.pledgeService.getPledgeBySecret({ secret })
+      return {
+        ...pledge,
+        satoshis: pledge.satoshis.toString(),
+        forwardTx: pledge.forwardTx
+          ? {
+              ...pledge.forwardTx,
+              pledgedAmount: pledge.forwardTx.pledgedAmount.toString(),
+            }
+          : null,
+      }
+    }),
   refundPledge: publicProcedure
     .input(z.object({ secret: z.string() }))
     .mutation(async (opts) => {

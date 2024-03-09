@@ -3,11 +3,28 @@ import { TRPCError } from '@trpc/server'
 import { z, ZodError } from 'zod'
 import { publicProcedure, router } from '../trpc'
 import { postSchema } from '../types/post'
-import { postActionSchema } from '../types/postAction'
 
-const statusInput = z.object({
-  username: z.string(),
-  statusId: z.string(),
+export const postActionSchema = z.object({
+  postId: z.string(),
+  authorId: z.string(),
+  action: z.enum([
+    'embed',
+    'report',
+    'follow:add',
+    'follow:remove',
+    'list:add',
+    'list:remove',
+    'mute:add',
+    'mute:remove',
+    'block:add',
+    'block:remove',
+    'post:remove',
+    //Post actions
+    'like:add',
+    'like:remove',
+    'repost:add',
+    'repost:remove',
+  ]),
 })
 
 const feedInput = z.object({
@@ -23,7 +40,7 @@ const feedInput = z.object({
     'all_campaigns',
     'all_posts',
   ]),
-  cursor: z.string().optional(),
+  cursor: z.string().nullish(),
 })
 
 const uploadInput = z
@@ -176,47 +193,61 @@ export const postRouter = router({
       requestId: invoiceId,
     }
   }),
-  status: publicProcedure.input(statusInput).query(async (opts) => {
-    const { userId } = opts.ctx.auth
-    const { username, statusId: postId } = opts.input
+  getPost: publicProcedure
+    .input(z.object({ postId: z.string() }))
+    .query(async (opts) => {
+      const { userId } = opts.ctx.auth
+      const { postId } = opts.input
 
-    const { ancestors, mainPost, children, previousCursor, nextCursor } =
-      await opts.ctx.postService.getPostWithChildren(userId, postId)
+      const mainPost = await opts.ctx.postService.getPost(userId, postId)
 
-    //TODO: Fetch parents dynamically
-    return {
-      posts: [
-        ...ancestors.map((a) => ({ ...a, isThread: true })),
+      return mainPost
+    }),
+  status: publicProcedure
+    .input(z.object({ statusId: z.string() }))
+    .query(async (opts) => {
+      const { userId } = opts.ctx.auth
+      const { statusId: postId } = opts.input
+
+      const { ancestors, mainPost, children, previousCursor, nextCursor } =
+        await opts.ctx.postService.getPostWithChildren(userId, postId)
+
+      //TODO: Fetch parents dynamically
+      return {
+        posts: [
+          ...ancestors.map((a) => ({ ...a, isThread: true })),
+          mainPost,
+          ...children,
+        ],
+        nextCursor: nextCursor,
+        previousCursor,
+      }
+    }),
+  campaign: publicProcedure
+    .input(z.object({ statusId: z.string() }))
+    .query(async (opts) => {
+      const { userId } = opts.ctx.auth
+      const { statusId: postId } = opts.input
+
+      const {
+        ancestors,
+        previousCursor,
         mainPost,
-        ...children,
-      ],
-      nextCursor: nextCursor,
-      previousCursor,
-    }
-  }),
-  campaign: publicProcedure.input(statusInput).query(async (opts) => {
-    const { userId } = opts.ctx.auth
-    const { username, statusId: postId } = opts.input
+        donorPosts,
+        children,
+        nextCursor,
+      } = await opts.ctx.postService.getCampaignPostWithChildren(userId, postId)
 
-    const {
-      ancestors,
-      previousCursor,
-      mainPost,
-      donorPosts,
-      children,
-      nextCursor,
-    } = await opts.ctx.postService.getCampaignPostWithChildren(userId, postId)
-
-    //TODO: Fetch parents dynamically
-    return {
-      ancestors,
-      mainPost,
-      children,
-      donorPosts,
-      nextCursor: nextCursor,
-      previousCursor,
-    }
-  }),
+      //TODO: Fetch parents dynamically
+      return {
+        ancestors,
+        mainPost,
+        children,
+        donorPosts,
+        nextCursor: nextCursor,
+        previousCursor,
+      }
+    }),
   feed: publicProcedure.input(feedInput).query(async (opts) => {
     try {
       // await opts.ctx.ratelimit.limitByIp(_, 'api', true)
@@ -228,7 +259,7 @@ export const postRouter = router({
         id,
         userId,
         type,
-        cursor
+        cursor ?? undefined
       )
 
       return result

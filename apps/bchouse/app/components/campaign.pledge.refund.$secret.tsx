@@ -1,11 +1,11 @@
 import { prettyPrintSats } from '@bchouse/utils'
-import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
-import { Link } from '@remix-run/react'
+import { LoaderFunctionArgs } from '@remix-run/node'
+import { Link, useParams } from '@remix-run/react'
 import { useMemo } from 'react'
-import { typedjson, useTypedFetcher, useTypedLoaderData } from 'remix-typedjson'
 import { z } from 'zod'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { classnames } from '~/components/utils/classnames'
+import { trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
 
 export const loader = async (_: LoaderFunctionArgs) => {
@@ -13,17 +13,8 @@ export const loader = async (_: LoaderFunctionArgs) => {
     secret: z.string(),
   })
 
-  const result = await _.context.pledgeService.getPledgeBySecret({ secret })
-  return typedjson(result)
-}
-
-export const action = async (_: ActionFunctionArgs) => {
-  const { secret } = zx.parseParams(_.params, {
-    secret: z.string(),
-  })
-
-  const result = await _.context.pledgeService.cancelPledge({ secret })
-  return typedjson(result)
+  await _.context.trpc.campaign.getPledge.prefetch({ secret })
+  return _.context.getDehydratedState()
 }
 
 export const handle = {
@@ -31,19 +22,31 @@ export const handle = {
 }
 
 export default function Page() {
-  const request = useTypedLoaderData<typeof loader>()
+  const { secret } = useParams<{ secret: string }>()
+
+  const { data: pledge } = trpc.campaign.getPledge.useQuery(
+    { secret: secret! },
+    {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
+    }
+  )
+
   const [amount, denomination] = useMemo(() => {
-    return prettyPrintSats(
-      Number(
-        request.forwardTx?.pledgedAmount.toString() ||
-          request.satoshis.toString()
-      )
-    )
-  }, [request])
+    return pledge
+      ? prettyPrintSats(
+          Number(
+            pledge.forwardTx?.pledgedAmount.toString() ||
+              pledge.satoshis.toString()
+          )
+        )
+      : [0, 0]
+  }, [pledge])
 
-  const fetcher = useTypedFetcher<typeof action>()
+  const refundMutation = trpc.campaign.refundPledge.useMutation()
+  const refundTxId = pledge?.refundTxId || refundMutation.data?.txid
 
-  const refundTxId = request.refundTxId || fetcher.data?.txid
+  if (!pledge) return null
 
   return (
     <StandardLayout
@@ -58,12 +61,12 @@ export default function Page() {
             <p
               className={classnames(
                 'mt-2 text-sm leading-7 text-secondary-text',
-                request.fulfillmentTxId ? 'line-through' : ''
+                pledge.fulfillmentTxId ? 'line-through' : ''
               )}
             >
-              Refund address - {request.refundAddress}
+              Refund address - {pledge.refundAddress}
             </p>
-            {request.fulfillmentTxId ? (
+            {pledge.fulfillmentTxId ? (
               <p
                 className={classnames(
                   'mt-2 text-sm leading-7 text-secondary-text'
@@ -80,7 +83,7 @@ export default function Page() {
                     target="_blank"
                     href={
                       `https://${
-                        request.network === 'chipnet' ? 'cbch' : 'bch'
+                        pledge.network === 'chipnet' ? 'cbch' : 'bch'
                       }.loping.net/tx/` + refundTxId
                     }
                     className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
@@ -88,20 +91,23 @@ export default function Page() {
                     Refunded - view on blockchain
                   </a>
                 ) : (
-                  <fetcher.Form method="POST">
+                  <form
+                    method="POST"
+                    onSubmit={() => refundMutation.mutate({ secret: secret! })}
+                  >
                     <button
                       type="submit"
-                      disabled={!!request.fulfillmentTxId}
+                      disabled={!!pledge.fulfillmentTxId}
                       className="disabled:bg-gray-300 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                     >
-                      {fetcher.state === 'submitting'
+                      {refundMutation.status === 'pending'
                         ? 'Refunding...'
                         : 'Refund'}
                     </button>
-                  </fetcher.Form>
+                  </form>
                 )}
                 <Link
-                  to={`/profile/${request.campaignOrganizer}/status/${request.postId}`}
+                  to={`/profile/${pledge.campaignOrganizer}/status/${pledge.postId}`}
                   className="text-sm font-semibold text-primary-text"
                 >
                   View campaign <span aria-hidden="true">&rarr;</span>

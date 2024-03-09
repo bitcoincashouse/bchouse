@@ -398,6 +398,19 @@ export class PostService {
     await postRepo.reportPost({ userId, postId })
   }
 
+  async getPost(currentUserId: string | null, postId: string) {
+    const postModel = await postRepo.getPostById({ id: postId, currentUserId })
+
+    if (!postModel) {
+      throw new InternalServerError({
+        code: HttpStatus.NOT_FOUND,
+        message: 'Post not found',
+      })
+    }
+
+    return postToViewModel(postModel)
+  }
+
   async getPostWithChildren(currentUserId: string | null, postId: string) {
     const [parentPosts, postModel, childPosts] = await Promise.all([
       postRepo.getPostParents({ id: postId, currentUserId }),
