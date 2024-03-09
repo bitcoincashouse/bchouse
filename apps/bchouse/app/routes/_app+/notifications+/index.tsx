@@ -19,7 +19,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
 
 export default function Index() {
   const getNotifications = trpc.profile.getNotifications.useQuery(undefined, {
-    cacheTime: 5 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
     staleTime: 1 * 60 * 1000,
   })
 

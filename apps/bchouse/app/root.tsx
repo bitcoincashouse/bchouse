@@ -27,6 +27,7 @@ import {
   CreateTRPCClient,
   createTRPCClient,
   createTRPCQueryUtils,
+  getQueryKey,
 } from '@trpc/react-query'
 import { CreateQueryUtils } from '@trpc/react-query/shared'
 import { Buffer } from 'buffer-polyfill'
@@ -178,6 +179,14 @@ const App = function () {
       window.trpcClientUtils = createTRPCQueryUtils({
         queryClient,
         client: trpcClient,
+      })
+
+      queryClient.setQueryDefaults(getQueryKey(trpc.post.getPost), {
+        gcTime: Infinity,
+      })
+
+      queryClient.setQueryDefaults(getQueryKey(trpc.post.feed), {
+        gcTime: Infinity,
       })
     }
 

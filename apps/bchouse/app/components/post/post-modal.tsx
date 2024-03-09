@@ -147,7 +147,7 @@ export const PostModal: React.FC<{
           queryFn: () => {
             return fetchEmbed(url)
           },
-          cacheTime: 1000 * 60,
+          gcTime: 1000 * 60,
           staleTime: 1000 * 60 * 5,
         })
 

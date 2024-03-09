@@ -25,7 +25,7 @@ import React, {
 } from 'react'
 import { AppRouterInputs, trpc } from '~/utils/trpc'
 // import { HtmlPortalNode, OutPortal } from 'react-reverse-portal'
-import { Network, prettyPrintSats } from '@bchouse/utils'
+import { Network, logger, prettyPrintSats } from '@bchouse/utils'
 import { $path } from 'remix-routes'
 import { useDebounce } from 'usehooks-ts'
 import { Avatar } from '~/components/avatar'
@@ -90,6 +90,10 @@ export function PostCard({
 
   //TODO: data should always exist due to feed queries, otherwise should render skeleton
   const item = data!
+  if (!data) {
+    logger.error('Post data undefined')
+    return null
+  }
 
   const handleClick: React.MouseEventHandler<HTMLDivElement> = (e) => {
     if (e.target instanceof HTMLAnchorElement) return
