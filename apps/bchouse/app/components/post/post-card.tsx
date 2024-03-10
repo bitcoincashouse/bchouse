@@ -27,7 +27,7 @@ import { AppRouterInputs, trpc } from '~/utils/trpc'
 // import { HtmlPortalNode, OutPortal } from 'react-reverse-portal'
 import { Network, logger, prettyPrintSats } from '@bchouse/utils'
 import { $path } from 'remix-routes'
-import { useDebounce } from 'usehooks-ts'
+import { useDebounceValue } from 'usehooks-ts'
 import { Avatar } from '~/components/avatar'
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { classNames } from '~/utils/classNames'
@@ -373,8 +373,7 @@ function UserPopoverLink<T extends React.ElementType>({
   id: string
   children: React.ReactNode
 } & Omit<React.ComponentPropsWithoutRef<T>, keyof T>) {
-  const [isHovering, setIsHovering] = useState(false)
-  const isHoveringDebounced = useDebounce(isHovering, 500)
+  const [isHovering, setIsHovering] = useDebounceValue(false, 500)
   const { setReferenceElement, setPopperElement, styles, attributes } =
     useUserPopover()
   const Component = as || 'div'
@@ -384,10 +383,10 @@ function UserPopoverLink<T extends React.ElementType>({
       onMouseOver={() => setIsHovering(true)}
       onMouseOut={() => setIsHovering(false)}
       data-id={id}
-      ref={isHoveringDebounced ? setReferenceElement : undefined}
+      ref={isHovering ? setReferenceElement : undefined}
     >
       {children}
-      {isHoveringDebounced ? (
+      {isHovering ? (
         <div
           ref={setPopperElement}
           style={styles.popper}
@@ -442,16 +441,17 @@ PostCard.Content = function (
   const { setReferenceElement, setPopperElement, styles, attributes } =
     useUserPopover()
 
-  const [hoveringMentionElem, setHoveringMentionElem] =
-    useState<HTMLElement | null>(null)
-  const hoveringMentionElemDebounced = useDebounce(hoveringMentionElem, 500)
+  const [hoveringMentionElem, setHoveringMentionElem] = useDebounceValue(
+    null,
+    500
+  )
   useEffect(() => {
-    setReferenceElement(hoveringMentionElemDebounced)
-  }, [hoveringMentionElemDebounced])
+    setReferenceElement(hoveringMentionElem)
+  }, [hoveringMentionElem])
 
   const hoveringId = useMemo(() => {
-    return hoveringMentionElemDebounced?.getAttribute('data-id')
-  }, [hoveringMentionElemDebounced])
+    return hoveringMentionElem?.getAttribute('data-id')
+  }, [hoveringMentionElem])
 
   return (
     <div>

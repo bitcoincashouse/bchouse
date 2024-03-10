@@ -1,6 +1,5 @@
 import {
   Links,
-  LiveReload,
   Location,
   Meta,
   Scripts,
@@ -61,7 +60,6 @@ export const Document = withThemeProvider<
           }}
         />
         <Scripts />
-        <LiveReload />
       </body>
     </html>
   )

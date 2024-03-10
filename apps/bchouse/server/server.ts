@@ -1,17 +1,14 @@
 import { logger } from '@bchouse/utils'
-import type { RequestHandler } from '@remix-run/express'
 import { createRequestHandler as expressCreateRequestHandler } from '@remix-run/express'
-import { broadcastDevReady, installGlobals } from '@remix-run/node'
+import { installGlobals } from '@remix-run/node'
 import { wrapExpressCreateRequestHandler } from '@sentry/remix'
-import chokidar from 'chokidar'
 import compression from 'compression'
 import express from 'express'
 import gracefulShutdown from 'http-graceful-shutdown'
 import morgan from 'morgan'
-import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { dirname } from 'node:path'
-import { fileURLToPath, pathToFileURL } from 'node:url'
+import { fileURLToPath } from 'node:url'
 import { getServerClient } from '~/utils/trpc.server'
 
 const createRequestHandler = wrapExpressCreateRequestHandler(
@@ -37,16 +34,6 @@ app.use(compression())
 
 // http://expressjs.com/en/advanced/best-practice-security.html#at-a-minimum-disable-x-powered-by-header
 app.disable('x-powered-by')
-
-// Remix fingerprints its assets so we can cache forever.
-app.use(
-  '/build',
-  express.static(BUILD_ASSETS_DIR, { immutable: true, maxAge: '1y' })
-)
-
-// Everything els e (like favicon.ico) is cached for an hour. You may want to be
-// more aggressive with this caching.
-app.use(express.static(ASSETS_DIR, { maxAge: '1h' }))
 
 app.use(
   morgan('tiny', {
@@ -75,81 +62,74 @@ function isDescendant(childPath: string, parentPath: string) {
 
 async function startup() {
   logger.info('BUILD_PATH:', BUILD_PATH)
-  let build = await import(pathToFileURL(BUILD_PATH).href)
+  // let build = await import(pathToFileURL(BUILD_PATH).href)
 
-  app.all(
-    '*',
-    process.env.NODE_ENV === 'development'
-      ? createDevRequestHandler()
-      : createRequestHandler({
-          build: build,
-          mode: process.env.NODE_ENV,
-          getLoadContext(req: express.Request) {
-            const trpc = getServerClient(req)
+  let requestHandler
+  if (process.env.NODE_ENV === 'production') {
+    app.use('/assets', express.static('build/client/assets', { maxAge: '1y' }))
 
+    requestHandler = createRequestHandler({
+      build: await import('./build/server/index.js'),
+      mode: process.env.NODE_ENV,
+      getLoadContext(req: express.Request) {
+        const trpc = getServerClient(req)
+
+        return {
+          trpc,
+          getDehydratedState: () => {
             return {
-              trpc,
-              getDehydratedState: () => {
-                return {
-                  dehydratedState: trpc.dehydrate(),
-                }
-              },
+              dehydratedState: trpc.dehydrate(),
             }
           },
-        })
+        }
+      },
+    })
+  } else {
+    const viteDevServer = await import('vite').then((vite) =>
+      vite.createServer({
+        server: { middlewareMode: true },
+      })
+    )
+
+    app.use(viteDevServer.middlewares)
+
+    requestHandler = createRequestHandler({
+      build: () => viteDevServer.ssrLoadModule('virtual:remix/server-build'),
+      mode: 'development',
+      getLoadContext(req: express.Request) {
+        const trpc = getServerClient(req)
+
+        return {
+          trpc,
+          getDehydratedState: () => {
+            return {
+              dehydratedState: trpc.dehydrate(),
+            }
+          },
+        }
+      },
+    })
+  }
+
+  app.use(express.static('build/client', { maxAge: '1h' }))
+
+  app.use(
+    morgan('tiny', {
+      skip: (req) => {
+        if (req.method === 'PUT' && req.url === '/api/inngest') {
+          return true
+        }
+
+        return false
+      },
+    })
   )
 
-  function createDevRequestHandler(): RequestHandler {
-    const updater = async function (path: string) {
-      try {
-        //Always create new front-end build
-        logger.info('Updated: ', path)
-        logger.info('Creating new build')
-        const stat = fs.statSync(BUILD_PATH)
-        const BUILD_URL = pathToFileURL(BUILD_PATH).href
-        build = await import(BUILD_URL + '?t=' + stat.mtimeMs)
-        broadcastDevReady(build)
-      } catch (err) {
-        logger.error('Server HMR failed', err)
-      }
-    }
-
-    chokidar
-      .watch([BUILD_PATH], { ignoreInitial: true })
-      .on('add', debounce(updater))
-      .on('change', debounce(updater))
-
-    return async (req, res, next) => {
-      try {
-        return createRequestHandler({
-          build: build,
-          mode: 'development',
-          getLoadContext(req: express.Request) {
-            const trpc = getServerClient(req)
-
-            return {
-              trpc,
-              getDehydratedState: () => {
-                return {
-                  dehydratedState: trpc.dehydrate(),
-                }
-              },
-            }
-          },
-        })(req, res, next)
-      } catch (error) {
-        next(error)
-      }
-    }
-  }
+  app.use('*', requestHandler)
 
   const port = process.env.BCHOUSE_PORT || 3000
   const server = app.listen(port, async () => {
     logger.info(`Express server listening on port ${port}`)
-
-    if (process.env.NODE_ENV === 'development') {
-      broadcastDevReady(build)
-    }
   })
 
   gracefulShutdown(server, {

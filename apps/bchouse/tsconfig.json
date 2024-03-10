@@ -7,7 +7,7 @@
     "./server/**/*.tsx",
 		"./server/**/*.json",
     "./server.ts",
-    "./remix.env.d.ts",
+    "./env.d.ts",
     "./types/**/*.ts" 
   ],
   "exclude": ["../../**/node_modules", "**/.*/"],
@@ -51,8 +51,6 @@
 		"paths": {
       "~/*": ["./app/*"],
 			"~/server/*": ["./server/*"],
-      "@algolia/*": ["../../node_modules/@algolia/*/dist/esm"],
-      "usehooks-ts": ["../../node_modules/usehooks-ts/dist/esm"]
 		},
 
     //No Transpile
