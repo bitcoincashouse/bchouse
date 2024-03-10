@@ -1,7 +1,5 @@
 import type { FeedKeys } from '@bchouse/api/src/services/services/redis/keys'
 import { Link, useLocation, useNavigation } from '@remix-run/react'
-import { useInfiniteQuery } from '@tanstack/react-query'
-import { getQueryKey } from '@trpc/react-query'
 import { atom, useAtom } from 'jotai'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { StateSnapshot, Virtuoso, VirtuosoHandle } from 'react-virtuoso'
@@ -60,7 +58,6 @@ export const Feed: React.FC<
   const { queryKey = 'home', feedOwner, id } = props
   const currentUser = useCurrentUser()
 
-  const utils = trpc.useUtils()
   const {
     data,
     fetchNextPage,
@@ -69,33 +66,18 @@ export const Feed: React.FC<
     isLoading,
     isInitialLoading,
     isError,
-  } = useInfiniteQuery({
-    queryKey: getQueryKey(trpc.post.feed, {
+  } = trpc.post.feed.useInfiniteQuery(
+    {
       id,
       type: queryKey,
-    }),
-    queryFn: async ({ pageParam, direction }) => {
-      const result = await utils.post.feed.fetch({
-        id,
-        type: queryKey,
-        cursor: pageParam,
-      })
-      result.posts.map((post) => {
-        utils.post.getPost.setData(
-          {
-            postId: post.id,
-          },
-          post
-        )
-      })
-      return result
     },
-    staleTime: 1000 * 60 * 2,
-    gcTime: Infinity,
-    refetchOnWindowFocus: false,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-    initialPageParam: null as string | null,
-  })
+    {
+      staleTime: 1000 * 60 * 2,
+      gcTime: Infinity,
+      refetchOnWindowFocus: false,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  )
 
   const feedRef = useRef<VirtuosoHandle>()
   const location = useLocation()

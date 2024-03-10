@@ -25,7 +25,7 @@ import React, {
 } from 'react'
 import { AppRouterInputs, trpc } from '~/utils/trpc'
 // import { HtmlPortalNode, OutPortal } from 'react-reverse-portal'
-import { Network, logger, prettyPrintSats } from '@bchouse/utils'
+import { Network, prettyPrintSats } from '@bchouse/utils'
 import { $path } from 'remix-routes'
 import { useDebounceValue } from 'usehooks-ts'
 import { Avatar } from '~/components/avatar'
@@ -83,18 +83,14 @@ export function PostCard({
       postId: post.id,
     },
     {
+      placeholderData: post,
+      enabled: false,
       //TODO: stagger stale time, not to fetch all at same time,
       //TODO: only set while in view
       staleTime: 5 * 60 * 1000,
       gcTime: Infinity,
     }
   )
-
-  if (!data) {
-    //TODO: data should always exist due to feed queries, otherwise should render skeleton
-    logger.error('Post data undefined')
-    return null
-  }
 
   const item = useMemo(() => {
     //Combine values returned via feed but not found via getPostById (ex. repostedBy)
