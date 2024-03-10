@@ -35,15 +35,6 @@ export const loader = async (_: LoaderFunctionArgs) => {
 }
 
 export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
-  const { username, statusId } = zx.parseParams(_.params, {
-    username: z.string(),
-    statusId: z.string(),
-  })
-
-  await window.trpcClientUtils.post.status.prefetch({
-    statusId,
-  })
-
   return null
 }
 

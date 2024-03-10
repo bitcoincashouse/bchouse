@@ -1,5 +1,11 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
-import { Link, NavLink, Outlet, useLocation } from '@remix-run/react'
+import {
+  ClientLoaderFunctionArgs,
+  Link,
+  NavLink,
+  Outlet,
+  useLocation,
+} from '@remix-run/react'
 import { useMemo } from 'react'
 import { $path } from 'remix-routes'
 import { redirect } from 'remix-typedjson'
@@ -29,6 +35,10 @@ export const loader = async (_: LoaderFunctionArgs) => {
 
   await _.context.trpc.metrics.stats.prefetch()
   return _.context.getDehydratedState()
+}
+
+export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
+  return null
 }
 
 export default function Index() {
