@@ -16,9 +16,12 @@ import { useTipPostModal } from '../tip-modal'
 import { classNames } from '../utils'
 import { classnames } from '../utils/classnames'
 import { useAuthGuardCheck } from '../utils/useAuthGuardCheck'
+import { usePost } from './post-card'
 import { PostCardModel } from './types'
 
-export function Actions({ item }: { item: PostCardModel }) {
+export function Actions() {
+  const item = usePost()
+
   const percentRaised = useMemo(() => {
     return item.monetization?.amount
       ? Math.floor(

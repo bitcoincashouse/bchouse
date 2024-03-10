@@ -44,7 +44,7 @@ import { PostCardModel } from './types'
 type PostActionType = AppRouterInputs['post']['postAction']['action']
 
 const PostContext = createContext<PostCardModel | null>(null)
-const usePost = () => {
+export const usePost = () => {
   const post = useContext(PostContext)
   if (!post) {
     throw new Error('this must be a child of a PostCard element')
