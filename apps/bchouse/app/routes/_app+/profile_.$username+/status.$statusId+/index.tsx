@@ -56,19 +56,24 @@ export const meta: MetaFunction<typeof loader> = ({
   params,
 }) => {
   try {
-    const trpcClientUtils =
-      typeof window === 'undefined'
-        ? createTrpcClientUtils(
-            data?.dehydratedState! as Awaited<
-              ReturnType<typeof loader>
-            >['dehydratedState']
-          )
-        : window.trpcClientUtils
+    const trpcClientUtils = data
+      ? createTrpcClientUtils(
+          data?.dehydratedState! as Awaited<
+            ReturnType<typeof loader>
+          >['dehydratedState']
+        )
+      : window.trpcClientUtils
 
-    const { posts } = trpcClientUtils.post.status.getData({
+    const result = trpcClientUtils.post.status.getData({
       username: params.username as string,
       statusId: params.statusId as string,
     })!
+
+    if (!result) {
+      return []
+    }
+
+    const posts = result.posts
 
     const mainPost = posts.find((p) => p.id === params.statusId)
 
