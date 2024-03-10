@@ -1,3 +1,4 @@
+import { Activity } from '@bchouse/api/src/services/services/redis/activity'
 import { moment, prettyPrintSats } from '@bchouse/utils'
 import { ArrowPathIcon, HeartIcon, UserIcon } from '@heroicons/react/20/solid'
 import { LoaderFunctionArgs } from '@remix-run/node'
@@ -6,9 +7,12 @@ import { $path } from 'remix-routes'
 import { Avatar } from '~/components/avatar'
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { BitcoinIcon } from '~/components/icons/BitcoinIcon'
-import { PostCard, PostProvider } from '~/components/post-card'
+import {
+  MentionCard,
+  NotificationCard,
+  ReplyCard,
+} from '~/components/post-cards/notification-cards'
 import { classnames } from '~/components/utils/classnames'
-import { Activity } from '~/server/services/redis/activity'
 import { classNames } from '~/utils/classNames'
 import { trpc } from '~/utils/trpc'
 
@@ -78,46 +82,9 @@ export default function Index() {
                 )}
               >
                 {notification.type === 'reply' ? (
-                  <PostCard item={notification.post} className="w-full">
-                    <div>
-                      <div className="flex">
-                        <PostCard.InlinePostHeader />
-                        <div className="ml-auto">
-                          <PostCard.ItemMenu />
-                        </div>
-                      </div>
-                      <div className="-mt-1 text-sm text-secondary-text">
-                        <span className="text-[15px]">
-                          Replying to{' '}
-                          <Link
-                            className="link hover:underline"
-                            to={$path('/profile/:username', {
-                              username: currentUser.username,
-                            })}
-                          >
-                            @{currentUser.username}
-                          </Link>
-                        </span>
-                      </div>
-                    </div>
-                    <PostCard.Content />
-                    <PostCard.MediaItems />
-                    <PostCard.Actions />
-                  </PostCard>
+                  <ReplyCard post={notification.post} />
                 ) : notification.type === 'mention' ? (
-                  <PostCard item={notification.post} className="w-full">
-                    <div>
-                      <div className="flex">
-                        <PostCard.InlinePostHeader />
-                        <div className="ml-auto">
-                          <PostCard.ItemMenu />
-                        </div>
-                      </div>
-                    </div>
-                    <PostCard.Content />
-                    <PostCard.MediaItems />
-                    <PostCard.Actions />
-                  </PostCard>
+                  <MentionCard post={notification.post} />
                 ) : (
                   <div
                     className="block"
@@ -185,14 +152,8 @@ export default function Index() {
                                   </span>
                                 </div>
                               </div>
-                              {notification.post ? (
-                                <div>
-                                  <PostProvider item={notification.post}>
-                                    <div className="w-full">
-                                      <PostCard.Content className="text-gray-400" />
-                                    </div>
-                                  </PostProvider>
-                                </div>
+                              {'post' in notification && notification.post ? (
+                                <NotificationCard post={notification.post} />
                               ) : null}
                             </div>
                           </>

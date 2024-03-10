@@ -1,10 +1,9 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { useNavigate } from '@remix-run/react'
 import { useEffect } from 'react'
-import { useTypedFetcher } from 'remix-typedjson'
 import { ClientOnly } from '~/components/client-only'
 import { useCurrentUser } from '~/components/context/current-user-context'
-import { PostCard } from '~/components/post-card'
+import { MentionCard } from '~/components/post-cards/notification-cards'
 import { classnames } from '~/components/utils/classnames'
 import { trpc } from '~/utils/trpc'
 
@@ -39,22 +38,7 @@ export default function Index() {
                     !notification.viewed ? 'bg-blue-500' : ''
                   )}
                 ></div>
-                <PostCard item={notification.post} className="w-full">
-                  <div>
-                    <div className="flex">
-                      <PostCard.InlinePostHeader />
-                      <div className="ml-auto">
-                        <PostCard.ItemMenu />
-                      </div>
-                    </div>
-                    <div className="-mt-1 text-sm text-secondary-text">
-                      <span className="text-[15px]">Mentioned you</span>
-                    </div>
-                  </div>
-                  <PostCard.Content />
-                  <PostCard.MediaItems />
-                  <PostCard.Actions />
-                </PostCard>
+                <MentionCard post={notification.post} />
               </div>
             </li>
           )
@@ -66,16 +50,10 @@ export default function Index() {
 }
 
 function UpdateLastViewed() {
-  const updateLastViewed = useTypedFetcher<typeof action>()
+  const mutation = trpc.profile.updateLastViewedNotifications.useMutation()
 
   useEffect(() => {
-    updateLastViewed.submit(
-      {},
-      {
-        method: 'POST',
-        encType: 'application/json',
-      }
-    )
+    mutation.mutate()
   }, [])
 
   return null

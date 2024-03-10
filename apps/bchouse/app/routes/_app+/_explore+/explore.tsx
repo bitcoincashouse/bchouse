@@ -1,7 +1,7 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { ClientLoaderFunctionArgs, useSearchParams } from '@remix-run/react'
 import { z } from 'zod'
-import { StandardPostCard } from '~/components/post/standard-post-card'
+import { StandardPostCard } from '~/components/post-cards/standard-post-card'
 import { trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
 

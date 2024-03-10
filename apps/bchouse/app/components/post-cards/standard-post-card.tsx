@@ -1,8 +1,7 @@
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { Avatar } from '../avatar'
 import { PostCard } from '../post-card'
-import { RepostedBy } from './reposted-by'
-import { PostCardModel } from './types'
+import { PostCardModel } from '../post/types'
 
 export function StandardPostCard({ post }: { post: PostCardModel }) {
   const currentUser = useCurrentUser()
@@ -30,7 +29,7 @@ export function StandardPostCard({ post }: { post: PostCardModel }) {
       }
     >
       <div className="flex">
-        <RepostedBy currentUser={currentUser} item={post} />
+        <PostCard.RepostedBy currentUser={currentUser} item={post} />
         <PostCard.InlinePostHeader />
         <div className="ml-auto">
           <PostCard.ItemMenu />

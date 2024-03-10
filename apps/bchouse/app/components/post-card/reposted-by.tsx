@@ -1,7 +1,7 @@
 import { ArrowPathIcon } from '@heroicons/react/20/solid'
 import { Link } from '@remix-run/react'
 import { $path } from 'remix-routes'
-import { PostCardModel } from './types'
+import { PostCardModel } from '../post/types'
 
 export function RepostedBy({
   item,

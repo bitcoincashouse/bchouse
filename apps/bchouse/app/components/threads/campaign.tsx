@@ -7,13 +7,13 @@ import { $path } from 'remix-routes'
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { useBrowserLayoutEffect } from '~/utils/useBrowserLayoutEffect'
 import { Avatar } from '../avatar'
+import { ThreadPost } from '../post-cards/thread-card'
+import { PostForm } from '../post/post-form'
+import { TimelineMessage } from '../post/timeline-message'
+import { PostCardModel } from '../post/types'
 import { classnames } from '../utils/classnames'
-import { PostForm } from './post-form'
-import { Post } from './threads/post'
-import { useFeedState, useInfiniteScroll } from './threads/useInfiniteScroll'
-import { useScrollRestore } from './threads/useScrollRestore'
-import { TimelineMessage } from './timeline-message'
-import { PostCardModel } from './types'
+import { useFeedState, useInfiniteScroll } from './useInfiniteScroll'
+import { useScrollRestore } from './useScrollRestore'
 
 type DonorPost = {
   anonymousName: string | null
@@ -118,7 +118,7 @@ export const CampaignThread: React.FC<{
                 >
                   <div>
                     {ancestorFeedState.posts.map((post) => (
-                      <Post
+                      <ThreadPost
                         key={post.key}
                         mainPostId={mainPostId}
                         post={post}
@@ -358,7 +358,9 @@ function AllComments({
       restoreStateFrom={childFeedState.feedState}
       data={childPosts}
       itemContent={(index, post) => {
-        return <Post mainPostId={''} post={post} currentUser={currentUser} />
+        return (
+          <ThreadPost mainPostId={''} post={post} currentUser={currentUser} />
+        )
       }}
     />
   ) : (

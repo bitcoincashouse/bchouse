@@ -1,4 +1,4 @@
-import { Doc } from '@bchouse/utils'
+import { TipTapSchema } from '@bchouse/utils'
 import { Link } from '@remix-run/react'
 import { $path } from 'remix-routes'
 import { ImageProxy } from '../image-proxy'
@@ -9,7 +9,7 @@ export function PostContentRenderer({
   showFullLength,
 }: {
   showFullLength?: boolean
-  content: Doc
+  content: TipTapSchema.Doc
 }) {
   return (
     <div className="flex flex-col gap-3">

@@ -1,4 +1,4 @@
-import { Feed } from '~/components/post/feed'
+import { Feed } from '~/components/threads/feed'
 import { useProfileLoader } from './_layout'
 
 export default function Index() {

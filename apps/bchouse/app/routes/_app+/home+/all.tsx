@@ -1,5 +1,5 @@
 import { useCurrentUser } from '~/components/context/current-user-context'
-import { Feed } from '~/components/post/feed'
+import { Feed } from '~/components/threads/feed'
 
 export const handle: AppRouteHandle = {
   preventScrollReset: true,

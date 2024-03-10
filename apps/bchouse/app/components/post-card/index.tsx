@@ -2,7 +2,7 @@
 import { useLocation, useNavigate } from '@remix-run/react'
 import React, { useMemo } from 'react'
 import { classNames } from '~/utils/classNames'
-import { AppRouterInputs, trpc } from '~/utils/trpc'
+import { trpc } from '~/utils/trpc'
 import { PostCardModel } from '../post/types'
 import { PostCardAvatar } from './avatar'
 import { PostCardContent } from './content'
@@ -11,8 +11,7 @@ import { PostCardFooter } from './footer'
 import { PostCardHeader } from './header'
 import { PostCardMedia } from './media'
 import { PostCardMenu } from './menu'
-
-type PostActionType = AppRouterInputs['post']['postAction']['action']
+import { RepostedBy } from './reposted-by'
 
 export function PostCard({
   item: post,
@@ -95,3 +94,4 @@ PostCard.InlinePostHeader = PostCardHeader
 PostCard.Content = PostCardContent
 PostCard.MediaItems = PostCardMedia
 PostCard.Actions = PostCardFooter
+PostCard.RepostedBy = RepostedBy

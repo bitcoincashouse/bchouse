@@ -20,8 +20,8 @@ import { useTypedRouteLoaderData } from 'remix-typedjson'
 import { useMediaQuery } from 'usehooks-ts'
 import { z } from 'zod'
 import { useCurrentUser } from '~/components/context/current-user-context'
-import { PostCard, PostProvider } from '~/components/post-card'
-import { Thread } from '~/components/post/thread'
+import { PostFooter } from '~/components/post-cards/image-cards'
+import { Thread } from '~/components/threads/thread'
 import { classNames } from '~/utils/classNames'
 import { trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
@@ -49,7 +49,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
   })
 
   await _.context.trpc.post.status.prefetch({
-    username,
+    username: username!,
     statusId,
   })
 
@@ -198,9 +198,10 @@ export default function Page() {
                 <div className="flex-grow relative">
                   <Outlet />
                 </div>
-                <PostProvider item={mainPost}>
-                  <PostCard.Actions className="flex justify-around py-2" />
-                </PostProvider>
+                <PostFooter
+                  post={mainPost}
+                  className="flex justify-around py-2"
+                />
               </div>
             </AnimatePresence>
           </div>

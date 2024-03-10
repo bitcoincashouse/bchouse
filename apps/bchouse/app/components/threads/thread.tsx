@@ -1,16 +1,15 @@
 import React, { useRef, useState } from 'react'
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { useBrowserLayoutEffect } from '~/utils/useBrowserLayoutEffect'
+import { ThreadPost } from '../post-cards/thread-card'
+import { PostCardModel } from '../post/types'
 import { classnames } from '../utils/classnames'
-import { Post } from './threads/post'
-import { FeedResponse } from './threads/types'
-import { useScrollRestore } from './threads/useScrollRestore'
-import { PostCardModel } from './types'
+import { useScrollRestore } from './useScrollRestore'
 
 export const Thread: React.FC<{
   mainPost: PostCardModel
   showImagesMainPost?: boolean
-  initialPosts: Extract<FeedResponse, { posts: any }>['posts']
+  initialPosts: PostCardModel[]
   nextCursor?: string | undefined
   previousCursor?: string | undefined
 }> = (props) => {
@@ -59,7 +58,7 @@ export const Thread: React.FC<{
                   )}
                 >
                   {initialPosts.map((post) => (
-                    <Post
+                    <ThreadPost
                       key={post.key}
                       mainPostId={mainPostId}
                       showImagesMainPost={props.showImagesMainPost}

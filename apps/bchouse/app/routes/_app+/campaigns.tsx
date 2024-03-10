@@ -1,7 +1,7 @@
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { StandardLayout } from '~/components/layouts/standard-layout'
-import { Feed } from '~/components/post/feed'
 import { StatsWidget } from '~/components/stats-widget'
+import { Feed } from '~/components/threads/feed'
 
 export const handle: AppRouteHandle = {
   preventScrollReset: true,

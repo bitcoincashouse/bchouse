@@ -2,7 +2,7 @@ import { useLocation, useNavigation } from '@remix-run/react'
 import { atom, useAtom } from 'jotai'
 import { useEffect, useMemo, useRef } from 'react'
 import { StateSnapshot, VirtuosoHandle } from 'react-virtuoso'
-import { PostCardModel } from '../types'
+import { PostCardModel } from '../post/types'
 
 const feedStateAtom = atom({} as Record<string, StateSnapshot>)
 
