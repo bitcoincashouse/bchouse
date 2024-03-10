@@ -4,7 +4,7 @@ import { Link, useNavigate, useSearchParams } from '@remix-run/react'
 import { useMemo } from 'react'
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { StandardLayout } from '~/components/layouts/standard-layout'
-import { TimelineMessage } from '~/components/post/timeline-message'
+import { Message } from '~/components/message'
 import { StatsWidget } from '~/components/stats-widget'
 import { classnames } from '~/components/utils/classnames'
 import { trpc } from '~/utils/trpc'
@@ -112,7 +112,7 @@ function Grid({
       >
         {!codes.length ? (
           <div className="h-full w-full flex items-center justify-center">
-            <TimelineMessage
+            <Message
               message="No codes generated"
               actionMessage=""
               className="p-0"

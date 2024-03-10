@@ -1,13 +1,16 @@
 import { useMemo } from 'react'
+import { Message } from '~/components/message'
 import { Pledge } from '~/components/pledge'
-import { TimelineMessage } from '~/components/post/timeline-message'
 import { trpc } from '~/utils/trpc'
 
 export default function Index() {
-  const { data: allPledges } = trpc.campaign.listPledges.useQuery(undefined, {
-    gcTime: 5 * 60 * 1000,
-    staleTime: 1 * 60 * 1000,
-  })
+  const { data: allPledges = [] } = trpc.campaign.listPledges.useQuery(
+    undefined,
+    {
+      gcTime: 5 * 60 * 1000,
+      staleTime: 1 * 60 * 1000,
+    }
+  )
 
   const pledges = useMemo(() => {
     return allPledges.filter((p) => !!p.fulfillmentTxId)
@@ -21,7 +24,7 @@ export default function Index() {
             <Pledge key={pledge.pledgeRequestId} pledge={pledge} />
           ))
         ) : (
-          <TimelineMessage
+          <Message
             message="No pledges here yet."
             actionMessage="When your pledge is fulfilled, you'll see it here"
           />

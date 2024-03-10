@@ -1,6 +1,6 @@
 import { ShouldRevalidateFunctionArgs } from '@remix-run/react'
+import { Message } from '~/components/message'
 import { Pledge } from '~/components/pledge'
-import { TimelineMessage } from '~/components/post/timeline-message'
 import { trpc } from '~/utils/trpc'
 
 export function shouldRevalidate({
@@ -14,7 +14,7 @@ export function shouldRevalidate({
 }
 
 export default function Index() {
-  const { data: pledges } = trpc.campaign.listPledges.useQuery(undefined, {
+  const { data: pledges = [] } = trpc.campaign.listPledges.useQuery(undefined, {
     gcTime: 5 * 60 * 1000,
     staleTime: 1 * 60 * 1000,
   })
@@ -27,7 +27,7 @@ export default function Index() {
             <Pledge key={pledge.pledgeRequestId} pledge={pledge} />
           ))
         ) : (
-          <TimelineMessage
+          <Message
             message="No pledges here yet"
             actionMessage="When you make a pledge, you'll see it here"
           />

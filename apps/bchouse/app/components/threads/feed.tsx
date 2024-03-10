@@ -7,8 +7,8 @@ import { useCurrentUser } from '~/components/context/current-user-context'
 import { LoadingIndicator } from '~/components/loading'
 import { trpc } from '~/utils/trpc'
 import { FeedCard } from '../post-cards/feed-cards'
-import { TimelineMessage } from '../post/timeline-message'
 import { PostCardModel } from '../post/types'
+import { TimelineMessage } from './timeline-message'
 
 // import {
 //   HtmlPortalNode,

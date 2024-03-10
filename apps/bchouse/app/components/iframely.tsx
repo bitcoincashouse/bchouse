@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 // import { useDebounce } from 'usehooks-ts'
 import { z } from 'zod'
-import { Theme, useClientTheme } from '../theme-provider'
-import { classnames } from '../utils/classnames'
+import { Theme, useClientTheme } from './theme-provider'
+import { classnames } from './utils/classnames'
 
 const KEY = '8fb648a43d7cabada3cae0e30ac0322b'
 

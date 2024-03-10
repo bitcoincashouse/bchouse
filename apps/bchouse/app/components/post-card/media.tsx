@@ -1,7 +1,7 @@
 import { useNavigate } from '@remix-run/react'
 import { Fragment, useMemo, useState } from 'react'
 import { $path } from 'remix-routes'
-import Iframely from '~/components/post/iframely'
+import Iframely from '~/components/iframely'
 import { Aspect, ImageProxy } from '../image-proxy'
 import { PostCardModel } from '../post/types'
 import { classNames } from '../utils'

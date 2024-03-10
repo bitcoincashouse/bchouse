@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
+import { Message } from '~/components/message'
 import { Pledge } from '~/components/pledge'
-import { TimelineMessage } from '~/components/post/timeline-message'
 import { trpc } from '~/utils/trpc'
 
 export default function Index() {
@@ -21,7 +21,7 @@ export default function Index() {
             return <Pledge key={pledge.pledgeRequestId} pledge={pledge} />
           })
         ) : (
-          <TimelineMessage
+          <Message
             message="No pledges here yet."
             actionMessage="When you refund a pledge, you'll see it here"
           />

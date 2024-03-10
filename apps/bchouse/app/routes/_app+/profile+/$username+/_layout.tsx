@@ -23,7 +23,7 @@ import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { Avatar } from '~/components/avatar'
 import { FollowButton } from '~/components/follow-button'
 import { ImageProxy } from '~/components/image-proxy'
-import { PostForm } from '~/components/post/post-form'
+import { PostForm } from '~/components/post-form/post-form'
 import { trpc } from '~/utils/trpc'
 
 declare global {
