@@ -49,7 +49,6 @@ export const loader = async (_: LoaderFunctionArgs) => {
   })
 
   await _.context.trpc.post.status.prefetch({
-    username: username!,
     statusId,
   })
 
@@ -65,7 +64,6 @@ export default function Page() {
 
   const status = trpc.post.status.useQuery(
     {
-      username: username!,
       statusId: statusId!,
     },
     {

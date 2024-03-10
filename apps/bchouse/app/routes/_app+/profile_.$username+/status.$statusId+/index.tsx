@@ -28,7 +28,6 @@ export const loader = async (_: LoaderFunctionArgs) => {
   })
 
   await _.context.trpc.post.status.prefetch({
-    username,
     statusId,
   })
 
@@ -42,7 +41,6 @@ export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
   })
 
   await window.trpcClientUtils.post.status.prefetch({
-    username,
     statusId,
   })
 
@@ -65,7 +63,6 @@ export const meta: MetaFunction<typeof loader> = ({
       : window.trpcClientUtils
 
     const result = trpcClientUtils.post.status.getData({
-      username: params.username as string,
       statusId: params.statusId as string,
     })!
 
@@ -137,7 +134,6 @@ export default function Index() {
 
   const status = trpc.post.status.useQuery(
     {
-      username: username!,
       statusId: statusId!,
     },
     {
