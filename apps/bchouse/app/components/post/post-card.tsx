@@ -76,6 +76,8 @@ export function PostCard({
 }) {
   const navigate = useNavigate()
   const location = useLocation()
+
+  //For optimistic updates, get data from queryCache
   const { data } = trpc.post.getPost.useQuery(
     {
       postId: post.id,
@@ -88,12 +90,16 @@ export function PostCard({
     }
   )
 
-  //TODO: data should always exist due to feed queries, otherwise should render skeleton
-  const item = data!
   if (!data) {
+    //TODO: data should always exist due to feed queries, otherwise should render skeleton
     logger.error('Post data undefined')
     return null
   }
+
+  const item = useMemo(() => {
+    //Combine values returned via feed but not found via getPostById (ex. repostedBy)
+    return { ...data!, repostedBy: post.repostedBy }
+  }, [data, post.repostedBy])
 
   const handleClick: React.MouseEventHandler<HTMLDivElement> = (e) => {
     if (e.target instanceof HTMLAnchorElement) return
