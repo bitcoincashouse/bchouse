@@ -35,31 +35,6 @@ app.use(compression())
 // http://expressjs.com/en/advanced/best-practice-security.html#at-a-minimum-disable-x-powered-by-header
 app.disable('x-powered-by')
 
-app.use(
-  morgan('tiny', {
-    skip: (req) => {
-      if (req.method === 'PUT' && req.url === '/api/inngest') {
-        return true
-      }
-
-      return false
-    },
-  })
-)
-
-const debounce = (fn: Function, ms = 500) => {
-  let timeoutId: ReturnType<typeof setTimeout>
-  return function (this: any, ...args: any[]) {
-    clearTimeout(timeoutId)
-    timeoutId = setTimeout(() => fn.apply(this, args), ms)
-  }
-}
-
-function isDescendant(childPath: string, parentPath: string) {
-  const relativePath = path.relative(parentPath, childPath)
-  return !relativePath.startsWith('..') && !path.isAbsolute(relativePath)
-}
-
 async function startup() {
   logger.info('BUILD_PATH:', BUILD_PATH)
   // let build = await import(pathToFileURL(BUILD_PATH).href)
