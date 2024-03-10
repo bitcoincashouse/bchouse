@@ -2,7 +2,7 @@ import { useWalletConnect } from '@bchouse/cashconnect'
 import { Link, useLocation } from '@remix-run/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { EditorContent, useEditor } from '@tiptap/react'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { $path } from 'remix-routes'
 import { z } from 'zod'
 import { Avatar } from '~/components/avatar'
@@ -214,9 +214,7 @@ export const PostModal: React.FC<{
         <form
           ref={formRef}
           method="POST"
-          action={$path('/api/post')}
           onSubmit={onSubmit}
-          preventScrollReset={true}
           onPaste={async (ev) => {
             const items = ev.clipboardData.items
 
