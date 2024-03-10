@@ -15,7 +15,7 @@ import {
   PledgeFundraiserModal,
   PledgeModalProvider,
 } from '~/components/pledge-modal'
-import { PostModal } from '~/components/post-form/post-modal'
+import { PostModal } from '~/components/post/form/implementations/post-modal'
 import { Post } from '~/components/post/types'
 import { TipPostModal, TipPostModalProvider } from '~/components/tip-modal'
 import { UserPopoverProvider } from '~/components/user-popover'

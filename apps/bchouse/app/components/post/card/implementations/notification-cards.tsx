@@ -1,9 +1,9 @@
 import { Link } from '@remix-run/react'
 import { $path } from 'remix-routes'
-import { PostCard } from '~/components/post-card'
-import { PostProvider } from '~/components/post-card/context'
-import { useCurrentUser } from '../context/current-user-context'
-import { PostCardModel } from '../post/types'
+import { PostCard } from '~/components/post/card'
+import { PostProvider } from '~/components/post/card/context'
+import { useCurrentUser } from '../../../context/current-user-context'
+import { PostCardModel } from '../../types'
 
 export function NotificationCard({ post }: { post: PostCardModel }) {
   return (

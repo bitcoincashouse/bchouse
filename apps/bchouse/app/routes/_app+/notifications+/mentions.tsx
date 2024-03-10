@@ -3,7 +3,7 @@ import { useNavigate } from '@remix-run/react'
 import { useEffect } from 'react'
 import { ClientOnly } from '~/components/client-only'
 import { useCurrentUser } from '~/components/context/current-user-context'
-import { MentionCard } from '~/components/post-cards/notification-cards'
+import { MentionCard } from '~/components/post/card/implementations/notification-cards'
 import { classnames } from '~/components/utils/classnames'
 import { trpc } from '~/utils/trpc'
 

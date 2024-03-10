@@ -5,7 +5,7 @@ import {
 import React, { useEffect } from 'react'
 import type { Area } from 'react-easy-crop'
 import Cropper from 'react-easy-crop'
-import { Modal } from '../modal'
+import { Modal } from '../../modal'
 
 export function MediaCropper({
   image,

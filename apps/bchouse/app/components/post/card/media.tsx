@@ -2,9 +2,9 @@ import { useNavigate } from '@remix-run/react'
 import { Fragment, useMemo, useState } from 'react'
 import { $path } from 'remix-routes'
 import Iframely from '~/components/iframely'
-import { Aspect, ImageProxy } from '../image-proxy'
-import { PostCardModel } from '../post/types'
-import { classNames } from '../utils'
+import { Aspect, ImageProxy } from '../../image-proxy'
+import { classNames } from '../../utils'
+import { PostCardModel } from '../types'
 import { usePost } from './context'
 
 function FileGridView({

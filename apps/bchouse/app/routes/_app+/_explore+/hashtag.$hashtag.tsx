@@ -1,7 +1,7 @@
 import { LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { UIMatch } from '@remix-run/react'
 import { z } from 'zod'
-import { StandardPostCard } from '~/components/post-cards/standard-post-card'
+import { StandardPostCard } from '~/components/post/card/implementations/standard-post-card'
 import { trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
 

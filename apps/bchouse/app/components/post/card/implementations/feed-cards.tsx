@@ -1,9 +1,9 @@
 import { Link } from '@remix-run/react'
 import { $path } from 'remix-routes'
 import { useCurrentUser } from '~/components/context/current-user-context'
-import { Avatar } from '../avatar'
-import { PostCard } from '../post-card'
-import { PostCardModel } from '../post/types'
+import { PostCard } from '..'
+import { Avatar } from '../../../avatar'
+import { PostCardModel } from '../../types'
 
 export function FeedCard({
   post,

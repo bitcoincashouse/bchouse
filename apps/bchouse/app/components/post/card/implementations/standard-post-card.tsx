@@ -1,7 +1,7 @@
 import { useCurrentUser } from '~/components/context/current-user-context'
-import { Avatar } from '../avatar'
-import { PostCard } from '../post-card'
-import { PostCardModel } from '../post/types'
+import { PostCard } from '..'
+import { Avatar } from '../../../avatar'
+import { PostCardModel } from '../../types'
 
 export function StandardPostCard({ post }: { post: PostCardModel }) {
   const currentUser = useCurrentUser()

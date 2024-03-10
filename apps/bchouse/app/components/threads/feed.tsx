@@ -6,7 +6,7 @@ import { StateSnapshot, Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { LoadingIndicator } from '~/components/loading'
 import { trpc } from '~/utils/trpc'
-import { FeedCard } from '../post-cards/feed-cards'
+import { FeedCard } from '../post/card/implementations/feed-cards'
 import { PostCardModel } from '../post/types'
 import { TimelineMessage } from './timeline-message'
 

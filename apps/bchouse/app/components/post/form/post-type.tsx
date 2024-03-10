@@ -1,7 +1,7 @@
 import { Listbox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronDownIcon } from '@heroicons/react/20/solid'
 import { Fragment, useMemo } from 'react'
-import { classnames } from '../utils/classnames'
+import { classnames } from '../../utils/classnames'
 
 const postTypes = [
   {

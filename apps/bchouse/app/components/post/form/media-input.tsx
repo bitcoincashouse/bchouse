@@ -1,7 +1,7 @@
 import { XMarkIcon } from '@heroicons/react/20/solid'
 import { PaintBrushIcon } from '@heroicons/react/24/outline'
 import React, { useMemo } from 'react'
-import { classNames } from '../utils'
+import { classNames } from '../../utils'
 import { MediaCropper } from './media-cropper'
 import { Media } from './useFileActions'
 

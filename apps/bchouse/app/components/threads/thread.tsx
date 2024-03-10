@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react'
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { useBrowserLayoutEffect } from '~/utils/useBrowserLayoutEffect'
-import { ThreadPost } from '../post-cards/thread-card'
+import { ThreadPost } from '../post/card/implementations/thread-card'
 import { PostCardModel } from '../post/types'
 import { classnames } from '../utils/classnames'
 import { useScrollRestore } from './useScrollRestore'

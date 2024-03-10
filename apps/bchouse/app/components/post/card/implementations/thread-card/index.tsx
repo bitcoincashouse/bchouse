@@ -1,9 +1,9 @@
 import { Link } from '@remix-run/react'
 import React from 'react'
 import { $path } from 'remix-routes'
-import { useCurrentUser } from '../../context/current-user-context'
-import { PostCard } from '../../post-card'
-import { PostCardModel } from '../../post/types'
+import { PostCard } from '../..'
+import { useCurrentUser } from '../../../../context/current-user-context'
+import { PostCardModel } from '../../../types'
 import { Actions } from './actions'
 
 export const ThreadPost = React.memo(

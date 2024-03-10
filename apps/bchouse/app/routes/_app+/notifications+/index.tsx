@@ -11,7 +11,7 @@ import {
   MentionCard,
   NotificationCard,
   ReplyCard,
-} from '~/components/post-cards/notification-cards'
+} from '~/components/post/card/implementations/notification-cards'
 import { classnames } from '~/components/utils/classnames'
 import { classNames } from '~/utils/classNames'
 import { trpc } from '~/utils/trpc'

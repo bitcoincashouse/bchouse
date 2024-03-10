@@ -1,6 +1,6 @@
-import { PostCard } from '~/components/post-card'
-import { PostProvider } from '~/components/post-card/context'
-import { PostCardModel } from '../post/types'
+import { PostCard } from '~/components/post/card'
+import { PostProvider } from '~/components/post/card/context'
+import { PostCardModel } from '../../types'
 
 export function PostFooter({
   post,
