@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useTypedFetcher } from 'remix-typedjson'
 import { ClientOnly } from '~/components/client-only'
 import { useCurrentUser } from '~/components/context/current-user-context'
-import { PostCard } from '~/components/post/post-card'
+import { PostCard } from '~/components/post-card'
 import { classnames } from '~/components/utils/classnames'
 import { trpc } from '~/utils/trpc'
 

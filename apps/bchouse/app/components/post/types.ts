@@ -1,9 +1,8 @@
-import type { PostCardModel as PostModel } from '@bchouse/api/src/types'
+import type { PostCardModel as PostModel } from '@bchouse/api/src/services/services/types'
 import { Network } from '@bchouse/utils'
-import { SerializeFrom } from '@remix-run/node'
 
 export type Post = PostCardModel
-export type PostCardModel = SerializeFrom<PostModel>
+export type PostCardModel = PostModel
 export type { PostModel }
 export type FeedOwner = {
   type?: 'user'

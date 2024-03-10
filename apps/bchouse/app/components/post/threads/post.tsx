@@ -1,8 +1,8 @@
 import { Link } from '@remix-run/react'
 import React from 'react'
 import { $path } from 'remix-routes'
+import { PostCard } from '../../post-card'
 import { Actions } from '../actions'
-import { PostCard } from '../post-card'
 import { RepostedBy } from '../reposted-by'
 import { PostCardModel } from '../types'
 

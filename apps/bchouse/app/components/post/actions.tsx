@@ -12,11 +12,11 @@ import { useMemo } from 'react'
 import { trpc } from '~/utils/trpc'
 import { useCurrentUser } from '../context/current-user-context'
 import { BitcoinIcon } from '../icons/BitcoinIcon'
+import { usePost } from '../post-card'
 import { useTipPostModal } from '../tip-modal'
 import { classNames } from '../utils'
 import { classnames } from '../utils/classnames'
 import { useAuthGuardCheck } from '../utils/useAuthGuardCheck'
-import { usePost } from './post-card'
 import { PostCardModel } from './types'
 
 export function Actions() {

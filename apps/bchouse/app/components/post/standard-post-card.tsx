@@ -1,6 +1,6 @@
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { Avatar } from '../avatar'
-import { PostCard } from './post-card'
+import { PostCard } from '../post-card'
 import { RepostedBy } from './reposted-by'
 import { PostCardModel } from './types'
 

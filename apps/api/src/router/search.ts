@@ -1,6 +1,6 @@
 import { z } from 'zod'
+import { PostCardModel } from '../services/services/types'
 import { publicProcedure, router } from '../trpc'
-import { PostCardModel } from '../types'
 
 export const searchRouter = router({
   explore: publicProcedure

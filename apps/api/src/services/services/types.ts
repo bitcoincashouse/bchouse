@@ -1,4 +1,4 @@
-import { Doc } from '@bchouse/utils/src/tiptapSchema'
+import { TipTapSchema } from '@bchouse/utils/src/tiptapSchema'
 import { Network } from '../db/types'
 
 export type PostCardModel = {
@@ -35,8 +35,8 @@ export type PostCardModel = {
   tipAmount: number
   publishedById: string
   viewCount: number
-  avatarUrl: string | undefined
-  content: Doc
+  avatarUrl?: string | undefined
+  content: TipTapSchema.Doc
   date: string
   isThread: boolean
   mediaUrls: {

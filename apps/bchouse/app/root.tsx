@@ -83,7 +83,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
       sessionId,
       userId,
       theme: themeSession.getTheme(),
-      BCH_NETWORK: _.context.bchNetwork,
+      BCH_NETWORK: process.env.BCH_NETWORK as 'mainnet' | 'chipnet',
       SENTRY_DSN: process.env.SENTRY_DSN as string,
       PAYGATE_URL: (process.env.PAYGATE_URL as string).replace(/\/$/, ''),
       BCHOUSE_URL: (process.env.BCHOUSE_URL as string).replace(/\/$/, ''),
