@@ -1,4 +1,3 @@
-import type { AppRouter } from '@bchouse/api/src/index'
 import type { DehydratedState } from '@tanstack/react-query'
 import { QueryClient, hydrate } from '@tanstack/react-query'
 import {
@@ -7,6 +6,7 @@ import {
   createTRPCReact,
 } from '@trpc/react-query'
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server'
+import type { AppRouter } from '~/server/types/router'
 
 export const trpc: CreateTRPCReact<AppRouter, any> =
   createTRPCReact<AppRouter>() as any
@@ -17,8 +17,11 @@ export type AppRouterInputs = inferRouterInputs<AppRouter>
 export const createTrpcClientUtils = (dehydratedState: DehydratedState) => {
   const queryClient = new QueryClient({})
   hydrate(queryClient, dehydratedState)
-  return createTRPCQueryUtils<AppRouter>({
+  const trpc = createTRPCReact() as any
+  const trpcClientUtils = createTRPCQueryUtils<AppRouter>({
     queryClient,
-    client: createTRPCReact() as any,
+    client: trpc,
   })
+
+  return trpcClientUtils
 }

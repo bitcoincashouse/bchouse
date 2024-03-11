@@ -1,5 +1,5 @@
-import type { PostCardModel as PostModel } from '@bchouse/api/src/services/services/types'
 import { Network } from '@bchouse/utils'
+import type { PostCardModel as PostModel } from '~/server/services/services/types'
 
 export type Post = PostCardModel
 export type PostCardModel = PostModel

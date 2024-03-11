@@ -26,7 +26,6 @@ export const loader = async (_: LoaderFunctionArgs) => {
   })
 
   await _.context.trpc.post.campaign.prefetch({
-    username,
     statusId,
   })
 
@@ -39,12 +38,15 @@ export const meta: MetaFunction<typeof loader> = ({
   matches,
   params,
 }) => {
-  const { mainPost } = createTrpcClientUtils(
-    data?.dehydratedState! as Awaited<
-      ReturnType<typeof loader>
-    >['dehydratedState']
-  ).post.campaign.getData({
-    username: params.username as string,
+  const trpcClientUtils = data
+    ? createTrpcClientUtils(
+        data?.dehydratedState! as Awaited<
+          ReturnType<typeof loader>
+        >['dehydratedState']
+      )
+    : window.trpcClientUtils
+
+  const { mainPost } = trpcClientUtils.post.campaign.getData({
     statusId: params.statusId as string,
   })!
 

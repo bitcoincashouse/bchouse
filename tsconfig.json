@@ -22,9 +22,6 @@
       "path": "./packages/cashconnect"
     },
     {
-      "path": "./apps/api"
-    },
-    {
       "path": "./apps/bchouse"
     },
     {

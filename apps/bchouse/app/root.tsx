@@ -1,5 +1,4 @@
 import autocompleteCss from '@algolia/autocomplete-theme-classic/dist/theme.min.css?url'
-import { AppRouter } from '@bchouse/api'
 import { moment } from '@bchouse/utils'
 import { ClerkApp, ClerkErrorBoundary, useAuth, useClerk } from '@clerk/remix'
 import { rootAuthLoader } from '@clerk/remix/ssr.server'
@@ -33,6 +32,7 @@ import { CreateQueryUtils } from '@trpc/react-query/shared'
 import { Buffer } from 'buffer-polyfill'
 import { useEffect, useRef, useState } from 'react'
 import { UseDataFunctionReturn, useTypedLoaderData } from 'remix-typedjson'
+import { AppRouter } from '~/server/types/router'
 import stylesheet from '~/styles/tailwind.css?url'
 import { ErrorDisplay } from './components/pages/error'
 import { Document } from './document'
@@ -136,7 +136,7 @@ const App = function () {
     const trpcClient = trpc.createClient({
       links: [
         httpBatchLink({
-          url: 'http://localhost:3003/trpc',
+          url: '/trpc',
           // You can pass any HTTP headers you wish here
           async fetch(url, options) {
             const token = await getToken()
@@ -158,7 +158,7 @@ const App = function () {
       window.trpcClient = createTRPCClient({
         links: [
           httpBatchLink({
-            url: 'http://localhost:3003/trpc',
+            url: '/trpc',
             // You can pass any HTTP headers you wish here
             async fetch(url, options) {
               const token = await getToken()

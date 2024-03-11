@@ -1,7 +1,10 @@
 import { logger } from '@bchouse/utils'
+import { ClerkExpressWithAuth } from '@clerk/clerk-sdk-node'
 import { createRequestHandler as expressCreateRequestHandler } from '@remix-run/express'
 import { installGlobals } from '@remix-run/node'
 import { wrapExpressCreateRequestHandler } from '@sentry/remix'
+import { createServerSideHelpers } from '@trpc/react-query/server'
+import { createExpressMiddleware } from '@trpc/server/adapters/express'
 import compression from 'compression'
 import express from 'express'
 import gracefulShutdown from 'http-graceful-shutdown'
@@ -9,7 +12,8 @@ import morgan from 'morgan'
 import * as path from 'node:path'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { getServerClient } from '~/utils/trpc.server'
+import { appRouter } from './router/index'
+import { createCallerContext, createContext } from './trpc'
 
 const createRequestHandler = wrapExpressCreateRequestHandler(
   expressCreateRequestHandler
@@ -24,40 +28,51 @@ const currentModulePath = fileURLToPath(currentModuleUrl)
 const currentModuleDirectory = dirname(currentModulePath)
 
 const BUILD_DIR = path.resolve(currentModuleDirectory, '../build/')
-const ASSETS_DIR = path.resolve(currentModuleDirectory, '../public')
-const BUILD_ASSETS_DIR = path.resolve(ASSETS_DIR, './public')
-const BUILD_PATH = path.join(BUILD_DIR, 'index.js')
+const CLIENT_BUILD_PATH = path.resolve(BUILD_DIR, './client')
+const CLIENT_ASSETS_PATH = path.resolve(CLIENT_BUILD_PATH, './assets')
+const SERVER_BUILD_PATH = path.join(BUILD_DIR, './server/index.js')
 
-const app = express()
+async function createAppRoutes() {
+  const app = express()
+  app.use(compression())
 
-app.use(compression())
+  // http://expressjs.com/en/advanced/best-practice-security.html#at-a-minimum-disable-x-powered-by-header
+  app.disable('x-powered-by')
 
-// http://expressjs.com/en/advanced/best-practice-security.html#at-a-minimum-disable-x-powered-by-header
-app.disable('x-powered-by')
+  app.use(ClerkExpressWithAuth())
+  app.use(
+    '/trpc',
+    createExpressMiddleware({
+      router: appRouter,
+      createContext,
+    })
+  )
 
-async function startup() {
-  logger.info('BUILD_PATH:', BUILD_PATH)
-  // let build = await import(pathToFileURL(BUILD_PATH).href)
+  const getLoadContext = (req: express.Request, res: express.Response) => {
+    const trpc = createServerSideHelpers({
+      router: appRouter,
+      ctx: createCallerContext({ req, res }),
+    })
 
-  let requestHandler
-  if (process.env.NODE_ENV === 'production') {
-    app.use('/assets', express.static('build/client/assets', { maxAge: '1y' }))
-
-    requestHandler = createRequestHandler({
-      build: await import('./build/server/index.js'),
-      mode: process.env.NODE_ENV,
-      getLoadContext(req: express.Request) {
-        const trpc = getServerClient(req)
-
+    return {
+      trpc,
+      getDehydratedState: () => {
         return {
-          trpc,
-          getDehydratedState: () => {
-            return {
-              dehydratedState: trpc.dehydrate(),
-            }
-          },
+          dehydratedState: trpc.dehydrate(),
         }
       },
+    }
+  }
+
+  let requestHandler
+
+  if (process.env.NODE_ENV === 'production') {
+    app.use('/assets', express.static(CLIENT_ASSETS_PATH, { maxAge: '1y' }))
+
+    requestHandler = createRequestHandler({
+      build: await import(SERVER_BUILD_PATH),
+      mode: process.env.NODE_ENV,
+      getLoadContext,
     })
   } else {
     const viteDevServer = await import('vite').then((vite) =>
@@ -71,22 +86,11 @@ async function startup() {
     requestHandler = createRequestHandler({
       build: () => viteDevServer.ssrLoadModule('virtual:remix/server-build'),
       mode: 'development',
-      getLoadContext(req: express.Request) {
-        const trpc = getServerClient(req)
-
-        return {
-          trpc,
-          getDehydratedState: () => {
-            return {
-              dehydratedState: trpc.dehydrate(),
-            }
-          },
-        }
-      },
+      getLoadContext,
     })
   }
 
-  app.use(express.static('build/client', { maxAge: '1h' }))
+  app.use(express.static(CLIENT_BUILD_PATH, { maxAge: '1h' }))
 
   app.use(
     morgan('tiny', {
@@ -102,6 +106,15 @@ async function startup() {
 
   app.use('*', requestHandler)
 
+  return app
+}
+
+async function startup() {
+  logger.info('SERVER_BUILD_PATH:', SERVER_BUILD_PATH)
+  logger.info('CLIENT_BUILD_PATH:', CLIENT_BUILD_PATH)
+  logger.info('CLIENT_ASSETS_PATH:', CLIENT_ASSETS_PATH)
+
+  const app = await createAppRoutes()
   const port = process.env.BCHOUSE_PORT || 3000
   const server = app.listen(port, async () => {
     logger.info(`Express server listening on port ${port}`)

@@ -1,4 +1,3 @@
-import { Activity } from '@bchouse/api/src/services/services/redis/activity'
 import { moment, prettyPrintSats } from '@bchouse/utils'
 import { ArrowPathIcon, HeartIcon, UserIcon } from '@heroicons/react/20/solid'
 import { LoaderFunctionArgs } from '@remix-run/node'
@@ -13,6 +12,7 @@ import {
   ReplyCard,
 } from '~/components/post/card/implementations/notification-cards'
 import { classnames } from '~/components/utils/classnames'
+import { Activity } from '~/server/services/services/redis/activity'
 import { classNames } from '~/utils/classNames'
 import { trpc } from '~/utils/trpc'
 

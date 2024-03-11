@@ -69,9 +69,6 @@
     }, 
     {
       "path": "../../packages/inngest"
-    },
-    {
-      "path": "../api"
     }
   ]
 }
