@@ -8,7 +8,8 @@
 		"./server/**/*.json",
     "./server.ts",
     "./env.d.ts",
-    "./types/**/*.ts" 
+    "./types/**/*.ts",
+    "./vite.config.ts"
   ],
   "exclude": ["../../**/node_modules", "**/.*/"],
   "compilerOptions": {

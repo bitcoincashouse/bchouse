@@ -1,13 +1,18 @@
 import { vitePlugin as remix } from '@remix-run/dev'
 import { flatRoutes } from 'remix-flat-routes'
 import { defineConfig } from 'vite'
-//@ts-ignore
 import { cjsInterop } from 'vite-plugin-cjs-interop'
 import tsConfigPaths from 'vite-tsconfig-paths'
+
 export default defineConfig({
+  ssr: {
+    noExternal: ['react-easy-crop'],
+  },
   plugins: [
     tsConfigPaths(),
-    cjsInterop({}),
+    cjsInterop({
+      dependencies: ['@algolia/autocomplete-js', 'react-easy-crop'],
+    }),
     remix({
       serverModuleFormat: 'esm',
       // serverDependenciesToBundle: [
