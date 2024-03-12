@@ -106,7 +106,6 @@ export default function Index() {
 
   const campaign = trpc.post.campaign.useQuery(
     {
-      username: username!,
       statusId: statusId!,
     },
     {
