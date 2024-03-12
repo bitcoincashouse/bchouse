@@ -6,7 +6,14 @@ import tsConfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig({
   ssr: {
-    noExternal: ['react-easy-crop'],
+    noExternal: [
+      'react-easy-crop',
+      'lucide-react',
+      '@heroicons/react/24/outline',
+      '@heroicons/react/24/solid',
+      '@heroicons/react/16/solid',
+      '@heroicons/react/16/outline',
+    ],
   },
   plugins: [
     tsConfigPaths(),
