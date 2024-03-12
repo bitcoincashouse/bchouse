@@ -10,7 +10,6 @@
     "start": "cross-env NODE_ENV=production node -r dotenv/config ./build/server.js  dotenv_config_path=../../_development.env",
     "clean": "rimraf build public/build .cache",
     "postinstall": "is-docker && echo 'Skipping post-install' || run-p postinstall:*",
-    "postinstall:patch": "patch-package --patch-dir ../../patches",
     "postinstall:routes": "remix-routes",
     "icons": "npx @svgr/cli --silent --out-dir app/components/icons -- public/assets/img",
     "icons:watch": "npm-watch icons",
