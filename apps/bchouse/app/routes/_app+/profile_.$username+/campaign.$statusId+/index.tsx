@@ -20,7 +20,7 @@ export const handle = {
 }
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  const { username, statusId } = zx.parseParams(_.params, {
+  const { statusId } = zx.parseParams(_.params, {
     username: z.string(),
     statusId: z.string(),
   })
