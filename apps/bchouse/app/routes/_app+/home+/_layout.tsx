@@ -9,6 +9,7 @@ import {
 import { useMemo } from 'react'
 import { $path } from 'remix-routes'
 import { redirect } from 'remix-typedjson'
+import { getTrpc } from '~/.server/getTrpc'
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { PostForm } from '~/components/post/form/implementations/post-form'
@@ -33,8 +34,9 @@ export const loader = async (_: LoaderFunctionArgs) => {
     }
   }
 
-  await _.context.trpc.metrics.stats.prefetch()
-  return _.context.getDehydratedState()
+  return getTrpc(_, async (trpc) => {
+    await trpc.metrics.stats.prefetch()
+  })
 }
 
 export const clientLoader = async (_: ClientLoaderFunctionArgs) => {

@@ -1,6 +1,7 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { NavLink, Outlet, useParams } from '@remix-run/react'
 import { z } from 'zod'
+import { getTrpc } from '~/.server/getTrpc'
 import { ActionsPanel } from '~/components/actions'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { classNames } from '~/utils/classNames'
@@ -12,11 +13,11 @@ export const loader = async (_: LoaderFunctionArgs) => {
     username: z.string().nonempty(),
   })
 
-  await _.context.trpc.profile.getPublicProfile.prefetch({
-    username,
-  })
-
-  return _.context.getDehydratedState()
+  return getTrpc(_, (trpc) =>
+    trpc.profile.getPublicProfile.prefetch({
+      username,
+    })
+  )
 }
 
 const tabs = [

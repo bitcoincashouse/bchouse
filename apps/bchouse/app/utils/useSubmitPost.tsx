@@ -5,7 +5,7 @@ import { AudienceType } from '~/components/post/form/audience-dropdown'
 import { serializeForServer } from '~/components/post/form/tiptap-extensions'
 import { Monetization } from '~/components/post/types'
 import { uploadPostMedia } from '~/components/utils/uploadPostMedia'
-import { CreatePostParams } from '~/server/types/post'
+import { CreatePostParams } from '../server/types/post'
 
 export type SubmitPostInput = {
   body: JSONContent

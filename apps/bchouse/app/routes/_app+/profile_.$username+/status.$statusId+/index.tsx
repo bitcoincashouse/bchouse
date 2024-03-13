@@ -8,6 +8,7 @@ import {
 import { generateText } from '@tiptap/core'
 import { useMemo } from 'react'
 import { z } from 'zod'
+import { getTrpc } from '~/.server/getTrpc'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { getExtensions } from '~/components/post/form/tiptap-extensions'
 import { Thread } from '~/components/threads/thread'
@@ -27,11 +28,11 @@ export const loader = async (_: LoaderFunctionArgs) => {
     statusId: z.string(),
   })
 
-  await _.context.trpc.post.status.prefetch({
-    statusId,
-  })
-
-  return _.context.getDehydratedState()
+  return getTrpc(_, (trpc) =>
+    trpc.post.status.prefetch({
+      statusId,
+    })
+  )
 }
 
 export const clientLoader = async (_: ClientLoaderFunctionArgs) => {

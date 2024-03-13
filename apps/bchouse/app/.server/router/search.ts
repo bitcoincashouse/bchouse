@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { redisService, searchService } from '../services/getContext'
 import { PostCardModel } from '../services/services/types'
 import { publicProcedure, router } from '../trpc'
 
@@ -13,8 +14,8 @@ export const searchRouter = router({
         return [] as PostCardModel[]
       }
 
-      const results = await opts.ctx.searchService.searchPosts(q)
-      const posts = await opts.ctx.redisService.getPosts(
+      const results = await searchService.searchPosts(q)
+      const posts = await redisService.getPosts(
         results.hits?.map((result) => ({
           id: result.document.id,
           publishedById: result.document.post_author_id,
@@ -27,10 +28,10 @@ export const searchRouter = router({
   search: publicProcedure
     .input(z.object({ q: z.string().optional() }))
     .query(async (opts) => {
-      // await opts.ctx.ratelimit.limitByIp(_, 'api', true, 'search')
+      // await ratelimit.limitByIp(_, 'api', true, 'search')
 
       const { q = '' } = opts.input
-      return await opts.ctx.searchService.searchPosts(q)
+      return await searchService.searchPosts(q)
     }),
   searchHashtag: publicProcedure
     .input(z.object({ hashtag: z.string() }))
@@ -38,8 +39,8 @@ export const searchRouter = router({
       const { userId } = opts.ctx.auth
       const { hashtag } = opts.input
 
-      const results = await opts.ctx.searchService.searchPosts(hashtag)
-      const posts = await opts.ctx.redisService.getPosts(
+      const results = await searchService.searchPosts(hashtag)
+      const posts = await redisService.getPosts(
         results.hits?.map((result) => ({
           id: result.document.id,
           publishedById: result.document.post_author_id,

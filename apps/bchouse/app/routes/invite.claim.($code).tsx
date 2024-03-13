@@ -3,6 +3,7 @@ import { LoaderFunctionArgs } from '@remix-run/node'
 import { useNavigate, useParams } from '@remix-run/react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { getTrpc } from "~/.server/getTrpc"
 import { trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
 
@@ -11,8 +12,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
     code: z.string().optional(),
   })
 
-  await _.context.trpc.profile.getInvite.prefetch({ code })
-  return _.context.getDehydratedState()
+  return getTrpc(_, (trpc) => trpc.profile.getInvite.prefetch({ code }))
 }
 
 export default function Index() {

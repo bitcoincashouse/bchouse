@@ -1,6 +1,14 @@
 import { logger } from '@bchouse/utils'
 import { TRPCError } from '@trpc/server'
 import { z, ZodError } from 'zod'
+import {
+  feedService,
+  imageService,
+  paygateUrl,
+  postService,
+  profileService,
+  userService,
+} from '../services/getContext'
 import { publicProcedure, router } from '../trpc'
 import { postSchema } from '../types/post'
 
@@ -66,7 +74,7 @@ const tipInput = z.object({
 
 export const postRouter = router({
   uploadMedia: publicProcedure.input(uploadInput).mutation(async (opts) => {
-    // await opts.ctx.ratelimit.limitByIp(_, 'api', true)
+    // await ratelimit.limitByIp(_, 'api', true)
 
     const { userId } = opts.ctx.auth
 
@@ -78,11 +86,11 @@ export const postRouter = router({
 
     const params = opts.input
 
-    return await opts.ctx.imageService.createUploadRequest(userId, params)
+    return await imageService.createUploadRequest(userId, params)
   }),
   post: publicProcedure.input(postSchema).mutation(async (opts) => {
     try {
-      // await opts.ctx.ratelimit.limitByIp(_, 'api', true)
+      // await ratelimit.limitByIp(_, 'api', true)
 
       const { userId } = opts.ctx.auth
 
@@ -94,7 +102,7 @@ export const postRouter = router({
 
       const form = opts.input
 
-      const newPostId = await opts.ctx.postService.addPost(
+      const newPostId = await postService.addPost(
         userId,
         'parentPost' in form
           ? {
@@ -133,7 +141,7 @@ export const postRouter = router({
     }
   }),
   postAction: publicProcedure.input(postActionSchema).mutation(async (opts) => {
-    // await opts.ctx.ratelimit.limitByIp(_, 'api', true)
+    // await ratelimit.limitByIp(_, 'api', true)
 
     const { userId, sessionId } = opts.ctx.auth
     const { action, postId, authorId } = opts.input
@@ -143,50 +151,45 @@ export const postRouter = router({
     }
 
     if (action === 'post:remove') {
-      await opts.ctx.postService.removePost(userId, postId)
+      await postService.removePost(userId, postId)
     } else if (action === 'repost:add') {
-      await opts.ctx.postService.addRepost(userId, postId, authorId)
+      await postService.addRepost(userId, postId, authorId)
     } else if (action === 'repost:remove') {
-      await opts.ctx.postService.removeRepost(userId, postId, authorId)
+      await postService.removeRepost(userId, postId, authorId)
     } else if (action === 'like:add') {
-      await opts.ctx.postService.addPostLike(userId, postId, authorId)
+      await postService.addPostLike(userId, postId, authorId)
     } else if (action === 'like:remove') {
-      await opts.ctx.postService.removePostLike(userId, postId, authorId)
+      await postService.removePostLike(userId, postId, authorId)
     } else if (action === 'mute:add') {
-      await opts.ctx.userService.addMute(userId, authorId)
+      await userService.addMute(userId, authorId)
     } else if (action === 'mute:remove') {
-      await opts.ctx.userService.removeMute(userId, authorId)
+      await userService.removeMute(userId, authorId)
     } else if (action === 'block:add') {
-      await opts.ctx.userService.addBlock(userId, authorId)
+      await userService.addBlock(userId, authorId)
     } else if (action === 'block:remove') {
-      await opts.ctx.userService.removeBlock(userId, authorId)
+      await userService.removeBlock(userId, authorId)
     } else if (action === 'report') {
-      await opts.ctx.postService.reportPost(userId, postId)
+      await postService.reportPost(userId, postId)
     } else if (action === 'follow:add') {
-      await opts.ctx.profileService.addUserFollow(userId, sessionId, authorId)
+      await profileService.addUserFollow(userId, sessionId, authorId)
     } else if (action === 'follow:remove') {
-      await opts.ctx.profileService.removeUserFollow(
-        userId,
-        sessionId,
-        authorId
-      )
+      await profileService.removeUserFollow(userId, sessionId, authorId)
     }
 
     return {}
   }),
   paymentRequestTip: publicProcedure.input(tipInput).query(async (opts) => {
-    // await opts.ctx.ratelimit.limitByIp(_, 'api', true)
+    // await ratelimit.limitByIp(_, 'api', true)
 
     const { userId } = await opts.ctx.auth
     const { amount, postId } = opts.input
 
-    const { paymentUrl, invoiceId } =
-      await opts.ctx.postService.createTipInvoice({
-        postId,
-        userId,
-        amount,
-        paygateUrl: opts.ctx.paygateUrl,
-      })
+    const { paymentUrl, invoiceId } = await postService.createTipInvoice({
+      postId,
+      userId,
+      amount,
+      paygateUrl: paygateUrl,
+    })
 
     return {
       paymentUrl,
@@ -199,7 +202,7 @@ export const postRouter = router({
       const { userId } = opts.ctx.auth
       const { postId } = opts.input
 
-      const mainPost = await opts.ctx.postService.getPost(userId, postId)
+      const mainPost = await postService.getPost(userId, postId)
 
       return mainPost
     }),
@@ -210,7 +213,7 @@ export const postRouter = router({
       const { statusId: postId } = opts.input
 
       const { ancestors, mainPost, children, previousCursor, nextCursor } =
-        await opts.ctx.postService.getPostWithChildren(userId, postId)
+        await postService.getPostWithChildren(userId, postId)
 
       //TODO: Fetch parents dynamically
       return {
@@ -236,7 +239,7 @@ export const postRouter = router({
         donorPosts,
         children,
         nextCursor,
-      } = await opts.ctx.postService.getCampaignPostWithChildren(userId, postId)
+      } = await postService.getCampaignPostWithChildren(userId, postId)
 
       //TODO: Fetch parents dynamically
       return {
@@ -250,12 +253,12 @@ export const postRouter = router({
     }),
   feed: publicProcedure.input(feedInput).query(async (opts) => {
     try {
-      // await opts.ctx.ratelimit.limitByIp(_, 'api', true)
+      // await ratelimit.limitByIp(_, 'api', true)
 
       const { userId } = opts.ctx.auth
       const { id, type, cursor } = opts.input
 
-      const result = await opts.ctx.feedService.getFeed(
+      const result = await feedService.getFeed(
         id,
         userId,
         type,

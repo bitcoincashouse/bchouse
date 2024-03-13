@@ -1,5 +1,6 @@
 import { logger } from '@bchouse/utils'
 import { z } from 'zod'
+import { postService } from '../services/getContext'
 import { publicProcedure, router } from '../trpc'
 
 export const moderationRouter = router({
@@ -16,7 +17,7 @@ export const moderationRouter = router({
         const { action, secret, postId } = opts.input
 
         if (process.env.API_SECRET && secret == process.env.API_SECRET) {
-          await opts.ctx.postService.postModerationAction(action, postId)
+          await postService.postModerationAction(action, postId)
         }
 
         return true

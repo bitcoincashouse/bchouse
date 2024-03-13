@@ -1,5 +1,11 @@
 import { logger } from '@bchouse/utils'
 import { z } from 'zod'
+import {
+  bchouseUrl,
+  campaignService,
+  paygateUrl,
+  pledgeService,
+} from '../services/getContext'
 import { publicProcedure, router } from '../trpc'
 
 const anyonecanpayInput = z.object({
@@ -30,7 +36,7 @@ export const campaignRouter = router({
     // const pledgeSession = await getPledgeSession(_.request)
     // const pledgeSecrets = pledgeSession.getPledgeSecrets()
 
-    const pledges = await opts.ctx.pledgeService.getPledges({
+    const pledges = await pledgeService.getPledges({
       userId,
       pledgeSecrets: [],
     })
@@ -53,12 +59,10 @@ export const campaignRouter = router({
 
       const username = opts.input.username
 
-      const activeCampaigns = await opts.ctx.campaignService.getActiveCampaigns(
-        {
-          limit: 2,
-          username,
-        }
-      )
+      const activeCampaigns = await campaignService.getActiveCampaigns({
+        limit: 2,
+        username,
+      })
 
       return activeCampaigns.map((c) => ({
         id: c.id,
@@ -78,9 +82,7 @@ export const campaignRouter = router({
 
       const { campaignId } = opts.input
 
-      const result = await opts.ctx.campaignService.getUiContributions(
-        campaignId
-      )
+      const result = await campaignService.getUiContributions(campaignId)
       return result
     }),
   listContributions: publicProcedure
@@ -90,9 +92,7 @@ export const campaignRouter = router({
 
       const { campaignId } = opts.input
 
-      const result = await opts.ctx.campaignService.getAllContributions(
-        campaignId
-      )
+      const result = await campaignService.getAllContributions(campaignId)
       return result
     }),
   submitComment: publicProcedure.input(commentInput).mutation(async (opts) => {
@@ -105,7 +105,7 @@ export const campaignRouter = router({
         return false
       }
 
-      const success = await opts.ctx.pledgeService.addComment({
+      const success = await pledgeService.addComment({
         name,
         comment,
         secret,
@@ -124,11 +124,10 @@ export const campaignRouter = router({
 
         const { campaignId, payload } = opts.input
 
-        const isValid =
-          await opts.ctx.campaignService.validateAnyonecanpayPledge(
-            campaignId,
-            payload
-          )
+        const isValid = await campaignService.validateAnyonecanpayPledge(
+          campaignId,
+          payload
+        )
 
         return { isValid }
       } catch (err) {
@@ -144,7 +143,7 @@ export const campaignRouter = router({
       const { userId } = opts.ctx.auth
       const { campaignId, payload } = opts.input
 
-      const result = await opts.ctx.campaignService.submitAnyonecanpayPledge(
+      const result = await campaignService.submitAnyonecanpayPledge(
         campaignId,
         payload,
         userId
@@ -167,13 +166,13 @@ export const campaignRouter = router({
       } = opts.input
 
       const { paymentUrl, invoiceId, network, secret } =
-        await opts.ctx.pledgeService.createInvoice({
+        await pledgeService.createInvoice({
           campaignId,
           userId,
-          paygateUrl: opts.ctx.paygateUrl,
+          paygateUrl: paygateUrl,
           amount: satoshis,
           refundAddress: returnAddress,
-          bchouseUrl: opts.ctx.bchouseUrl,
+          bchouseUrl: bchouseUrl,
         })
 
       let headers = {} as Record<string, string>
@@ -196,7 +195,7 @@ export const campaignRouter = router({
     .input(z.object({ secret: z.string() }))
     .query(async (opts) => {
       const { secret } = opts.input
-      const pledge = await opts.ctx.pledgeService.getPledgeBySecret({ secret })
+      const pledge = await pledgeService.getPledgeBySecret({ secret })
       return {
         ...pledge,
         satoshis: pledge.satoshis.toString(),
@@ -215,7 +214,7 @@ export const campaignRouter = router({
         // await opts.ctx.ratelimit.limitByIp(_, 'api', true)
 
         const { secret } = opts.input
-        const result = await opts.ctx.pledgeService.cancelPledge({ secret })
+        const result = await pledgeService.cancelPledge({ secret })
         return result
       } catch (err) {
         logger.error(err)

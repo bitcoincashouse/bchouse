@@ -1,6 +1,7 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { useNavigate } from '@remix-run/react'
 import { useEffect } from 'react'
+import { getTrpc } from '~/.server/getTrpc'
 import { ClientOnly } from '~/components/client-only'
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { MentionCard } from '~/components/post/card/implementations/notification-cards'
@@ -8,8 +9,7 @@ import { classnames } from '~/components/utils/classnames'
 import { trpc } from '~/utils/trpc'
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  await _.context.trpc.profile.getMentionNotifications.prefetch()
-  return _.context.getDehydratedState()
+  return getTrpc(_, (trpc) => trpc.profile.getMentionNotifications.prefetch())
 }
 
 export default function Index() {

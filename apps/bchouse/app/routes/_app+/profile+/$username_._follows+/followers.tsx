@@ -1,6 +1,7 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { useParams } from '@remix-run/react'
 import { z } from 'zod'
+import { getTrpc } from '~/.server/getTrpc'
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { UserCard } from '~/components/user-card'
 import { trpc } from '~/utils/trpc'
@@ -8,8 +9,7 @@ import { zx } from '~/utils/zodix'
 
 export const loader = async (_: LoaderFunctionArgs) => {
   const { username } = zx.parseParams(_.params, { username: z.string() })
-  await _.context.trpc.profile.listFollowers.prefetch({ username })
-  return _.context.getDehydratedState()
+  return getTrpc(_, (trpc) => trpc.profile.listFollowers.prefetch({ username }))
 }
 
 export default function Index() {

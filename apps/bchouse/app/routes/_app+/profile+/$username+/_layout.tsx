@@ -19,6 +19,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { Link } from '@remix-run/react'
 // import QRCode from 'qrcode-svg'
+import { getTrpc } from '~/.server/getTrpc'
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { Avatar } from '~/components/avatar'
 import { FollowButton } from '~/components/follow-button'
@@ -37,11 +38,11 @@ export const loader = async (_: LoaderFunctionArgs) => {
     username: z.string().nonempty(),
   })
 
-  await _.context.trpc.profile.getPublicProfile.prefetch({
-    username,
-  })
-
-  return _.context.getDehydratedState()
+  return getTrpc(_, (trpc) =>
+    trpc.profile.getPublicProfile.prefetch({
+      username,
+    })
+  )
 }
 
 export const clientLoader = async (_: ClientLoaderFunctionArgs) => {

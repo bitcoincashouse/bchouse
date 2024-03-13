@@ -3,6 +3,7 @@ import { LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useParams } from '@remix-run/react'
 import { useMemo } from 'react'
 import { z } from 'zod'
+import { getTrpc } from '~/.server/getTrpc'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { classnames } from '~/components/utils/classnames'
 import { trpc } from '~/utils/trpc'
@@ -13,8 +14,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
     secret: z.string(),
   })
 
-  await _.context.trpc.campaign.getPledge.prefetch({ secret })
-  return _.context.getDehydratedState()
+  return getTrpc(_, (trpc) => trpc.campaign.getPledge.prefetch({ secret }))
 }
 
 export const handle = {

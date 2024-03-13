@@ -1,6 +1,7 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { ClientLoaderFunctionArgs, useSearchParams } from '@remix-run/react'
 import { z } from 'zod'
+import { getTrpc } from '~/.server/getTrpc'
 import { StandardPostCard } from '~/components/post/card/implementations/standard-post-card'
 import { trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
@@ -10,9 +11,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
     q: z.string().optional(),
   })
 
-  await _.context.trpc.search.explore.prefetch({ q })
-
-  return _.context.getDehydratedState()
+  return getTrpc(_, (trpc) => trpc.search.explore.prefetch({ q }))
 }
 
 export const clientLoader = async (_: ClientLoaderFunctionArgs) => {

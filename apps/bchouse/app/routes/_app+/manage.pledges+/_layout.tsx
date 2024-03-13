@@ -1,5 +1,6 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { NavLink, Outlet } from '@remix-run/react'
+import { getTrpc } from '~/.server/getTrpc'
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { StatsWidget } from '~/components/stats-widget'
@@ -34,8 +35,7 @@ export function usePledgesLoaderData() {
 }
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  await _.context.trpc.campaign.listPledges.prefetch()
-  return _.context.getDehydratedState()
+  return getTrpc(_, (trpc) => trpc.campaign.listPledges.prefetch())
 }
 
 export default function Index() {

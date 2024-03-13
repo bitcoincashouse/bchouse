@@ -3,6 +3,7 @@ import { ArrowPathIcon, HeartIcon, UserIcon } from '@heroicons/react/20/solid'
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useNavigate } from '@remix-run/react'
 import { $path } from 'remix-routes'
+import { getTrpc } from '~/.server/getTrpc'
 import { Avatar } from '~/components/avatar'
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { BitcoinIcon } from '~/components/icons/BitcoinIcon'
@@ -12,13 +13,12 @@ import {
   ReplyCard,
 } from '~/components/post/card/implementations/notification-cards'
 import { classnames } from '~/components/utils/classnames'
-import { Activity } from '~/server/services/services/redis/activity'
 import { classNames } from '~/utils/classNames'
 import { trpc } from '~/utils/trpc'
+import { Activity } from '../../../server/services/services/redis/activity'
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  await _.context.trpc.profile.getNotifications.prefetch()
-  return _.context.getDehydratedState()
+  return getTrpc(_, (trpc) => trpc.profile.getNotifications.prefetch())
 }
 
 export default function Index() {

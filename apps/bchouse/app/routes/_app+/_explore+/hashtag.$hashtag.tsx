@@ -1,6 +1,7 @@
 import { LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { UIMatch } from '@remix-run/react'
 import { z } from 'zod'
+import { getTrpc } from '~/.server/getTrpc'
 import { StandardPostCard } from '~/components/post/card/implementations/standard-post-card'
 import { trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
@@ -18,9 +19,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
 
   if (!hashtag) throw redirect('/explore')
 
-  await _.context.trpc.search.searchHashtag.prefetch()
-
-  return _.context.getDehydratedState()
+  return getTrpc(_, (trpc) => trpc.search.searchHashtag.prefetch())
 }
 
 export default function Index() {

@@ -10,7 +10,8 @@ dist
 .cert
 .env
 .production
-*.env
+.env
+.env.*
 *.cert
 !example.env
 

@@ -15,10 +15,13 @@ export default defineConfig({
       '@heroicons/react/16/outline',
     ],
   },
+  server: {
+    port: 3000,
+  },
   plugins: [
     tsConfigPaths(),
     cjsInterop({
-      dependencies: ['@algolia/autocomplete-js', 'react-easy-crop'],
+      dependencies: ['@algolia/autocomplete-js', 'react-easy-crop', 'tslib'],
     }),
     remix({
       serverModuleFormat: 'esm',
@@ -29,12 +32,13 @@ export default defineConfig({
       // ],
       // watchPaths: ['./tailwind.config.mjs', './remix.config.mjs'],
       // serverBuildPath: './build/index.js',
-      assetsBuildDirectory: './public/build',
+      // assetsBuildDirectory: './public/build',
       // tailwind: true,
       // postcss: true,
       future: {
         v3_fetcherPersist: true,
       },
+
       // browserNodeBuiltinsPolyfill: {
       //   modules: {
       //     stream: true,

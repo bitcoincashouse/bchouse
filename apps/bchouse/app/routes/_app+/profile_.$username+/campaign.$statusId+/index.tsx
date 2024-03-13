@@ -2,6 +2,7 @@ import { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { useLocation, useParams } from '@remix-run/react'
 import { generateText } from '@tiptap/core'
 import { z } from 'zod'
+import { getTrpc } from '~/.server/getTrpc'
 import { ClientOnly } from '~/components/client-only'
 import { DonationWidget } from '~/components/donation-widget'
 import { StandardLayout } from '~/components/layouts/standard-layout'
@@ -25,11 +26,11 @@ export const loader = async (_: LoaderFunctionArgs) => {
     statusId: z.string(),
   })
 
-  await _.context.trpc.post.campaign.prefetch({
-    statusId,
-  })
-
-  return _.context.getDehydratedState()
+  return getTrpc(_, (trpc) =>
+    trpc.post.campaign.prefetch({
+      statusId,
+    })
+  )
 }
 
 export const meta: MetaFunction<typeof loader> = ({
