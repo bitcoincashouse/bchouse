@@ -1,4 +1,11 @@
-import { decodeCashAddressFormat } from '@bitauth/libauth'
+import {
+  binToHex,
+  cashAddressToLockingBytecode,
+  decodeCashAddressFormat,
+  isPayToPublicKeyHash,
+  isPayToScriptHash20,
+  lockingBytecodeToAddressContents,
+} from '@bitauth/libauth'
 import { z } from 'zod'
 import { logger } from './logger'
 export const SATS_PER_BCH = 100000000
@@ -49,28 +56,28 @@ export function detectAddressNetwork(address: string): Network | null {
 }
 
 export function addressToHash160(address: string) {
-  // const addressBytecode = cashAddressToLockingBytecode(address)
-  // if (typeof addressBytecode === 'string') {
-  //   throw new Error('Invalid address')
-  // }
-  // const addrContent = lockingBytecodeToAddressContents(addressBytecode.bytecode)
-  // if (typeof addrContent === 'string') {
-  //   throw new Error('Invalid address bytecode')
-  // }
-  // return binToHex(addrContent.payload)
+  const addressBytecode = cashAddressToLockingBytecode(address)
+  if (typeof addressBytecode === 'string') {
+    throw new Error('Invalid address')
+  }
+  const addrContent = lockingBytecodeToAddressContents(addressBytecode.bytecode)
+  if (typeof addrContent === 'string') {
+    throw new Error('Invalid address bytecode')
+  }
+  return binToHex(addrContent.payload)
 }
 
 export function isStandardCashAddress(bytecode: Buffer | Uint8Array) {
-  // return isPayToPublicKeyHash(bytecode) || isPayToScriptHash20(bytecode)
+  return isPayToPublicKeyHash(bytecode) || isPayToScriptHash20(bytecode)
 }
 
 export function addressToBytecode(address: string) {
-  // const addressBytecode = cashAddressToLockingBytecode(address)
-  // if (typeof addressBytecode === 'string') {
-  //   throw new Error('Invalid address')
-  // }
-  // if (!isStandardCashAddress(addressBytecode.bytecode)) {
-  //   throw new Error('Non-standard address')
-  // }
-  // return addressBytecode.bytecode
+  const addressBytecode = cashAddressToLockingBytecode(address)
+  if (typeof addressBytecode === 'string') {
+    throw new Error('Invalid address')
+  }
+  if (!isStandardCashAddress(addressBytecode.bytecode)) {
+    throw new Error('Non-standard address')
+  }
+  return addressBytecode.bytecode
 }

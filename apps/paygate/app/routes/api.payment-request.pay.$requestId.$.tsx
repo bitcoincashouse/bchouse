@@ -1,6 +1,7 @@
 import { logger } from '@bchouse/utils'
 import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { z } from 'zod'
+import { paygateService } from '~/.server/getContext'
 import { cors } from '~/utils/cors'
 import { zx } from '~/utils/zodix'
 
@@ -20,7 +21,7 @@ export async function loader(_: LoaderFunctionArgs) {
       requestId: z.string(),
     })
 
-    return await _.context.paygateService.handlePaymentRequest(requestId, {
+    return await paygateService.handlePaymentRequest(requestId, {
       method: 'GET',
       headers: _.request.headers,
       body: await _.request.arrayBuffer(),
@@ -40,7 +41,7 @@ export async function action(_: ActionFunctionArgs) {
       requestId: z.string(),
     })
 
-    return _.context.paygateService.handlePaymentRequest(requestId, {
+    return paygateService.handlePaymentRequest(requestId, {
       method: 'POST',
       headers: _.request.headers,
       body: await _.request.arrayBuffer(),

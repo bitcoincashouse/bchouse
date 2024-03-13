@@ -1,16 +1,20 @@
 import {
+  Network,
+  addressToBytecode,
+  getPrefix,
+  logger,
+  trimPrefix,
+} from '@bchouse/utils'
+import {
   decodeTransaction,
   hashTransaction,
   lockingBytecodeToCashAddress,
 } from '@bitauth/libauth'
-//@ts-ignore
-import { Network, getPrefix, trimPrefix } from '@bchouse/utils'
-import PaymentProtocol from 'bitcore-payment-protocol'
 import { z } from 'zod'
-import { logger } from '../../../utils/logger'
 import { ElectrumNetworkProviderService } from '../../utils/getElectrumProvider'
-import { addressToBytecode } from '../@bchouse/utils'
 import { HandleSuccessFn, PaymentOptions } from './types'
+//@ts-ignore
+import PaymentProtocol from 'bitcore-payment-protocol'
 
 type ByteBuffer = {
   toArrayBuffer: () => ArrayBuffer
@@ -27,8 +31,11 @@ export async function handleBIP70PaymentRequest(
 ) {
   const recieverBytecode = addressToBytecode(receiverAddress)
   const bipOutput = new PaymentProtocol().makeOutput()
+  console.log('1')
   bipOutput.set('amount', receiverAmount.toString())
+  console.log('2', recieverBytecode)
   bipOutput.set('script', recieverBytecode)
+  console.log('3')
 
   const outputs = [bipOutput.message]
   const time = (Date.now() / 1000) | 0

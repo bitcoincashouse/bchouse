@@ -1,6 +1,9 @@
+/// <reference types="@remix-run/dev" />
+/// <reference types="@remix-run/node" />
+
 import type { DataFunctionArgs } from '@remix-run/node'
 import type { RouteMatch } from '@remix-run/react'
-import type { Context } from '../getContext'
+import type { Context } from './app/.server/getContext'
 
 declare module '@remix-run/node' {
   export interface LoaderFunctionArgs extends DataFunctionArgs {

@@ -2,6 +2,7 @@ import { invoicePaymentEventsV1 } from '@bchouse/inngest'
 import { getPrefix } from '@bchouse/utils'
 import { ActionFunctionArgs, json } from '@remix-run/node'
 import { z } from 'zod'
+import { paygateService, paygateUrl } from '~/.server/getContext'
 
 export const action = async (_: ActionFunctionArgs) => {
   const formData = await _.request.json()
@@ -22,7 +23,7 @@ export const action = async (_: ActionFunctionArgs) => {
     })
     .parse(formData)
 
-  const invoice = await _.context.paygateService.createInvoice({
+  const invoice = await paygateService.createInvoice({
     amount,
     address,
     network,
@@ -30,7 +31,6 @@ export const action = async (_: ActionFunctionArgs) => {
     memo,
   })
 
-  const paygateUrl = _.context.paygateUrl
   const prefix = getPrefix(network)
   return json({
     paymentUrl: `${prefix}:?r=${paygateUrl}/api/payment-request/pay/${invoice.id}`,

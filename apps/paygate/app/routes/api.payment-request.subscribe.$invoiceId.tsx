@@ -1,5 +1,6 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { z } from 'zod'
+import { paygateService } from '~/.server/getContext'
 import { cors } from '~/utils/cors'
 import { eventStream } from '~/utils/event-stream'
 import { zx } from '~/utils/zodix'
@@ -13,7 +14,7 @@ export async function loader(_: LoaderFunctionArgs) {
     invoiceId: z.string(),
   })
 
-  const invoice = await _.context.paygateService.getInvoice({ invoiceId })
+  const invoice = await paygateService.getInvoice({ invoiceId })
 
   return cors(
     _.request,
@@ -23,7 +24,7 @@ export async function loader(_: LoaderFunctionArgs) {
       } else {
         //Subscribe to event when pledge payment is recieved (successful or not)
         // Pass the event details to the front-end
-        _.context.paygateService.subscribe(invoiceId, (event) => {
+        paygateService.subscribe(invoiceId, (event) => {
           send({ event: 'message', data: event })
         })
       }

@@ -3,16 +3,15 @@
 		"./app/**/*.ts",
 		"./app/**/*.tsx",
     "./app/**/*.json",
-		"app/.server/**/*.ts",
-    "app/.server/**/*.tsx",
-		"app/.server/**/*.json",
-    "./server.ts",
+		"./app/.server/**/*.ts",
+    "./app/.server/**/*.tsx",
+		"./app/.server/**/*.json",
     "./test/**/*.ts",
     "./test/**/*.tsx",
     "./test/**/*.json",
-    "./remix.env.d.ts"
-	],
-  "exclude": ["../../**/node_modules", "**/.*/"],
+    "./env.d.ts"
+  ],
+  "exclude": ["../../**/node_modules"],
   "compilerOptions": {
     //Base
     "esModuleInterop": true,

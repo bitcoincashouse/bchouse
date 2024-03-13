@@ -1,6 +1,7 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
 //@ts-ignore
 import BCHJS from '@psf/bch-js'
+import { paygateUrl } from '~/.server/getContext'
 const bchJs = new BCHJS()
 
 export const loader = (_: LoaderFunctionArgs) => {
@@ -14,9 +15,9 @@ export const loader = (_: LoaderFunctionArgs) => {
 
     return new Response(
       JSON.stringify({
-        owner: _.context.paygateUrl,
+        owner: paygateUrl,
         expirationDate: expirationDate.toISOString(),
-        validDomains: [_.context.paygateUrl],
+        validDomains: [paygateUrl],
         publicKeys: [publicKey.toString('hex')],
       })
     )
