@@ -31,11 +31,13 @@ export async function handleBIP70PaymentRequest(
 ) {
   const recieverBytecode = addressToBytecode(receiverAddress)
   const bipOutput = new PaymentProtocol().makeOutput()
-  console.log('1')
+
+  if (!recieverBytecode) {
+    throw new Error('Invalid address bytecode: ' + receiverAddress)
+  }
+
   bipOutput.set('amount', receiverAmount.toString())
-  console.log('2', recieverBytecode)
   bipOutput.set('script', recieverBytecode)
-  console.log('3')
 
   const outputs = [bipOutput.message]
   const time = (Date.now() / 1000) | 0
