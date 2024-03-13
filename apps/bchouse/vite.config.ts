@@ -14,6 +14,10 @@ export default defineConfig({
       '@heroicons/react/16/solid',
       '@heroicons/react/16/outline',
     ],
+    target: 'node',
+  },
+  build: {
+    target: ['ES2022'],
   },
   server: {
     port: 3000,
