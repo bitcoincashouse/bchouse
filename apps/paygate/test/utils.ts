@@ -1,4 +1,4 @@
-import { db } from '../server/db'
+import { db } from '../app/.server/db'
 import { fixture } from './fixture'
 
 export async function clearDb() {

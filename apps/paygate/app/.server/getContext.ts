@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { logger } from '../app/utils/logger'
+import { logger } from '../utils/logger'
 import { HealthcheckService } from './services/healthcheck'
 import { PaygateService } from './services/paygate'
 import { ElectrumNetworkProviderService } from './utils/getElectrumProvider'

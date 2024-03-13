@@ -8,7 +8,7 @@ import { moment } from '@bchouse/utils'
 //@ts-ignore
 import { Network, getPrefix, trimPrefix } from '@bchouse/utils'
 import { z } from 'zod'
-import { logger } from '../../../app/utils/logger'
+import { logger } from '../../../utils/logger'
 import * as JPPv1 from '../../types/jppv1'
 import { ElectrumNetworkProviderService } from '../../utils/getElectrumProvider'
 import { HandleSuccessFn, PaymentOptions } from './types'

@@ -21,9 +21,9 @@
     "build:routes": "remix-routes",
     "build:cashscript": "foreach -g app/.server/**/*.cash -x \"cashc #{path} --output #{dir}/contract.json\"",
     "build:remix": "remix vite:build",
-    "docker:build": "docker compose --env-file ../../_development.env build bchouse",
-    "docker:up": "docker compose --env-file ../../_development.env up bchouse --force-recreate",
-    "env:dev": "dotenv -e ../../_development.env --",
+    "docker:build": "docker compose --env-file ../../.env.development build bchouse",
+    "docker:up": "docker compose --env-file ../../.env.development up bchouse --force-recreate",
+    "env:dev": "dotenv -e ../../.env.development --",
     "env:staging": "dotenv -e ../../_staging.env --"
   },
   "watch": {

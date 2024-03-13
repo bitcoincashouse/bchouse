@@ -11,7 +11,7 @@ import {
 //@ts-ignore
 import PaymentProtocol from 'bitcore-payment-protocol'
 import { action, loader } from '~/routes/api.payment-request.pay.$requestId.$'
-import { PaygateService } from '~/server/services/paygate'
+import { PaygateService } from '../../app/.server/services/paygate'
 
 describe('#pledge', () => {
   beforeEach(async () => {

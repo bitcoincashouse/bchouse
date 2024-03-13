@@ -11,7 +11,7 @@ services:
       args:
         NODE_ENV: ${NODE_ENV:-production}
     env_file:
-      - _development.env
+      - .env.development
     ports:
       - '3000:3000'
     expose:
@@ -33,7 +33,7 @@ services:
       args:
         NODE_ENV: ${NODE_ENV:-production}
     env_file:
-      - _development.env
+      - .env.development
     ports:
       - '3002:3002'
     healthcheck:

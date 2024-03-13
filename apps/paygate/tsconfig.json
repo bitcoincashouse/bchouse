@@ -3,9 +3,9 @@
 		"./app/**/*.ts",
 		"./app/**/*.tsx",
     "./app/**/*.json",
-		"./server/**/*.ts",
-    "./server/**/*.tsx",
-		"./server/**/*.json",
+		"app/.server/**/*.ts",
+    "app/.server/**/*.tsx",
+		"app/.server/**/*.json",
     "./server.ts",
     "./test/**/*.ts",
     "./test/**/*.tsx",
@@ -52,7 +52,7 @@
     "declarationDir": "./dist/types",
 		"paths": {
       "~/*": ["./app/*"],
-			"~/server/*": ["./server/*"],
+			"~/server/*": ["app/.server/*"],
 			"~/test/*": ["./test/*"],
 		},
 

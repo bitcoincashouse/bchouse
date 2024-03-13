@@ -2,7 +2,7 @@
 import BCHJS from '@psf/bch-js'
 import { detectAddressNetwork as _detectAddressNetwork } from 'bchaddrjs'
 import { z } from 'zod'
-import { logger } from '../../app/utils/logger'
+import { logger } from '../../utils/logger'
 import { Network } from '../db'
 
 const { Address, Script } = new BCHJS()
