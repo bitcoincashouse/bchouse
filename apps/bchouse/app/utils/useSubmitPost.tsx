@@ -1,11 +1,13 @@
 import { logger } from '@bchouse/utils'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { JSONContent } from '@tiptap/core'
+import { getQueryKey } from '@trpc/react-query'
+import { CreatePostParams } from '~/.server/types/post'
 import { AudienceType } from '~/components/post/form/audience-dropdown'
 import { serializeForServer } from '~/components/post/form/tiptap-extensions'
 import { Monetization } from '~/components/post/types'
 import { uploadPostMedia } from '~/components/utils/uploadPostMedia'
-import { CreatePostParams } from '../server/types/post'
+import { trpc } from '~/utils/trpc'
 
 export type SubmitPostInput = {
   body: JSONContent
@@ -88,8 +90,11 @@ export function useSubmitPost(
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['feed'] })
-      queryClient.invalidateQueries({ queryKey: ['thread'] })
+      queryClient.invalidateQueries({ queryKey: getQueryKey(trpc.post.feed) })
+      queryClient.invalidateQueries({ queryKey: getQueryKey(trpc.post.status) })
+      queryClient.invalidateQueries({
+        queryKey: getQueryKey(trpc.post.campaign),
+      })
       options?.onSubmitted?.()
     },
   })
