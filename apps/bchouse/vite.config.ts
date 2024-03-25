@@ -4,13 +4,22 @@ import { defineConfig } from 'vite'
 import { cjsInterop } from 'vite-plugin-cjs-interop'
 import tsConfigPaths from 'vite-tsconfig-paths'
 
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
   ssr: {
     noExternal: ['react-easy-crop', 'lucide-react', '@heroicons/react'],
     target: 'node',
   },
-  build: {
-    target: ['ES2022'],
+  build: isSsrBuild
+    ? {
+        target: ['esnext'],
+      }
+    : {
+        target: ['ES2022'],
+      },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'esnext',
+    },
   },
   server: {
     port: 3000,
@@ -33,4 +42,4 @@ export default defineConfig({
       },
     }),
   ],
-})
+}))
