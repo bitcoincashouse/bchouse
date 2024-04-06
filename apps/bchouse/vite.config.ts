@@ -18,12 +18,20 @@ export default defineConfig(({ isSsrBuild }) => ({
         target: ['ES2022'],
       },
   optimizeDeps: {
+    include: ['./app/entry.client.tsx', './app/root.tsx', './app/routes/**/*'],
     esbuildOptions: {
       target: 'esnext',
     },
   },
   server: {
     port: 3000,
+    warmup: {
+      clientFiles: [
+        './app/entry.client.tsx',
+        './app/root.tsx',
+        './app/routes/**/*',
+      ],
+    },
   },
   plugins: [
     remixDevTools(),
