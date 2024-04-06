@@ -1,6 +1,7 @@
 import { logger } from '@bchouse/utils'
 import pTimeout from 'p-timeout'
 import { z } from 'zod'
+import { appEnv } from '~/.server/appEnv'
 import { AddressWatcher } from './services/address-watcher'
 import { AuthService } from './services/auth'
 import { CampaignService } from './services/campaign'
@@ -16,6 +17,7 @@ import { getRedis } from './services/redis'
 import { SearchService } from './services/search'
 import { UserService } from './services/user'
 import { ElectrumNetworkProviderService } from './utils/getElectrumProvider'
+import { Snowflake } from './utils/snowflake'
 
 const bchouseUrl = z
   .string({
@@ -24,7 +26,7 @@ const bchouseUrl = z
     },
   })
   .transform((appUrl) => appUrl.replace(/\/$/, ''))
-  .parse(process.env.BCHOUSE_URL)
+  .parse(appEnv.BCHOUSE_URL)
 
 logger.info('BCHOUSE_URL', bchouseUrl)
 
@@ -35,23 +37,23 @@ const paygateUrl = z
     },
   })
   .transform((appUrl) => appUrl.replace(/\/$/, ''))
-  .parse(process.env.PAYGATE_URL)
+  .parse(appEnv.PAYGATE_URL)
 
 logger.info('PAYGATE_URL', paygateUrl)
 
 const bchNetwork = z
   .enum(['mainnet', 'testnet3', 'testnet4', 'chipnet', 'regtest'])
-  .parse(process.env.BCH_NETWORK)
+  .parse(appEnv.BCH_NETWORK)
 
 logger.info('BCH_NETWORK', bchNetwork)
-logger.info('INNGEST_BRANCH', process.env.INNGEST_BRANCH)
-logger.info('INNGEST_EVENT_KEY', process.env.INNGEST_EVENT_KEY)
-logger.info('INNGEST_SIGING_KEY', process.env.INNGEST_SIGNING_KEY)
-logger.info('REDIS_URL', process.env.REDIS_URL)
-logger.info('BCHOUSE_DATABASE_URL', process.env.BCHOUSE_DATABASE_URL)
+logger.info('INNGEST_BRANCH', appEnv.INNGEST_BRANCH)
+logger.info('INNGEST_EVENT_KEY', appEnv.INNGEST_EVENT_KEY)
+logger.info('INNGEST_SIGING_KEY', appEnv.INNGEST_SIGNING_KEY)
+logger.info('REDIS_URL', appEnv.REDIS_URL)
+logger.info('BCHOUSE_DATABASE_URL', appEnv.BCHOUSE_DATABASE_URL)
 
 const searchService = new SearchService()
-if (process.env.TYPESENSE_REBUILD_INDEX === 'true') {
+if (appEnv.TYPESENSE_REBUILD_INDEX === 'true') {
   await searchService.reindex()
 }
 
@@ -79,6 +81,10 @@ const inngestService = new InngestService({
   campaignService,
 })
 const imageService = new ImageService()
+const snowflakeId = new Snowflake({
+  epoch: Number(appEnv.SNOWFLAKE_EPOCH),
+  workerId: Number(appEnv.SNOWFLAKE_WORKER_ID),
+})
 
 async function destroy() {
   logger.info('Destroying context')

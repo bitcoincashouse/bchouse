@@ -1,5 +1,6 @@
-import { PaymentInfo, inngest } from '@bchouse/inngest'
+import { PaymentInfo } from '@bchouse/inngest'
 import { Network, logger } from '@bchouse/utils'
+import { appEnv } from 'appEnv'
 import { z } from 'zod'
 import {
   createInvoice,
@@ -9,6 +10,7 @@ import {
 import { savePayment } from '../repositories/payment'
 import { InvoiceEvent } from '../repositories/types'
 import { ElectrumNetworkProviderService } from '../utils/getElectrumProvider'
+import { inngest } from './inngest'
 import * as bip70 from './payment/bip70'
 import * as jppv1 from './payment/jppv1'
 import * as jppv2 from './payment/jppv2'
@@ -163,7 +165,7 @@ export class PaygateService {
       id: invoiceId,
     })
 
-    const paygateUrl = (process.env.PAYGATE_URL as string).replace(/\/$/, '')
+    const paygateUrl = (appEnv.PAYGATE_URL as string).replace(/\/$/, '')
 
     const paymentRequest = {
       address,

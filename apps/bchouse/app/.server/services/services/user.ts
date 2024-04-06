@@ -1,10 +1,11 @@
 import { detectAddressNetwork, moment, prettyPrintSats } from '@bchouse/utils'
-import { Doc } from '@bchouse/utils/src/tiptapSchema'
+import { TipTapSchema } from '@bchouse/utils/src/tiptapSchema'
 import {
   DeletedObjectJSON,
   UserJSON,
   createClerkClient,
 } from '@clerk/clerk-sdk-node'
+import { appEnv } from '~/.server/appEnv'
 import { KyselyPostDbModel } from '../repositories/posts/types'
 import userRepo from '../repositories/user'
 import { blockUser, unblockUser } from '../repositories/user/blockUser'
@@ -207,7 +208,7 @@ function postToViewModel(post: KyselyPostDbModel) {
     //TODO: Resolve mentions, hashtags, and media links
     mediaUrls: post.mediaUrls || [],
     avatarUrl: post.publishedBy.avatarUrl,
-    content: post.content as Doc,
+    content: post.content as TipTapSchema.Doc,
     date: moment(post.createdAt).fromNow(),
     isThread: false,
     publishedById: post.publishedById,
@@ -299,7 +300,7 @@ export class UserService {
     }
 
     const user = await createClerkClient({
-      secretKey: process.env.CLERK_SECRET_KEY as string,
+      secretKey: appEnv.CLERK_SECRET_KEY as string,
     }).users.getUser(userId)
 
     await userRepo.createUserWebhook({
@@ -330,7 +331,7 @@ export class UserService {
 
   async getUserCounts() {
     const clerkClient = createClerkClient({
-      secretKey: process.env.CLERK_SECRET_KEY as string,
+      secretKey: appEnv.CLERK_SECRET_KEY as string,
     })
 
     const [userCount, dailyActiveUserCount, weeklyActiveUserCount] =

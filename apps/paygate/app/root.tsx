@@ -11,6 +11,7 @@ import {
   useRevalidator,
 } from '@remix-run/react'
 import { metaV1 } from '@remix-run/v1-meta'
+import { appEnv } from 'appEnv'
 import { Buffer } from 'buffer-polyfill'
 import { useEffect, useRef } from 'react'
 import { UseDataFunctionReturn, useTypedLoaderData } from 'remix-typedjson'
@@ -50,8 +51,8 @@ export const meta: MetaFunction = (_) => {
 
 export const loader = async (_: LoaderFunctionArgs) => {
   return {
-    BCHOUSE_URL: (process.env.BCHOUSE_URL as string).replace(/\/$/, ''),
-    PAYGATE_URL: (process.env.PAYGATE_URL as string).replace(/\/$/, ''),
+    BCHOUSE_URL: (appEnv.BCHOUSE_URL as string).replace(/\/$/, ''),
+    PAYGATE_URL: (appEnv.PAYGATE_URL as string).replace(/\/$/, ''),
   }
 }
 

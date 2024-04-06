@@ -1,5 +1,6 @@
 import { logger } from '@bchouse/utils'
 import { Link, isRouteErrorResponse, useRouteError } from '@remix-run/react'
+import { appEnv } from 'appEnv'
 
 export const meta = () => ({
   charset: 'utf-8',
@@ -31,7 +32,7 @@ export function ErrorDisplay({ page }: { page?: string }) {
           Sorry, something went wrong.
         </p>
 
-        {process.env.NODE_ENV === 'development' ? (
+        {appEnv.NODE_ENV === 'development' ? (
           <p className="mt-2 text-sm leading-7 text-gray-600">
             Details: {errorMessage}
           </p>

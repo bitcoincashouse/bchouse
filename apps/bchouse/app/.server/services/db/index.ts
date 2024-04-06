@@ -1,10 +1,11 @@
 import { Kysely } from 'kysely'
 import { PlanetScaleDialect, inflateDates } from 'kysely-planetscale'
+import { appEnv } from '~/.server/appEnv'
 import { DB } from './types' // this is the Database interface we defined earlier
 export * from './types'
 
 const dialect = new PlanetScaleDialect({
-  url: process.env.BCHOUSE_DATABASE_URL,
+  url: appEnv.BCHOUSE_DATABASE_URL,
   cast: function inflate(field, value) {
     if (field.orgName === 'satoshis' || field.orgName === 'pledgedAmount') {
       return value !== null ? BigInt(value) : value

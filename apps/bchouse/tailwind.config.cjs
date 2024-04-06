@@ -17,7 +17,7 @@ module.exports = {
     ),
   ],
   darkMode: 'class',
-  // safelist: process.env.NODE_ENV === "development" ? [{ pattern: /.*stretch.*/ }]  : [],
+  // safelist: appEnv.NODE_ENV === "development" ? [{ pattern: /.*stretch.*/ }]  : [],
   theme: {
     screens: {
       xs: '380px',

@@ -1,4 +1,5 @@
 import { NetworkProvider } from 'cashscript'
+import { appEnv } from '~/.server/appEnv'
 import {
   AnyonecanpayPledges,
   CampaignInfo,
@@ -25,12 +26,12 @@ export class CampaignContractApi {
       expires: campaignInfo.expires,
       payoutAddress: campaignInfo.payoutAddress,
       network: campaignInfo.network,
-      platformAddress: process.env.FLIPSTARTER_PLATFORM_ADDRESS as string,
+      platformAddress: appEnv.FLIPSTARTER_PLATFORM_ADDRESS as string,
     })
 
     this.exitContract = new ExitContract(electrumProvider, {
       expires: campaignInfo.expires,
-      platformAddress: process.env.FLIPSTARTER_PLATFORM_ADDRESS as string,
+      platformAddress: appEnv.FLIPSTARTER_PLATFORM_ADDRESS as string,
     })
   }
 
@@ -201,8 +202,8 @@ class CampaignContractWithPledgeInfoAndCategoryId {
       campaignUtxo,
       pledgeUtxo,
       platformKeys: {
-        pubKey: process.env.FLIPSTARTER_PLATFORM_PUBKEY as string,
-        privKey: process.env.FLIPSTARTER_PLATFORM_PRIVKEY as string,
+        pubKey: appEnv.FLIPSTARTER_PLATFORM_PUBKEY as string,
+        privKey: appEnv.FLIPSTARTER_PLATFORM_PRIVKEY as string,
       },
     })
   }
@@ -218,8 +219,8 @@ class CampaignContractWithPledgeInfoAndCategoryId {
       campaignUtxo,
       pledgeUtxo,
       platformKeys: {
-        pubKey: process.env.FLIPSTARTER_PLATFORM_PUBKEY as string,
-        privKey: process.env.FLIPSTARTER_PLATFORM_PRIVKEY as string,
+        pubKey: appEnv.FLIPSTARTER_PLATFORM_PUBKEY as string,
+        privKey: appEnv.FLIPSTARTER_PLATFORM_PRIVKEY as string,
       },
     })
   }
@@ -235,8 +236,8 @@ class CampaignContractWithPledgeInfoAndCategoryId {
       campaignUtxo,
       pledgeUtxo,
       platformKeys: {
-        pubKey: process.env.FLIPSTARTER_PLATFORM_PUBKEY as string,
-        privKey: process.env.FLIPSTARTER_PLATFORM_PRIVKEY as string,
+        pubKey: appEnv.FLIPSTARTER_PLATFORM_PUBKEY as string,
+        privKey: appEnv.FLIPSTARTER_PLATFORM_PRIVKEY as string,
       },
     })
   }
@@ -254,8 +255,8 @@ class CampaignContractWithPledgeInfoAndCategoryId {
       campaignUtxo,
       forwardedUtxo,
       platformKeys: {
-        pubKey: process.env.FLIPSTARTER_PLATFORM_PUBKEY as string,
-        privKey: process.env.FLIPSTARTER_PLATFORM_PRIVKEY as string,
+        pubKey: appEnv.FLIPSTARTER_PLATFORM_PUBKEY as string,
+        privKey: appEnv.FLIPSTARTER_PLATFORM_PRIVKEY as string,
       },
     })
   }

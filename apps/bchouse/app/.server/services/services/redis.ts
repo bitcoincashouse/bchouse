@@ -1,7 +1,8 @@
 import { detectAddressNetwork, logger, moment } from '@bchouse/utils'
-import { type Doc } from '@bchouse/utils/src/tiptapSchema.js'
+import { TipTapSchema } from '@bchouse/utils/src/tiptapSchema.js'
 import Redis from 'ioredis'
 import { z } from 'zod'
+import { appEnv } from '~/.server/appEnv.js'
 import { Network } from '../db/types.js'
 import postRepo from '../repositories/posts/index.js'
 import { Cursor } from '../repositories/types.js'
@@ -89,7 +90,7 @@ declare module 'ioredis' {
 
 export class RedisService extends Redis {
   constructor() {
-    super(process.env.REDIS_URL as string)
+    super(appEnv.REDIS_URL as string)
 
     // Load the Lua script into Redis
     this.defineCommand('addPostToFollowersTimeline', {
@@ -987,7 +988,7 @@ export class RedisService extends Redis {
   async addPost(post: {
     id: string
     publishedById: string
-    content: Doc
+    content: TipTapSchema.Doc
     createdAt: Date
     audienceType: 'PUBLIC' | 'CIRCLE' | 'CHILD'
     mediaUrls?: {
@@ -1835,10 +1836,10 @@ function mapRedisPostToPostCard(
   } as PostCardModel
 }
 
-function parseContent(content: string): Doc {
+function parseContent(content: string): TipTapSchema.Doc {
   try {
     if (content) {
-      return JSON.parse(content) as Doc
+      return JSON.parse(content) as TipTapSchema.Doc
     }
   } catch (err) {}
 

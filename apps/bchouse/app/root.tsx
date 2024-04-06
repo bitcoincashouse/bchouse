@@ -32,6 +32,7 @@ import { CreateQueryUtils } from '@trpc/react-query/shared'
 import { Buffer } from 'buffer-polyfill'
 import { useEffect, useRef, useState } from 'react'
 import { UseDataFunctionReturn, useTypedLoaderData } from 'remix-typedjson'
+import { appEnv } from '~/.server/appEnv'
 import { AppRouter } from '~/.server/types/router'
 import stylesheet from '~/styles/tailwind.css?url'
 import { ErrorDisplay } from './components/pages/error'
@@ -83,14 +84,13 @@ export const loader = async (_: LoaderFunctionArgs) => {
       sessionId,
       userId,
       theme: themeSession.getTheme(),
-      BCH_NETWORK: process.env.BCH_NETWORK as 'mainnet' | 'chipnet',
-      SENTRY_DSN: process.env.SENTRY_DSN as string,
-      PAYGATE_URL: (process.env.PAYGATE_URL as string).replace(/\/$/, ''),
-      BCHOUSE_URL: (process.env.BCHOUSE_URL as string).replace(/\/$/, ''),
-      FLIPSTARTER_PLATFORM_ADDRESS: process.env
-        .FLIPSTARTER_PLATFORM_ADDRESS as string,
-      TYPESENSE_PUBLIC_URL: process.env.TYPESENSE_PUBLIC_URL,
-      TYPESENSE_PUBLIC_API_KEY: process.env.TYPESENSE_PUBLIC_API_KEY,
+      BCH_NETWORK: appEnv.BCH_NETWORK,
+      SENTRY_DSN: appEnv.SENTRY_DSN,
+      PAYGATE_URL: appEnv.PAYGATE_URL,
+      BCHOUSE_URL: appEnv.BCHOUSE_URL,
+      FLIPSTARTER_PLATFORM_ADDRESS: process.env.FLIPSTARTER_PLATFORM_ADDRESS,
+      TYPESENSE_PUBLIC_URL: appEnv.TYPESENSE_PUBLIC_URL,
+      TYPESENSE_PUBLIC_API_KEY: appEnv.TYPESENSE_PUBLIC_API_KEY,
     }
   })
 }

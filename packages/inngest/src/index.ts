@@ -79,21 +79,10 @@ type Events = {
   'campaign/update': UpdateCampaignEvent
 }
 
-if (!process.env.INNGEST_BRANCH) {
-  throw new Error('Env variable INNGEST_BRANCH is required')
-}
-
-// Create a client to send and receive events
-export const inngest = new Inngest({
-  id: 'flipstarter',
-  schemas: new EventSchemas().fromRecord<Events>(),
-  eventKey: process.env.INNGEST_EVENT_KEY,
-  env: process.env.INNGEST_BRANCH,
-})
+export const schemas = new EventSchemas().fromRecord<Events>()
 
 export { serve } from 'inngest/remix'
 export * from './invoice.js'
-export type InngestEvent = GetEvents<typeof inngest>[keyof Events]
-export type getInngestEvent<T extends keyof Events> = GetEvents<
-  typeof inngest
->[T]
+export type AppInngest = Inngest<{ id: string; schemas: typeof schemas }>
+export type InngestEvent = GetEvents<AppInngest>[keyof Events]
+export type getInngestEvent<T extends keyof Events> = GetEvents<AppInngest>[T]

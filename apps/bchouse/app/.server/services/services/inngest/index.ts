@@ -1,6 +1,8 @@
-import { inngest, serve } from '@bchouse/inngest'
+import { schemas, serve } from '@bchouse/inngest'
 import { moment } from '@bchouse/utils'
 import { createClerkClient } from '@clerk/clerk-sdk-node'
+import { Inngest } from 'inngest'
+import { appEnv } from '~/.server/appEnv'
 import { db } from '~/server/services/db'
 import { savePledgePayment } from '~/server/services/repositories/pledge'
 import { saveTipPayment } from '~/server/services/repositories/tip'
@@ -31,6 +33,13 @@ import { CampaignService } from '../campaign'
 import { RedisService } from '../redis'
 
 const redisService = new RedisService()
+
+const inngest = new Inngest({
+  id: 'flipstarter',
+  schemas,
+  eventKey: appEnv.INNGEST_EVENT_KEY,
+  env: appEnv.INNGEST_BRANCH,
+})
 
 export class InngestService {
   public readonly handler
@@ -377,7 +386,7 @@ export class InngestService {
           { cron: '0/10 * * * *' },
           async ({ event, step }) => {
             const clerkClient = createClerkClient({
-              secretKey: process.env.CLERK_SECRET_KEY as string,
+              secretKey: appEnv.CLERK_SECRET_KEY as string,
             })
 
             const sessionList = await clerkClient.sessions.getSessionList({

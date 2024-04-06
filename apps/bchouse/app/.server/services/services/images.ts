@@ -4,13 +4,14 @@ import { writeAsyncIterableToWritable } from '@remix-run/node'
 import AWS from 'aws-sdk'
 import { PassThrough } from 'stream'
 import { v4 as uuidv4, v4 } from 'uuid'
+import { appEnv } from '~/.server/appEnv'
 import { UploadRequestType } from '../db/index'
 
-const STORAGE_ACCESS_KEY = process.env.STORAGE_ACCESS_KEY as string
-const STORAGE_SECRET_KEY = process.env.STORAGE_SECRET_KEY as string
-const STORAGE_BUCKET = process.env.STORAGE_BUCKET as string
-const STORAGE_PUBLIC_URL = process.env.STORAGE_PUBLIC_URL as string
-const STORAGE_API_URL = process.env.STORAGE_API_URL as string
+const STORAGE_ACCESS_KEY = appEnv.STORAGE_ACCESS_KEY as string
+const STORAGE_SECRET_KEY = appEnv.STORAGE_SECRET_KEY as string
+const STORAGE_BUCKET = appEnv.STORAGE_BUCKET as string
+const STORAGE_PUBLIC_URL = appEnv.STORAGE_PUBLIC_URL as string
+const STORAGE_API_URL = appEnv.STORAGE_API_URL as string
 
 if (
   !(
@@ -32,8 +33,8 @@ export {
   STORAGE_SECRET_KEY,
 }
 
-const STORAGE_REGION = process.env.STORAGE_REGION
-const s3ForcePathStyle = process.env.STORAGE_PATH_STYLE === 'true'
+const STORAGE_REGION = appEnv.STORAGE_REGION
+const s3ForcePathStyle = appEnv.STORAGE_PATH_STYLE === 'true'
 
 export const getS3Instance = () =>
   new AWS.S3({

@@ -1,3 +1,4 @@
+import { appEnv } from 'appEnv'
 import { z } from 'zod'
 import { logger } from '../utils/logger'
 import { HealthcheckService } from './services/healthcheck'
@@ -11,7 +12,7 @@ const bchouseUrl = z
     },
   })
   .transform((appUrl) => appUrl.replace(/\/$/, ''))
-  .parse(process.env.BCHOUSE_URL)
+  .parse(appEnv.BCHOUSE_URL)
 
 logger.info('BCHOUSE_URL', bchouseUrl)
 
@@ -22,14 +23,13 @@ const paygateUrl = z
     },
   })
   .transform((appUrl) => appUrl.replace(/\/$/, ''))
-  .parse(process.env.PAYGATE_URL)
+  .parse(appEnv.PAYGATE_URL)
 
 logger.info('PAYGATE_URL', paygateUrl)
-logger.info('INNGEST_BRANCH', process.env.INNGEST_BRANCH)
-logger.info('INNGEST_EVENT_KEY', process.env.INNGEST_EVENT_KEY)
-logger.info('INNGEST_SIGING_KEY', process.env.INNGEST_SIGNING_KEY)
-logger.info('REDIS_URL', process.env.REDIS_URL)
-logger.info('PAYGATE_DATABASE_URL', process.env.PAYGATE_DATABASE_URL)
+logger.info('INNGEST_BRANCH', appEnv.INNGEST_BRANCH)
+logger.info('INNGEST_EVENT_KEY', appEnv.INNGEST_EVENT_KEY)
+logger.info('INNGEST_SIGING_KEY', appEnv.INNGEST_SIGNING_KEY)
+logger.info('PAYGATE_DATABASE_URL', appEnv.PAYGATE_DATABASE_URL)
 
 const electrumService = await ElectrumNetworkProviderService.create(true)
 const abortController = new AbortController()

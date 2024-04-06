@@ -1,5 +1,6 @@
 {
 	"include": [
+    "./appEnv.ts",
 		"./app/**/*.ts",
 		"./app/**/*.tsx",
     "./app/**/*.json",
@@ -50,6 +51,7 @@
     "rootDir": ".",
     "declarationDir": "./dist/types",
 		"paths": {
+      "appEnv": ["./appEnv.ts"],
       "~/*": ["./app/*"],
 			"~/server/*": ["app/.server/*"],
 			"~/test/*": ["./test/*"],

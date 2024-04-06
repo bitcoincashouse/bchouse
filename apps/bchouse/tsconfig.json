@@ -1,5 +1,6 @@
 {
 	"include": [
+    "./app/.server/appEnv.ts",
 		"./app/**/*.ts",
 		"./app/**/*.tsx",
     "./app/**/*.json",
@@ -10,7 +11,7 @@
     "./env.d.ts",
     "./types/**/*.ts",
     "./vite.config.ts"
-  ],
+, "app/.server/appEnv.ts"  ],
   "exclude": ["../../**/node_modules"],
   "compilerOptions": {
     //Base
@@ -50,6 +51,7 @@
     "rootDir": ".",
     "declarationDir": "./dist/types",
 		"paths": {
+      "appEnv": ["./appEnv"],
       "~/*": ["./app/*"],
 			"~/server/*": ["app/.server/*"],
 		},

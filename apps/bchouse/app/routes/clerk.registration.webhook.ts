@@ -3,6 +3,7 @@ import { WebhookEvent } from '@clerk/clerk-sdk-node'
 import { ActionFunctionArgs } from '@remix-run/node'
 import { TRPCError } from '@trpc/server'
 import { Webhook } from 'svix'
+import { appEnv } from '~/.server/appEnv'
 import { userService } from '~/.server/services/getContext'
 
 export async function action(_: ActionFunctionArgs) {
@@ -13,7 +14,7 @@ export async function action(_: ActionFunctionArgs) {
     string,
     string
   >
-  const wh = new Webhook(process.env.CLERK_SIGNIN_WEBHOOK_SECRET as string)
+  const wh = new Webhook(appEnv.CLERK_SIGNIN_WEBHOOK_SECRET as string)
 
   let evt
 

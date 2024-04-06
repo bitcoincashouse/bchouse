@@ -59,13 +59,13 @@ export async function handleBIP70PaymentRequest(
   })
 
   // if (
-  //   process.env.NODE_ENV !== 'development' &&
-  //   process.env.NODE_ENV !== 'test'
+  //   appEnv.NODE_ENV !== 'development' &&
+  //   appEnv.NODE_ENV !== 'test'
   // ) {
   //   try {
-  //     const domainDerPath = process.env.X509_DOMAIN_CERT_DER_PATH as string
-  //     const rootDerPath = process.env.X509_ROOT_CERT_DER_PATH as string
-  //     const keyPath = process.env.X509_PRIVATE_KEY_PATH as string
+  //     const domainDerPath = appEnv.X509_DOMAIN_CERT_DER_PATH as string
+  //     const rootDerPath = appEnv.X509_ROOT_CERT_DER_PATH as string
+  //     const keyPath = appEnv.X509_PRIVATE_KEY_PATH as string
   //     const file_with_x509_private_key = fs.readFileSync(keyPath)
   //     const certificates = new PaymentProtocol().makeX509Certificates()
   //     const domainDer = fs.readFileSync(domainDerPath)

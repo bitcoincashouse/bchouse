@@ -1,6 +1,7 @@
 import { createCookieSessionStorage } from '@remix-run/node'
+import { appEnv } from '~/.server/appEnv'
 
-const sessionSecret = process.env.SESSION_SECRET
+const sessionSecret = appEnv.SESSION_SECRET
 if (!sessionSecret) {
   throw new Error('SESSION_SECRET must be set')
 }

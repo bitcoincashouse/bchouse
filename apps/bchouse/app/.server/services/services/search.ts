@@ -1,8 +1,9 @@
 import { moment } from '@bchouse/utils'
-import { Doc } from '@bchouse/utils/src/tiptapSchema'
+import { TipTapSchema } from '@bchouse/utils/src/tiptapSchema'
 import { Client } from 'typesense'
 import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections'
 import { z } from 'zod'
+import { appEnv } from '~/.server/appEnv'
 import postRepo from '../repositories/posts'
 import { getAllHashtags } from '../repositories/posts/getAllHashtags'
 import userRepo from '../repositories/user'
@@ -10,10 +11,10 @@ import userRepo from '../repositories/user'
 export const typesenseClient = new Client({
   nodes: [
     {
-      url: (process.env.TYPESENSE_URL as string) || 'http://localhost:8108',
+      url: (appEnv.TYPESENSE_URL as string) || 'http://localhost:8108',
     },
   ],
-  apiKey: (process.env.TYPESENSE_API_KEY as string) || 'xyz',
+  apiKey: (appEnv.TYPESENSE_API_KEY as string) || 'xyz',
   connectionTimeoutSeconds: 2,
 })
 
@@ -167,7 +168,7 @@ export class SearchService {
 
   async addPost(post: {
     id: string
-    content: Doc
+    content: TipTapSchema.Doc
     publishedById: string
     createdAt: Date
     hashtags: { tag: string }[]

@@ -1,6 +1,7 @@
 import type { RequestHandler } from '@remix-run/express'
 import { createRequestHandler as expressCreateRequestHandler } from '@remix-run/express'
 import { broadcastDevReady, installGlobals } from '@remix-run/node'
+import { appEnv } from 'appEnv'
 import chokidar from 'chokidar'
 import compression from 'compression'
 import express from 'express'
@@ -94,11 +95,11 @@ async function startup() {
 
   app.all(
     '*',
-    process.env.NODE_ENV === 'development'
+    appEnv.NODE_ENV === 'development'
       ? createDevRequestHandler()
       : createRequestHandler({
           build: build,
-          mode: process.env.NODE_ENV,
+          mode: appEnv.NODE_ENV,
           async getLoadContext() {
             return context
           },
@@ -147,11 +148,11 @@ async function startup() {
   // await reindex()
   // await createDefaultCoverImage()
 
-  const port = process.env.PAYGATE_PORT || 3002
+  const port = appEnv.PAYGATE_PORT || 3002
   const server = app.listen(port, async () => {
     logger.info(`Express server listening on port ${port}`)
 
-    if (process.env.NODE_ENV === 'development') {
+    if (appEnv.NODE_ENV === 'development') {
       broadcastDevReady(build)
     }
   })
@@ -159,7 +160,7 @@ async function startup() {
   gracefulShutdown(server, {
     signals: 'SIGINT SIGTERM',
     timeout: 30000,
-    development: process.env.NODE_ENV === 'development',
+    development: appEnv.NODE_ENV === 'development',
     onShutdown: async () => {
       logger.info('Server is gracefully shutting down.')
     },
