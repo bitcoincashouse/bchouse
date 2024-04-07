@@ -322,7 +322,7 @@ function ContributionComment({ item }: { item: DonorPost }) {
                   {amount}
                   <small className="text-xs">{denomination}</small>
                 </span>{' '}
-                <span className="before:content-['\2022'] text-secondary-text" />{' '}
+                <span className="dot-separator text-secondary-text" />{' '}
                 <span className="text-sm text-secondary-text">
                   {moment(item.createdAt).fromNow()}
                 </span>

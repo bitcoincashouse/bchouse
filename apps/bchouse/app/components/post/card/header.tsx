@@ -28,7 +28,7 @@ export function PostCardHeader() {
           @{item.person.handle}
         </Link>
       </UserPopoverLink>{' '}
-      <span className="before:content-['\2022'] text-secondary-text" />{' '}
+      <span className="dot-separator text-secondary-text" />{' '}
       <span className="text-sm text-secondary-text">{item.date}</span>
     </div>
   )
