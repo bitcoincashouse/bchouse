@@ -1,9 +1,10 @@
+import { TRPCRouterRecord } from '@trpc/server'
 import { z } from 'zod'
 import { redisService, searchService } from '../services/getContext'
 import { PostCardModel } from '../services/services/types'
-import { publicProcedure, router } from '../trpc'
+import { publicProcedure } from '../trpc'
 
-export const searchRouter = router({
+export const searchRouter = {
   explore: publicProcedure
     .input(z.object({ q: z.string().optional() }))
     .query(async (opts) => {
@@ -50,4 +51,4 @@ export const searchRouter = router({
 
       return posts
     }),
-})
+} satisfies TRPCRouterRecord

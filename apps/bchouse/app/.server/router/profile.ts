@@ -1,12 +1,12 @@
 import { isApplicationError, isClerkError, logger } from '@bchouse/utils'
-import { TRPCError } from '@trpc/server'
+import { TRPCError, TRPCRouterRecord } from '@trpc/server'
 import { z } from 'zod'
 import {
   authService,
   profileService,
   userService,
 } from '../services/getContext'
-import { publicProcedure, router } from '../trpc'
+import { publicProcedure } from '../trpc'
 
 const updateFollowInput = z.object({
   action: z.enum(['follow', 'unfollow']),
@@ -53,7 +53,7 @@ const updateProfileInput = z
   })
   .strip()
 
-export const profileRouter = router({
+export const profileRouter = {
   get: publicProcedure.query(async (opts) => {
     //Applies to entire application
     // await ratelimit.limitByIp(_, 'app', true)
@@ -347,4 +347,4 @@ export const profileRouter = router({
         }
       }
     }),
-})
+} satisfies TRPCRouterRecord

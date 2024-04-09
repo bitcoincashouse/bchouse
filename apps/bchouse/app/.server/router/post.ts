@@ -1,5 +1,5 @@
 import { logger } from '@bchouse/utils'
-import { TRPCError } from '@trpc/server'
+import { TRPCError, TRPCRouterRecord } from '@trpc/server'
 import { z, ZodError } from 'zod'
 import {
   feedService,
@@ -9,7 +9,7 @@ import {
   profileService,
   userService,
 } from '../services/getContext'
-import { publicProcedure, router } from '../trpc'
+import { publicProcedure } from '../trpc'
 import { postSchema } from '../types/post'
 
 export const postActionSchema = z.object({
@@ -72,7 +72,7 @@ const tipInput = z.object({
   postId: z.string(),
 })
 
-export const postRouter = router({
+export const postRouter = {
   uploadMedia: publicProcedure.input(uploadInput).mutation(async (opts) => {
     // await ratelimit.limitByIp(_, 'api', true)
 
@@ -271,4 +271,4 @@ export const postRouter = router({
       throw err
     }
   }),
-})
+} satisfies TRPCRouterRecord

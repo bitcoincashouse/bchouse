@@ -47,6 +47,7 @@
     "removeComments": true,
     "composite": true,
     "incremental": true,
+    "disableSourceOfProjectReferenceRedirect": true,
     
     //Structure
     "baseUrl": ".",
@@ -64,6 +65,7 @@
     "noEmit": true,
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "jsx": "react-jsx",    
+    "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json",
   },
   "references": [
     {

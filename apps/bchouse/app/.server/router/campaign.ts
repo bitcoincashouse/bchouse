@@ -1,4 +1,5 @@
 import { logger } from '@bchouse/utils'
+import { TRPCRouterRecord } from '@trpc/server'
 import { z } from 'zod'
 import {
   bchouseUrl,
@@ -6,7 +7,7 @@ import {
   paygateUrl,
   pledgeService,
 } from '../services/getContext'
-import { publicProcedure, router } from '../trpc'
+import { publicProcedure } from '../trpc'
 
 const anyonecanpayInput = z.object({
   campaignId: z.string(),
@@ -29,7 +30,7 @@ const commentInput = z.object({
   secret: z.string(),
 })
 
-export const campaignRouter = router({
+export const campaignRouter = {
   listPledges: publicProcedure.query(async (opts) => {
     const { userId } = opts.ctx.auth
 
@@ -221,4 +222,4 @@ export const campaignRouter = router({
         return { error: true, txid: null }
       }
     }),
-})
+} satisfies TRPCRouterRecord

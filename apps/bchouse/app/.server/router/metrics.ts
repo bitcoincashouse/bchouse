@@ -1,12 +1,13 @@
 import { logger } from '@bchouse/utils'
+import { TRPCRouterRecord } from '@trpc/server'
 import {
   authService,
   electrumService,
   userService,
 } from '../services/getContext'
-import { publicProcedure, router } from '../trpc'
+import { publicProcedure } from '../trpc'
 
-export const metricsRouter = router({
+export const metricsRouter = {
   clusters: publicProcedure.query(async (opts) => {
     try {
       if (await authService.getIsAdmin(opts.ctx.auth)) {
@@ -35,4 +36,4 @@ export const metricsRouter = router({
 
     return { userCount, dailyActiveUserCount, weeklyActiveUserCount }
   }),
-})
+} satisfies TRPCRouterRecord

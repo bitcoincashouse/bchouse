@@ -1,10 +1,11 @@
 import { logger } from '@bchouse/utils'
+import { TRPCRouterRecord } from '@trpc/server'
 import { z } from 'zod'
 import { appEnv } from '~/.server/appEnv'
 import { postService } from '../services/getContext'
-import { publicProcedure, router } from '../trpc'
+import { publicProcedure } from '../trpc'
 
-export const moderationRouter = router({
+export const moderationRouter = {
   handleReportedPost: publicProcedure
     .input(
       z.object({
@@ -35,4 +36,4 @@ export const moderationRouter = router({
         }
       }
     }),
-})
+} satisfies TRPCRouterRecord
