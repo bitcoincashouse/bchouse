@@ -72,7 +72,7 @@ importers:
         version: 2.11.8
       '@psf/bch-js':
         specifier: ^6.7.4
-        version: 6.7.4
+        version: 6.7.4(debug@4.3.4)
       '@psf/bitcoincashjs-lib':
         specifier: ^4.0.3
         version: 4.0.3
@@ -339,7 +339,7 @@ importers:
         version: 10.1.0
       remix-routes:
         specifier: ^1.6.1
-        version: 1.6.1
+        version: 1.7.2
       remix-typedjson:
         specifier: ^0.4.1
         version: 0.4.1(@remix-run/react@2.8.1)(@remix-run/server-runtime@2.8.1)(react@18.2.0)
@@ -363,7 +363,7 @@ importers:
         version: 6.3.7
       typesense:
         specifier: ^1.5.4
-        version: 1.7.2(@babel/runtime@7.23.1)
+        version: 1.7.2(@babel/runtime@7.23.1)(debug@4.3.4)
       unified:
         specifier: ^10.1.2
         version: 10.1.2
@@ -380,6 +380,9 @@ importers:
         specifier: ^3.21.4
         version: 3.22.3
     devDependencies:
+      '@antfu/utils':
+        specifier: ^0.7.7
+        version: 0.7.7
       '@bchouse/cashconnect':
         specifier: workspace:^
         version: link:../../packages/cashconnect
@@ -425,6 +428,9 @@ importers:
       '@types/compression':
         specifier: ^1.7.2
         version: 1.7.3
+      '@types/execa':
+        specifier: ^2.0.0
+        version: 2.0.0
       '@types/express':
         specifier: ^4.17.17
         version: 4.17.18
@@ -455,6 +461,9 @@ importers:
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
+      debug:
+        specifier: ^4.3.4
+        version: 4.3.4
       dotenv:
         specifier: ^16.0.3
         version: 16.3.1
@@ -464,6 +473,9 @@ importers:
       esbuild:
         specifier: ^0.19.10
         version: 0.19.10
+      execa:
+        specifier: ^8.0.1
+        version: 8.0.1
       foreach-cli:
         specifier: ^1.8.1
         version: 1.8.1
@@ -476,6 +488,9 @@ importers:
       is-docker:
         specifier: ^3.0.0
         version: 3.0.0
+      minimatch:
+        specifier: ^9.0.4
+        version: 9.0.4
       normalize-wheel:
         specifier: ^1.0.1
         version: 1.0.1
@@ -488,6 +503,9 @@ importers:
       patch-package:
         specifier: ^8.0.0
         version: 8.0.0
+      picocolors:
+        specifier: ^1.0.0
+        version: 1.0.0
       postcss:
         specifier: ^8.4.28
         version: 8.4.32
@@ -542,6 +560,9 @@ importers:
       vite-plugin-cjs-interop:
         specifier: ^2.1.0
         version: 2.1.0
+      vite-plugin-svgr:
+        specifier: ^4.2.0
+        version: 4.2.0(typescript@5.4.0-dev.20240220)(vite@5.1.5)
       vite-tsconfig-paths:
         specifier: ^4.2.2
         version: 4.2.2(typescript@5.4.0-dev.20240220)(vite@5.1.5)
@@ -565,7 +586,7 @@ importers:
         version: 1.13.0
       '@psf/bch-js':
         specifier: ^6.7.4
-        version: 6.7.4
+        version: 6.7.4(debug@4.3.4)
       '@remix-run/express':
         specifier: ^2.8.1
         version: 2.8.1(express@4.18.2)(typescript@5.4.0-dev.20240220)
@@ -651,8 +672,8 @@ importers:
         specifier: ^18.2.0
         version: 18.2.0(react@18.2.0)
       remix-routes:
-        specifier: ^1.6.1
-        version: 1.6.1
+        specifier: ^1.7.2
+        version: 1.7.2
       remix-typedjson:
         specifier: ^0.4.1
         version: 0.4.1(@remix-run/react@2.8.1)(@remix-run/server-runtime@2.8.1)(react@18.2.0)
@@ -665,7 +686,7 @@ importers:
     devDependencies:
       '@remix-run/dev':
         specifier: ^2.8.1
-        version: 2.8.1(@remix-run/serve@2.8.1)(@types/node@20.8.2)(ts-node@10.9.1)(typescript@5.4.0-dev.20240220)(vite@5.1.5)
+        version: 2.8.1(@remix-run/serve@2.8.1)(@types/node@20.8.2)
       '@types/compression':
         specifier: ^1.7.2
         version: 1.7.3
@@ -1038,6 +1059,10 @@ packages:
   /@antfu/ni@0.21.8:
     resolution: {integrity: sha512-90X8pU2szlvw0AJo9EZMbYc2eQKkmO7mAdC4tD4r5co2Mm56MT37MIG8EyB7p4WRheuzGxuLDxJ63mF6+Zajiw==}
     hasBin: true
+    dev: true
+
+  /@antfu/utils@0.7.7:
+    resolution: {integrity: sha512-gFPqTG7otEJ8uP6wrhDv6mqwGWYZKNvAcCq6u9hOj0c+IKCEsY4L1oC9trPq2SaWIzAfHvqfBDxF591JkMf+kg==}
     dev: true
 
   /@aws-crypto/crc32@3.0.0:
@@ -4117,7 +4142,7 @@ packages:
     resolution: {integrity: sha512-+zUI7NQDXfcNnU8HgrAj4jRMv8yRfITLzcfv0Urf0adKimM+hkkVG4rX38i9zWMlxekkEBw7NLFx3Gxxy8d3iQ==}
     dev: true
 
-  /@psf/bch-js@6.7.4:
+  /@psf/bch-js@6.7.4(debug@4.3.4):
     resolution: {integrity: sha512-bD4uCzcn9GC0U8rCPxPLj9auKZeBghY8GncvZohckMItAADiC8zFsff+dhzssnCq7Z2gplGHlIXGCJ7EJraXsw==}
     dependencies:
       '@chris.troutner/bip32-utils': 1.0.5
@@ -4125,7 +4150,7 @@ packages:
       '@psf/bitcoincash-ops': 2.0.0
       '@psf/bitcoincashjs-lib': 4.0.3
       '@psf/coininfo': 4.0.0
-      axios: 0.26.1
+      axios: 0.26.1(debug@4.3.4)
       bc-bip68: 1.0.5
       bchaddrjs-slp: 0.2.5
       bigi: 1.4.2
@@ -4870,7 +4895,7 @@ packages:
       type-fest: 2.19.0
     dev: false
 
-  /@remix-run/dev@2.8.1(@remix-run/serve@2.8.1)(@types/node@20.8.2)(ts-node@10.9.1)(typescript@5.4.0-dev.20240220)(vite@5.1.5):
+  /@remix-run/dev@2.8.1(@remix-run/serve@2.8.1)(@types/node@20.8.2):
     resolution: {integrity: sha512-qFt4jAsAJeIOyg6ngeSnTG/9Z5N9QJfeThP/8wRHc1crqYgTiEtcI3DZ8WlAXjVSF5emgn/ZZKqzLAI02OgMfQ==}
     engines: {node: '>=18.0.0'}
     hasBin: true
@@ -4925,6 +4950,93 @@ packages:
       lodash: 4.17.21
       lodash.debounce: 4.0.8
       minimatch: 9.0.3
+      ora: 5.4.1
+      picocolors: 1.0.0
+      picomatch: 2.3.1
+      pidtree: 0.6.0
+      postcss: 8.4.35
+      postcss-discard-duplicates: 5.1.0(postcss@8.4.35)
+      postcss-load-config: 4.0.1(postcss@8.4.35)(ts-node@10.9.1)
+      postcss-modules: 6.0.0(postcss@8.4.35)
+      prettier: 2.8.8
+      pretty-ms: 7.0.1
+      react-refresh: 0.14.0
+      remark-frontmatter: 4.0.1
+      remark-mdx-frontmatter: 1.1.1
+      semver: 7.5.4
+      set-cookie-parser: 2.6.0
+      tar-fs: 2.1.1
+      tsconfig-paths: 4.2.0
+      ws: 7.5.9
+    transitivePeerDependencies:
+      - '@types/node'
+      - bluebird
+      - bufferutil
+      - less
+      - sass
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+      - ts-node
+      - utf-8-validate
+    dev: true
+
+  /@remix-run/dev@2.8.1(@remix-run/serve@2.8.1)(@types/node@20.8.2)(ts-node@10.9.1)(typescript@5.4.0-dev.20240220)(vite@5.1.5):
+    resolution: {integrity: sha512-qFt4jAsAJeIOyg6ngeSnTG/9Z5N9QJfeThP/8wRHc1crqYgTiEtcI3DZ8WlAXjVSF5emgn/ZZKqzLAI02OgMfQ==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
+    peerDependencies:
+      '@remix-run/serve': ^2.8.1
+      typescript: ^5.1.0
+      vite: ^5.1.0
+      wrangler: ^3.28.2
+    peerDependenciesMeta:
+      '@remix-run/serve':
+        optional: true
+      typescript:
+        optional: true
+      vite:
+        optional: true
+      wrangler:
+        optional: true
+    dependencies:
+      '@babel/core': 7.23.0
+      '@babel/generator': 7.23.6
+      '@babel/parser': 7.23.6
+      '@babel/plugin-syntax-decorators': 7.22.10(@babel/core@7.23.0)
+      '@babel/plugin-syntax-jsx': 7.22.5(@babel/core@7.23.0)
+      '@babel/preset-typescript': 7.23.0(@babel/core@7.23.0)
+      '@babel/traverse': 7.23.7
+      '@babel/types': 7.23.6
+      '@mdx-js/mdx': 2.3.0
+      '@npmcli/package-json': 4.0.1
+      '@remix-run/node': 2.8.1(typescript@5.4.0-dev.20240220)
+      '@remix-run/router': 1.15.3-pre.0
+      '@remix-run/serve': 2.8.1(typescript@5.4.0-dev.20240220)
+      '@remix-run/server-runtime': 2.8.1(typescript@5.4.0-dev.20240220)
+      '@types/mdx': 2.0.8
+      '@vanilla-extract/integration': 6.2.2(@types/node@20.8.2)
+      arg: 5.0.2
+      cacache: 17.1.4
+      chalk: 4.1.2
+      chokidar: 3.5.3
+      cross-spawn: 7.0.3
+      dotenv: 16.3.1
+      es-module-lexer: 1.4.1
+      esbuild: 0.17.6
+      esbuild-plugins-node-modules-polyfill: 1.6.1(esbuild@0.17.6)
+      execa: 5.1.1
+      exit-hook: 2.2.1
+      express: 4.18.2
+      fs-extra: 10.1.0
+      get-port: 5.1.1
+      gunzip-maybe: 1.4.2
+      jsesc: 3.0.2
+      json5: 2.2.3
+      lodash: 4.17.21
+      lodash.debounce: 4.0.8
+      minimatch: 9.0.4
       ora: 5.4.1
       picocolors: 1.0.0
       picomatch: 2.3.1
@@ -5167,6 +5279,20 @@ packages:
     resolution: {integrity: sha512-KRJtwrjRV5Bb+pM7zxcTJkhIqWWSy+MYsIxHK+0m5atcznsf15YwUBWHWulZerV2+vvHH1Lp1DD7pw6qKW8SgA==}
     dependencies:
       web-streams-polyfill: 3.2.1
+
+  /@rollup/pluginutils@5.1.0:
+    resolution: {integrity: sha512-XTIWOPPcpvyKI6L1NHo0lFlCyznUEyPmPY1mc3KpPVDYulHSTvyeLNVW00QTLIAFNhR3kYnJTQHeGqU4M3n09g==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
+    dependencies:
+      '@types/estree': 1.0.2
+      estree-walker: 2.0.2
+      picomatch: 2.3.1
+    dev: true
 
   /@rollup/rollup-android-arm-eabi@4.7.0:
     resolution: {integrity: sha512-rGku10pL1StFlFvXX5pEv88KdGW6DHUghsxyP/aRYb9eH+74jTGJ3U0S/rtlsQ4yYq1Hcc7AMkoJOb1xu29Fxw==}
@@ -6613,6 +6739,13 @@ packages:
     resolution: {integrity: sha512-VeiPZ9MMwXjO32/Xu7+OwflfmeoRwkE/qzndw42gGtgJwZopBnzy2gD//NN1+go1mADzkDcqf/KnFRSjTJ8xJA==}
     dev: true
 
+  /@types/execa@2.0.0:
+    resolution: {integrity: sha512-aBnkJ0r3khaZkHzu9pDZeWXrDg1N/ZtDGRQkK+KIqNVvvTvW+URXMUHQQCQMYdb2GPrcwu9Fq6l9iiT+pirIbg==}
+    deprecated: This is a stub types definition. execa provides its own type definitions, so you do not need this installed.
+    dependencies:
+      execa: 8.0.1
+    dev: true
+
   /@types/express-serve-static-core@4.17.37:
     resolution: {integrity: sha512-ZohaCYTgGFcOP7u6aJOhY9uIZQgZ2vxC2yWoArY+FeDXlqeH66ZVBjgvg+RLVAS/DWNq4Ap9ZXu1+SUQiiWYMg==}
     dependencies:
@@ -7649,10 +7782,10 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
-  /axios@0.26.1:
+  /axios@0.26.1(debug@4.3.4):
     resolution: {integrity: sha512-fPwcX4EvnSHuInCMItEhAGnaSEXRBjtzh9fOtsE6E1G6p7vl7edEeZe11QHf18+6+9gR5PbKV/sGKNaD8YaMeA==}
     dependencies:
-      follow-redirects: 1.15.3
+      follow-redirects: 1.15.3(debug@4.3.4)
     transitivePeerDependencies:
       - debug
     dev: false
@@ -9989,6 +10122,10 @@ packages:
       '@types/unist': 2.0.8
     dev: true
 
+  /estree-walker@2.0.2:
+    resolution: {integrity: sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w==}
+    dev: true
+
   /estree-walker@3.0.3:
     resolution: {integrity: sha512-7RUKfXgSMMkzt6ZuXmqapOurLGPPfgj6l9uRZ7lRGolvk0y2yocc35LdcxKC5PQZdn2DMqioAQ2NoWcrTKmm6g==}
     dependencies:
@@ -10257,7 +10394,7 @@ packages:
     resolution: {integrity: sha512-36yxDn5H7OFZQla0/jFJmbIKTdZAQHngCedGxiMmpNfEZM0sdEeT+WczLQrjK6D7o2aiyLYDnkw0R3JK0Qv1RQ==}
     dev: true
 
-  /follow-redirects@1.15.3:
+  /follow-redirects@1.15.3(debug@4.3.4):
     resolution: {integrity: sha512-1VzOtuEM8pC9SFU1E+8KfTjZyMztRsgEfwQl44z8A25uy13jSzTj6dyK2Df52iV0vgHCfBwLhDWevLn95w5v6Q==}
     engines: {node: '>=4.0'}
     peerDependencies:
@@ -10265,6 +10402,8 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
+    dependencies:
+      debug: 4.3.4
     dev: false
 
   /for-each@0.3.3:
@@ -10515,7 +10654,7 @@ packages:
     dependencies:
       foreground-child: 3.1.1
       jackspeak: 2.3.6
-      minimatch: 9.0.3
+      minimatch: 9.0.4
       minipass: 7.0.4
       path-scurry: 1.10.1
 
@@ -12826,6 +12965,13 @@ packages:
     engines: {node: '>=16 || 14 >=14.17'}
     dependencies:
       brace-expansion: 2.0.1
+    dev: true
+
+  /minimatch@9.0.4:
+    resolution: {integrity: sha512-KqWh+VchfxcMNRAJjj2tnsSJdNbHsVgnkBhTNrW7AjVo6OvLtxw8zfT9oLw1JSohlFzJ8jCoTgaoXvJ+kHt6fw==}
+    engines: {node: '>=16 || 14 >=14.17'}
+    dependencies:
+      brace-expansion: 2.0.1
 
   /minimist-options@4.1.0:
     resolution: {integrity: sha512-Q4r8ghd80yhO/0j1O3B2BjweX3fiHg9cdOwjJd2J76Q135c+NDxGCqdYKQ1SKBuFfgWbAUzBfvYjPUEeNgqN1A==}
@@ -14916,8 +15062,8 @@ packages:
       minimatch: 5.1.6
     dev: true
 
-  /remix-routes@1.6.1:
-    resolution: {integrity: sha512-Ayu5w4JFMNPmHSSGsimzSF3X1HxRzAmdd3fgwm8pCQ/nmdNzd40AUIKG1heOjnw9tAkBTj5psXlJzUtwjbw3Rg==}
+  /remix-routes@1.7.2:
+    resolution: {integrity: sha512-iRwX3QyAyFZrXhxyWtIJJmmqUV45BnRH2Kz//Fabr0YopSSbQKX/RYs1up0rmyIuHSIi2eC2gBtPQsJ7J0/anw==}
     hasBin: true
     dependencies:
       chokidar: 3.5.3
@@ -16368,14 +16514,14 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
-  /typesense@1.7.2(@babel/runtime@7.23.1):
+  /typesense@1.7.2(@babel/runtime@7.23.1)(debug@4.3.4):
     resolution: {integrity: sha512-hgQESOiyNJq+w2mpRJa/a1UMhWtJ/+sb0p7NoeCDSkikm9sasisJdnc7uhQchM6vTWKw2sMLWUBNbAhItR6zUQ==}
     engines: {node: '>=14'}
     peerDependencies:
       '@babel/runtime': ^7.17.2
     dependencies:
       '@babel/runtime': 7.23.1
-      axios: 0.26.1
+      axios: 0.26.1(debug@4.3.4)
       loglevel: 1.8.1
     transitivePeerDependencies:
       - debug
@@ -16797,7 +16943,22 @@ packages:
       acorn-import-assertions: 1.9.0(acorn@8.11.3)
       estree-walker: 3.0.3
       magic-string: 0.30.8
-      minimatch: 9.0.3
+      minimatch: 9.0.4
+    dev: true
+
+  /vite-plugin-svgr@4.2.0(typescript@5.4.0-dev.20240220)(vite@5.1.5):
+    resolution: {integrity: sha512-SC7+FfVtNQk7So0XMjrrtLAbEC8qjFPifyD7+fs/E6aaNdVde6umlVVh0QuwDLdOMu7vp5RiGFsB70nj5yo0XA==}
+    peerDependencies:
+      vite: ^2.6.0 || 3 || 4 || 5
+    dependencies:
+      '@rollup/pluginutils': 5.1.0
+      '@svgr/core': 8.1.0(typescript@5.4.0-dev.20240220)
+      '@svgr/plugin-jsx': 8.1.0(@svgr/core@8.1.0)
+      vite: 5.1.5(@types/node@20.8.2)
+    transitivePeerDependencies:
+      - rollup
+      - supports-color
+      - typescript
     dev: true
 
   /vite-tsconfig-paths@4.2.2(typescript@5.4.0-dev.20240220)(vite@5.1.5):

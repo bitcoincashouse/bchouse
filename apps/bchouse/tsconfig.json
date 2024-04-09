@@ -10,8 +10,10 @@
     "./server.ts",
     "./env.d.ts",
     "./types/**/*.ts",
-    "./vite.config.ts"
-, "app/.server/appEnv.ts"  ],
+    "./vite.config.ts",
+    "./plugin/**/*.ts",
+    "app/.server/appEnv.ts"
+  ],
   "exclude": ["../../**/node_modules"],
   "compilerOptions": {
     //Base

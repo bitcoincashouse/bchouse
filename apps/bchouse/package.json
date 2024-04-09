@@ -5,35 +5,16 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "build": "run-s build:*",
-    "dev": "run-p dev:*",
     "start": "cross-env NODE_ENV=production node -r dotenv/config ./build/server.js  dotenv_config_path=../../.env.development",
     "clean": "rimraf build public/build .cache",
-    "postinstall": "is-docker && echo 'Skipping post-install' || run-p postinstall:*",
-    "postinstall:routes": "remix-routes",
-    "icons": "npx @svgr/cli --silent --out-dir app/components/icons -- public/assets/img",
-    "icons:watch": "npm-watch icons",
     "dev:routes": "remix-routes -w",
-    "dev:xstate": "xstate typegen 'app/components/machines/**/*.ts?(x)' --watch",
-    "dev:cashscript": "foreach -g app/.server/**/*.cash -x \"cashc #{path} --output #{dir}/contract.json\"",
-    "dev:remix": "dotenv -e ../../.env.development remix vite:dev",
+    "dev": "dotenv -e ../../.env.development remix vite:dev",
     "test": "vitest --coverage",
-    "build:routes": "remix-routes",
-    "build:cashscript": "foreach -g app/.server/**/*.cash -x \"cashc #{path} --output #{dir}/contract.json\"",
-    "build:remix": "remix vite:build",
+    "build": "remix vite:build",
     "docker:build": "docker compose --env-file ../../.env.development build bchouse",
     "docker:up": "docker compose --env-file ../../.env.development up bchouse --force-recreate",
     "env:dev": "dotenv -e ../../.env.development --",
     "env:staging": "dotenv -e ../../_staging.env --"
-  },
-  "watch": {
-    "icons": {
-      "patterns": [
-        "icons"
-      ],
-      "extensions": "svg",
-      "quiet": false
-    }
   },
   "dependencies": {
     "@algolia/autocomplete-core": "^1.17.0",
@@ -140,7 +121,7 @@
     "remark-gfm": "^3.0.1",
     "remark-parse": "^10.0.2",
     "remark-rehype": "^10.1.0",
-    "remix-routes": "^1.6.1",
+    "remix-routes": "^1.7.2",
     "remix-typedjson": "^0.4.1",
     "svix": "^1.8.1",
     "tailwind-datepicker-react": "^1.2.3",
@@ -162,6 +143,7 @@
     "node": ">=14"
   },
   "devDependencies": {
+    "@antfu/utils": "^0.7.7",
     "@bchouse/cashconnect": "workspace:^",
     "@bchouse/inngest": "workspace:^",
     "@bchouse/paygate": "workspace:^",
@@ -177,6 +159,7 @@
     "@total-typescript/ts-reset": "^0.4.2",
     "@types/bchaddrjs": "^0.4.0",
     "@types/compression": "^1.7.2",
+    "@types/execa": "^2.0.0",
     "@types/express": "^4.17.17",
     "@types/morgan": "^1.9.4",
     "@types/node": "^20.2.5",
@@ -187,17 +170,21 @@
     "@xstate/cli": "^0.5.7",
     "autoprefixer": "^10.4.15",
     "cross-env": "^7.0.3",
+    "debug": "^4.3.4",
     "dotenv": "^16.0.3",
     "dotenv-cli": "^7.2.1",
     "esbuild": "^0.19.10",
+    "execa": "^8.0.1",
     "foreach-cli": "^1.8.1",
     "happy-dom": "^12.10.3",
     "htm": "^3.1.1",
     "is-docker": "^3.0.0",
+    "minimatch": "^9.0.4",
     "normalize-wheel": "^1.0.1",
     "npm-run-all": "^4.1.5",
     "npm-watch": "^0.11.0",
     "patch-package": "^8.0.0",
+    "picocolors": "^1.0.0",
     "postcss": "^8.4.28",
     "postcss-import": "^15.1.0",
     "preact": "^10.19.3",
@@ -216,6 +203,7 @@
     "vite": "^5.1.5",
     "vite-env-only": "^2.2.1",
     "vite-plugin-cjs-interop": "^2.1.0",
+    "vite-plugin-svgr": "^4.2.0",
     "vite-tsconfig-paths": "^4.2.2",
     "vitest": "^1.0.2"
   }
