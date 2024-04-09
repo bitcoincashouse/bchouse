@@ -8,7 +8,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react'
-import { tipPostModalMachine } from '../machines/tip-modal-machine'
+import { tipPostModalMachine } from '../machines/tip-modal.machine'
 
 type TipPostData = {
   authorDisplayName: string

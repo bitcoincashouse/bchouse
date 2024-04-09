@@ -8,7 +8,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react'
-import { pledgeModalMachine } from '../machines/pledge-modal-machine'
+import { pledgeModalMachine } from '../machines/pledge-modal.machine'
 import { useHydrated } from '../utils/use-hydrated'
 
 type PledgeData = {

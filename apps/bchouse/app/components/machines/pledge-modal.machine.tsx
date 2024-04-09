@@ -78,7 +78,7 @@ export const pledgeModalMachine = createMachine(
       events: {} as Event,
     },
     initial: 'initial',
-    tsTypes: {} as import('./pledge-modal-machine.typegen').Typegen0,
+    tsTypes: {} as import('./pledge-modal.machine.typegen').Typegen0,
     predictableActionArguments: true,
     states: {
       initial: {

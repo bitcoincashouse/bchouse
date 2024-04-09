@@ -49,7 +49,7 @@ export const tipPostModalMachine = createMachine(
       events: {} as Event,
     },
     initial: 'choose_wallet',
-    tsTypes: {} as import('./tip-modal-machine.typegen').Typegen0,
+    tsTypes: {} as import('./tip-modal.machine.typegen').Typegen0,
     predictableActionArguments: true,
     states: {
       choose_wallet: {
