@@ -137,10 +137,11 @@ export const pledgeModalMachine = createMachine(
           // syntax for expressing services
           src: (context, event) => async (send) => {
             //submit annyonecanpay pledge, show loader until done, then leave message
-            const result = await window.trpcClient.submitAnyonecanpay.mutate({
-              campaignId: context.campaignId as string,
-              payload: context.anyonecanpayPayload as string,
-            })
+            const result =
+              await window.trpcClient.campaign.submitAnyonecanpay.mutate({
+                campaignId: context.campaignId as string,
+                payload: context.anyonecanpayPayload as string,
+              })
 
             if (result instanceof Error) {
               send({
