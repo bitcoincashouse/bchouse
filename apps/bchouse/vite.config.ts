@@ -1,5 +1,4 @@
 import { vitePlugin as remix } from '@remix-run/dev'
-import path from 'path'
 import { remixDevTools } from 'remix-development-tools'
 import { flatRoutes } from 'remix-flat-routes'
 import { remixRoutes } from 'remix-routes/vite'
@@ -8,6 +7,8 @@ import { cjsInterop } from 'vite-plugin-cjs-interop'
 import svgr from 'vite-plugin-svgr'
 import tsConfigPaths from 'vite-tsconfig-paths'
 import run from './plugin/run'
+import { cashscript } from './plugin/runners/cashscript'
+import { xstate } from './plugin/runners/xstate'
 
 export default defineConfig(({ isSsrBuild }) => ({
   ssr: {
@@ -22,7 +23,15 @@ export default defineConfig(({ isSsrBuild }) => ({
         target: ['ES2022'],
       },
   optimizeDeps: {
-    include: ['./app/entry.client.tsx', './app/root.tsx', './app/routes/**/*'],
+    include: [
+      './app/entry.client.tsx',
+      './app/root.tsx',
+      './app/routes/**/*',
+      './app/utils/**/*',
+      './app/components/**/*',
+      '@clerk/remix/ssr.server',
+      '@t3-oss/env-core',
+    ],
     esbuildOptions: {
       target: 'esnext',
     },
@@ -57,44 +66,6 @@ export default defineConfig(({ isSsrBuild }) => ({
     }),
     svgr(),
     remixRoutes(),
-    run([
-      {
-        name: 'cashscript',
-        run: (parameters) => {
-          const file = parameters?.file
-          if (file) {
-            const run = [
-              'cashc',
-              file,
-              '--output',
-              path.resolve(path.dirname(file), 'contract.json'),
-            ]
-            return run
-          }
-
-          return [
-            'npx',
-            'foreach',
-            '-g',
-            'app/.server/**/*.cash',
-            '-x',
-            'cashc #{path} --output #{dir}/contract.json',
-          ]
-        },
-        pattern: ['**/*.cash'],
-      },
-      {
-        name: 'xstate',
-        run: (parameters) => {
-          const file = parameters?.file
-          if (file) {
-            return ['npx', 'xstate', 'typegen', file]
-          }
-
-          return ['npx', 'xstate', 'typegen', 'app/**/*.machine.ts?(x)']
-        },
-        pattern: ['**/*.machine.ts?(x)'],
-      },
-    ]),
+    run([cashscript, xstate]),
   ],
 }))
