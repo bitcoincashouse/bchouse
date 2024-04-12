@@ -86,7 +86,7 @@ export async function createPost(params: {
     //Insert inline media as well
     const insertMedia = () => {
       return Promise.all(
-        mediaUrls.map(({ url, height, width }) => {
+        mediaUrls.map(({ url, height, width }, index) => {
           return trx
             .insertInto('Media')
             .values({
@@ -94,6 +94,7 @@ export async function createPost(params: {
               url,
               height,
               width,
+              idx: index + 1,
             })
             .execute()
         })

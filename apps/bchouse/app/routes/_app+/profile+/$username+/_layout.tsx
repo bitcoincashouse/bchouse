@@ -23,6 +23,7 @@ import { getTrpc } from '~/.server/getTrpc'
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { Avatar } from '~/components/avatar'
 import { FollowButton } from '~/components/follow-button'
+import { ImageGridWidget } from '~/components/image-grid-widget'
 import { ImageProxy } from '~/components/image-proxy'
 import { PostForm } from '~/components/post/form/implementations/post-form'
 import { trpc } from '~/utils/trpc'
@@ -381,58 +382,11 @@ export default function Index() {
         </div>
       }
       widgets={[
-        user.mediaPreview.length > 0 ? (
-          <>
-            <section aria-labelledby="media-list">
-              <div className="overflow-hidden rounded-lg bg-gray-50">
-                {!!user.mediaPreview.length && (
-                  <div className="overflow-hidden relative">
-                    <div className={'pb-[56.25%]'}></div>
-                    <div
-                      className={classNames(
-                        'absolute inset-0 grid grid-cols-6 grid-rows-2 rounded-lg'
-                      )}
-                    >
-                      {user.mediaPreview.slice(0, 6).map((url, i, arr) => {
-                        let gridClass
-
-                        if (arr.length <= 2) {
-                          gridClass = 'col-span-3 row-span-2'
-                        } else if (arr.length === 3) {
-                          gridClass =
-                            i === 0
-                              ? 'col-span-3 row-span-2'
-                              : 'col-span-3 row-span-1'
-                        } else if (arr.length === 4) {
-                          gridClass = 'col-span-3 row-span-1'
-                        } else {
-                          gridClass = 'col-span-2 row-span-1'
-                        }
-
-                        return (
-                          <div
-                            key={url}
-                            className={classNames(
-                              'overflow-hidden relative w-full h-full',
-                              gridClass
-                            )}
-                          >
-                            <ImageProxy
-                              mediaKey={url}
-                              quality={100}
-                              width={200}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </section>
-          </>
+        user.mediaPreviewItems.length > 0 ? (
+          <ImageGridWidget
+            images={user.mediaPreviewItems}
+            username={user.username}
+          />
         ) : null,
         <ActiveCampaignsWidget username={user.username} />,
         // <RelatedFollowSuggestions user={user.id} />,

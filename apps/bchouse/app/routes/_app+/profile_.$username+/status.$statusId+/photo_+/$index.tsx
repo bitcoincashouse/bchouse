@@ -31,7 +31,7 @@ const variants = {
 const MotionComponent = motion(ImageProxy)
 
 export default function Page() {
-  const data = usePhotoLoaderData()
+  const data = usePhotoLoaderData()?.data
   const params = useParams()
   const imageIndex = Number(params.index as string) - 1
   const direction = useLocation().state?.direction as -1 | 1 | undefined
@@ -46,6 +46,10 @@ export default function Page() {
   const image = mainPost.mediaUrls[imageIndex] as NonNullable<
     (typeof mainPost.mediaUrls)[number]
   >
+
+  if (!image) {
+    return <></>
+  }
 
   return (
     <MotionComponent

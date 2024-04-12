@@ -15,8 +15,7 @@ import {
 } from '@remix-run/react'
 import { AnimatePresence } from 'framer-motion'
 import { useMemo, useState } from 'react'
-import { $path, $routeId } from 'remix-routes'
-import { useTypedRouteLoaderData } from 'remix-typedjson'
+import { $path } from 'remix-routes'
 import { useMediaQuery } from 'usehooks-ts'
 import { z } from 'zod'
 import { getTrpc } from '~/.server/getTrpc'
@@ -36,10 +35,20 @@ export const handle: AppRouteHandle = {
 }
 
 export const usePhotoLoaderData = () => {
-  return useTypedRouteLoaderData<typeof loader>(
-    $routeId(
-      'routes/_app+/profile_.$username+/status.$statusId+/photo_+/_layout'
-    )
+  const { statusId } = useParams<{
+    username: string
+    statusId: string
+    index: string
+  }>()
+
+  return trpc.post.status.useQuery(
+    {
+      statusId: statusId!,
+    },
+    {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
+    }
   )
 }
 
@@ -63,21 +72,11 @@ export default function Page() {
     index: string
   }>()
 
-  const status = trpc.post.status.useQuery(
-    {
-      statusId: statusId!,
-    },
-    {
-      staleTime: 5 * 60 * 1000,
-      gcTime: 15 * 60 * 1000,
-    }
-  )
-
   const {
     posts = [],
     previousCursor = undefined,
     nextCursor = undefined,
-  } = status.data || {}
+  } = usePhotoLoaderData()?.data || {}
 
   const photoNum = Number(index!)
   const imageIndex = photoNum - 1

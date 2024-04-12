@@ -1,4 +1,5 @@
 import { Kysely } from 'kysely'
+import { jsonArrayFrom } from 'kysely/helpers/mysql'
 import { DB, db } from '../../db/index'
 import { BasicUserProfile, UserProfile } from './types'
 
@@ -89,7 +90,7 @@ export async function getBasicUserProfile(
 ): Promise<BasicUserProfile> {
   const { username, currentUserId } = params
 
-  const getUserQuery = db
+  const userRow = await db
     .selectFrom('User as user')
     .where('user.username', '=', username)
     .select([
@@ -131,28 +132,27 @@ export async function getBasicUserProfile(
           .whereRef('follow.followedId', '=', 'user.id')
           .select((qb) => qb.fn.count('follow.id').as('followerCount'))
           .as('followerCount'),
+      (qb) =>
+        jsonArrayFrom(
+          qb
+            .selectFrom('Media as media')
+            .innerJoin('Post as post', 'post.id', 'media.postId')
+            .whereRef('post.publishedById', '=', 'user.id')
+            .where('post.deleted', '!=', 1)
+            .orderBy(['media.createdAt desc', 'media.id asc'])
+            .select([
+              'media.url',
+              'media.idx',
+              'media.postId',
+              'media.width',
+              'media.height',
+              'post.publishedById as authorId',
+            ])
+            .limit(6)
+        ).as('mediaItems'),
     ])
     .limit(1)
-    .execute()
-
-  const getUserMediaQuery = db
-    .selectFrom('Media as media')
-    .innerJoin('Post as post', 'post.id', 'media.postId')
-    .innerJoin('User as user', 'user.id', 'post.publishedById')
-    .where(({ cmpr, and }) => {
-      return and([cmpr('user.username', '=', username)])
-    })
-    .orderBy('post.createdAt', 'desc')
-    .select('media.url')
-    .limit(6)
-    .execute()
-
-  const [userRows, mediaRows] = await Promise.all([
-    getUserQuery,
-    getUserMediaQuery,
-  ])
-
-  const userRow = userRows[0]
+    .executeTakeFirst()
 
   if (!userRow) {
     throw new Error(`User with id ${username} not found`)
@@ -179,10 +179,12 @@ export async function getBasicUserProfile(
     followingCount: userRow.followingCount as number,
     followerCount: userRow.followerCount as number,
 
-    mediaPreviewUrls: mediaRows
+    mediaPreviewUrls: userRow.mediaItems
       .map((row) => row.url)
       .filter(Boolean)
       .reverse(),
+
+    mediaPreviewItems: userRow.mediaItems.filter(Boolean).reverse(),
   }
 
   const profile = {
@@ -205,7 +207,7 @@ export async function getBasicUserProfileById(
 ): Promise<BasicUserProfile> {
   const { userId, currentUserId } = params
 
-  const getUserQuery = db
+  const userRow = await db
     .selectFrom('User as user')
     .where('user.id', '=', userId)
     .select([
@@ -247,28 +249,26 @@ export async function getBasicUserProfileById(
           .whereRef('follow.followedId', '=', 'user.id')
           .select((qb) => qb.fn.count('follow.id').as('followerCount'))
           .as('followerCount'),
+      (qb) =>
+        jsonArrayFrom(
+          qb
+            .selectFrom('Media as media')
+            .innerJoin('Post as post', 'post.id', 'media.postId')
+            .whereRef('post.publishedById', '=', 'user.id')
+            .where('post.deleted', '!=', 1)
+            .orderBy(['media.createdAt desc', 'media.id asc'])
+            .select([
+              'media.url',
+              'media.idx',
+              'media.postId',
+              'media.width',
+              'media.height',
+              'post.publishedById as authorId',
+            ])
+            .limit(6)
+        ).as('mediaItems'),
     ])
-    .limit(1)
-    .execute()
-
-  const getUserMediaQuery = db
-    .selectFrom('Media as media')
-    .innerJoin('Post as post', 'post.id', 'media.postId')
-    .innerJoin('User as user', 'user.id', 'post.publishedById')
-    .where(({ cmpr, and }) => {
-      return and([cmpr('user.id', '=', userId)])
-    })
-    .orderBy('post.createdAt', 'desc')
-    .select('media.url')
-    .limit(6)
-    .execute()
-
-  const [userRows, mediaRows] = await Promise.all([
-    getUserQuery,
-    getUserMediaQuery,
-  ])
-
-  const userRow = userRows[0]
+    .executeTakeFirst()
 
   if (!userRow) {
     throw new Error(`User with id ${userId} not found`)
@@ -294,10 +294,11 @@ export async function getBasicUserProfileById(
     updatedAt: userRow.updatedAt,
     followingCount: userRow.followingCount as number,
     followerCount: userRow.followerCount as number,
-    mediaPreviewUrls: mediaRows
+    mediaPreviewUrls: userRow.mediaItems
       .map((row) => row.url)
       .filter(Boolean)
       .reverse(),
+    mediaPreviewItems: userRow.mediaItems.filter(Boolean).reverse(),
   }
 
   const profile = {

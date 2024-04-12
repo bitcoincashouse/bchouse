@@ -91,7 +91,7 @@ export type BasicUserProfile = {
   mediaPreviewItems: Array<{
     postId: string
     authorId: string
-    index: number
+    idx: number
     url: string
   }>
 

@@ -128,6 +128,7 @@ export class ProfileService {
       announcements: user.announcements,
       bchAddress: user.bchAddress,
       mediaPreview: user.mediaPreviewUrls,
+      mediaPreviewItems: user.mediaPreviewItems,
     }
   }
 
@@ -151,6 +152,7 @@ export class ProfileService {
       announcements: user.announcements,
       bchAddress: user.bchAddress,
       mediaPreview: user.mediaPreviewUrls,
+      mediaPreviewItems: user.mediaPreviewItems,
     }
   }
 
