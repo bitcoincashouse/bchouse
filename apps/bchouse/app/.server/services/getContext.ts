@@ -86,6 +86,10 @@ const snowflakeId = new Snowflake({
   workerId: Number(appEnv.SNOWFLAKE_WORKER_ID),
 })
 
+declare global {
+  var destroyContext: () => Promise<void> | undefined
+}
+
 async function destroy() {
   logger.info('Destroying context')
   await pTimeout(Promise.all([electrumService.stop(), addressWatcher.stop()]), {
@@ -96,8 +100,21 @@ async function destroy() {
   abortController.abort('Server destroyed')
 }
 
-process.on('SIGINT', () => destroy().then(() => process.exit()))
-process.on('SIGTERM', () => destroy().then(() => process.exit()))
+if (typeof globalThis.destroyContext !== 'undefined') {
+  //Destroy if function exists
+  await globalThis.destroyContext()
+} else {
+  //Setup handler if initial load
+  const destoryFn = async () => {
+    await globalThis.destroyContext?.()
+    process.exit()
+  }
+
+  process.on('SIGINT', destoryFn)
+  process.on('SIGTERM', () => destoryFn)
+}
+
+globalThis.destroyContext = destroy
 
 export {
   authService,
