@@ -164,7 +164,7 @@ export type Media = {
   id: Generated<string>
   url: string
   postId: string
-  index: number | null
+  idx: number
   placement: Generated<MediaPlacement>
   createdAt: Generated<Timestamp>
   width: number | null

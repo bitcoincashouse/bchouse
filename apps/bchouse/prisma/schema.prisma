@@ -351,7 +351,7 @@ model Media {
 
   postId String
   post   Post   @relation(fields: [postId], references: [id])
-  index  Int?
+  idx    Int
 
   placement MediaPlacement @default(Attached)
   createdAt DateTime       @default(now())
