@@ -88,6 +88,13 @@ export type BasicUserProfile = {
 
   mediaPreviewUrls: string[]
 
+  mediaPreviewItems: Array<{
+    postId: string
+    authorId: string
+    index: number
+    url: string
+  }>
+
   isCurrentUser: boolean
   joinedDate: Date
   followingCount: number

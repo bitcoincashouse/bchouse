@@ -4,7 +4,7 @@
 generator client {
   provider           = "prisma-kysely"
   binaryTargets      = []
-  output             = "../server/db/"
+  output             = "../app/.server/services/db/"
   bigIntTypeOverride = "bigint"
 }
 
@@ -351,6 +351,7 @@ model Media {
 
   postId String
   post   Post   @relation(fields: [postId], references: [id])
+  index  Int?
 
   placement MediaPlacement @default(Attached)
   createdAt DateTime       @default(now())
