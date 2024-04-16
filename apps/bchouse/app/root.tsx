@@ -8,6 +8,7 @@ import {
   type MetaFunction,
 } from '@remix-run/node'
 import {
+  ClientLoaderFunctionArgs,
   Outlet,
   ShouldRevalidateFunctionArgs,
   useLocation,
@@ -95,6 +96,10 @@ export const loader = async (_: LoaderFunctionArgs) => {
       TYPESENSE_PUBLIC_API_KEY: appEnv.TYPESENSE_PUBLIC_API_KEY,
     }
   })
+}
+
+export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
+  return window.env
 }
 
 export const shouldRevalidate = async (_: ShouldRevalidateFunctionArgs) => {

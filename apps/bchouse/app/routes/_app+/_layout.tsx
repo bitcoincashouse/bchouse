@@ -1,6 +1,12 @@
 import { WalletConnectProvider } from '@bchouse/cashconnect'
 import { LoaderFunctionArgs } from '@remix-run/node'
-import { Link, Outlet, useLocation, useSearchParams } from '@remix-run/react'
+import {
+  ClientLoaderFunctionArgs,
+  Link,
+  Outlet,
+  useLocation,
+  useSearchParams,
+} from '@remix-run/react'
 import { useMemo } from 'react'
 import { getTrpc } from '~/.server/getTrpc'
 import InfoAlert from '~/components/alert'
@@ -47,6 +53,10 @@ export const loader = async (_: LoaderFunctionArgs) => {
   return getTrpc(_, async (trpc) => {
     await trpc.profile.get.prefetch()
   })
+}
+
+export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
+  return null
 }
 
 export const useLayoutLoaderData = () => {
