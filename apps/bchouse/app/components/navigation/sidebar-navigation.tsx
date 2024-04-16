@@ -10,7 +10,6 @@ import { classnames } from '../utils/classnames'
 
 export type NavigationItemProps = {
   name: string
-  href: string
   icon: React.ForwardRefExoticComponent<
     Omit<React.SVGProps<SVGSVGElement>, 'ref'> & {
       title?: string | undefined
@@ -26,7 +25,14 @@ export type NavigationItemProps = {
   notificationCount?: string
   end?: boolean
   mobile?: boolean
-}
+} & (
+  | {
+      href: string
+    }
+  | {
+      onClick: () => void | Promise<void>
+    }
+)
 
 export type SidebarNavigationProps = {
   logoUrl: string
@@ -70,59 +76,94 @@ const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
               >
                 <ThemeToggle />
               </li>
-              {navigation.map((item, i) => (
-                <li key={item.name} className="relative">
-                  <NavLink
-                    to={item.href}
-                    className={({ isActive }) =>
-                      classNames(
-                        isActive ? 'font-semibold' : '',
-                        'group flex text-base text-primary-text leading-6 font-medium',
-                        'justify-center xl:justify-start items-center',
-                        ''
-                      )
-                    }
-                  >
-                    {({ isActive }) => {
-                      const Icon = isActive
-                        ? item.activeIcon || item.icon
-                        : item.icon
-                      return (
-                        <>
-                          <div className="hover:bg-hover transition-colors ease-in-out duration-300 rounded-full p-2 xl:pr-4 flex flex-row gap-x-3 items-center">
-                            <Icon
-                              className={classNames(
-                                isActive ? 'stroke-2' : '',
-                                'h-8 w-8 shrink-0'
-                              )}
-                              aria-hidden="true"
-                            />
-                            <span className="hidden xl:inline">
-                              {item.name}
-                            </span>
-                          </div>
-                          {item.notificationCount ? (
-                            <span
-                              className="hidden xl:inline ml-auto w-9 min-w-max whitespace-nowrap rounded-full px-2.5 py-0.5 text-center text-xs font-medium leading-5 ring-1 ring-inset ring-primary-btn-500"
-                              aria-hidden="true"
-                            >
-                              {item.notificationCount}
-                            </span>
-                          ) : null}
-                          {item.notificationCount ? (
-                            <span
-                              className="flex xl:hidden items-center justify-center w-5 h-5 absolute right-1 -top-1 whitespace-nowrap rounded-full bg-primary-btn-600 text-center text-xs font-medium text-white"
-                              aria-hidden="true"
-                            >
-                              {item.notificationCount}
-                            </span>
-                          ) : null}
-                        </>
-                      )
-                    }}
-                  </NavLink>
-                </li>
-              ))}
+              {navigation.map((item, i) =>
+                'href' in item ? (
+                  <li key={item.name} className="relative">
+                    <NavLink
+                      to={item.href}
+                      className={({ isActive }) =>
+                        classNames(
+                          isActive ? 'font-semibold' : '',
+                          'group flex text-base text-primary-text leading-6 font-medium',
+                          'justify-center xl:justify-start items-center',
+                          ''
+                        )
+                      }
+                    >
+                      {({ isActive }) => {
+                        const Icon = isActive
+                          ? item.activeIcon || item.icon
+                          : item.icon
+                        return (
+                          <>
+                            <div className="hover:bg-hover transition-colors ease-in-out duration-300 rounded-full p-2 xl:pr-4 flex flex-row gap-x-3 items-center">
+                              <Icon
+                                className={classNames(
+                                  isActive ? 'stroke-2' : '',
+                                  'h-8 w-8 shrink-0'
+                                )}
+                                aria-hidden="true"
+                              />
+                              <span className="hidden xl:inline">
+                                {item.name}
+                              </span>
+                            </div>
+                            {item.notificationCount ? (
+                              <span
+                                className="hidden xl:inline ml-auto w-9 min-w-max whitespace-nowrap rounded-full px-2.5 py-0.5 text-center text-xs font-medium leading-5 ring-1 ring-inset ring-primary-btn-500"
+                                aria-hidden="true"
+                              >
+                                {item.notificationCount}
+                              </span>
+                            ) : null}
+                            {item.notificationCount ? (
+                              <span
+                                className="flex xl:hidden items-center justify-center w-5 h-5 absolute right-1 -top-1 whitespace-nowrap rounded-full bg-primary-btn-600 text-center text-xs font-medium text-white"
+                                aria-hidden="true"
+                              >
+                                {item.notificationCount}
+                              </span>
+                            ) : null}
+                          </>
+                        )
+                      }}
+                    </NavLink>
+                  </li>
+                ) : (
+                  <li key={item.name} className="relative">
+                    <button
+                      onClick={item.onClick}
+                      className="group flex text-base text-primary-text leading-6 font-medium justify-center xl:justify-start items-center"
+                    >
+                      <>
+                        <div className="hover:bg-hover transition-colors ease-in-out duration-300 rounded-full p-2 xl:pr-4 flex flex-row gap-x-3 items-center">
+                          <item.icon
+                            className={classNames('h-8 w-8 shrink-0')}
+                            aria-hidden="true"
+                          />
+                          <span className="hidden xl:inline">{item.name}</span>
+                        </div>
+                        {item.notificationCount ? (
+                          <span
+                            className="hidden xl:inline ml-auto w-9 min-w-max whitespace-nowrap rounded-full px-2.5 py-0.5 text-center text-xs font-medium leading-5 ring-1 ring-inset ring-primary-btn-500"
+                            aria-hidden="true"
+                          >
+                            {item.notificationCount}
+                          </span>
+                        ) : null}
+                        {item.notificationCount ? (
+                          <span
+                            className="flex xl:hidden items-center justify-center w-5 h-5 absolute right-1 -top-1 whitespace-nowrap rounded-full bg-primary-btn-600 text-center text-xs font-medium text-white"
+                            aria-hidden="true"
+                          >
+                            {item.notificationCount}
+                          </span>
+                        ) : null}
+                      </>
+                    </button>
+                  </li>
+                )
+              )}
             </ul>
           </li>
           {currentUser.isAnonymous ? (

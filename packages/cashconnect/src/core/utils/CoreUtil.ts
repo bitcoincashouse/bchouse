@@ -9,10 +9,15 @@ export const CoreUtil = {
   RECOMMENDED_WALLET_AMOUNT: 9,
 
   async getWalletValue(
-    uri: string | (() => string) | (() => Promise<string>) | undefined
+    walletUri:
+      | string
+      | ((wcUri?: string) => string)
+      | ((wcUri?: string) => Promise<string>)
+      | undefined,
+    wcUri?: string
   ) {
-    if (typeof uri === 'undefined') return undefined
-    return typeof uri === 'string' ? uri : await uri()
+    if (typeof walletUri === 'undefined') return undefined
+    return typeof walletUri === 'string' ? walletUri : await walletUri(wcUri)
   },
 
   isMobile() {

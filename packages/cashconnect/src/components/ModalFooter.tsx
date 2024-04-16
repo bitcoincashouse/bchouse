@@ -1,3 +1,10 @@
-export function Footer({ children }: React.ComponentProps<'div'>) {
-  return <footer className="wcm-modal-footer">{children}</footer>
+import { cn } from '~/utils/cn'
+
+export function Footer({
+  className,
+  children,
+}: React.ComponentProps<'div'> & { className?: string }) {
+  return (
+    <footer className={cn('wcm-modal-footer', className)}>{children}</footer>
+  )
 }

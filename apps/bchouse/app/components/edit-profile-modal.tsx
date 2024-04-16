@@ -8,6 +8,8 @@ import { ImageProxy } from './image-proxy'
 import { Modal } from './modal'
 import { classnames } from './utils/classnames'
 import { EditUserFields, saveProfile } from './utils/saveProfile'
+import { useWalletConnectSession } from './utils/wc2-provider'
+import { getUserAddress } from './utils/wc2.client'
 
 export function EditProfileModal({
   open,
@@ -43,7 +45,9 @@ export function EditProfileModal({
     register,
     handleSubmit,
     setFocus,
+    setValue,
     formState: { errors },
+    getValues,
     setError,
     watch,
   } = useForm({
@@ -70,6 +74,8 @@ export function EditProfileModal({
       })
     }
   }
+
+  const { session, setOpen: setOpenWalletConnect } = useWalletConnectSession()
 
   return (
     <Modal open={open} onClose={closeModal} title="Edit Profile">
@@ -144,16 +150,49 @@ export function EditProfileModal({
                     >
                       Bitcoin Cash Address
                     </label>
-                    <input
-                      type="text"
-                      id="bchAddress"
-                      autoComplete="bchAddress"
-                      className="text-sm sm:text-base mt-1 block w-full rounded-md bg-hover bg-opacity-25 border border-solid border-gray-300 dark:border-gray-800 focus:border-sky-500 focus:ring-sky-500"
-                      {...register('bchAddress', {
-                        validate: (val) =>
-                          !val || isValidAddress(val) || 'Invalid BCH address',
-                      })}
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        id="bchAddress"
+                        autoComplete="bchAddress"
+                        className="text-sm sm:text-base mt-1 block w-full rounded-md bg-hover bg-opacity-25 border border-solid border-gray-300 dark:border-gray-800 focus:border-sky-500 focus:ring-sky-500"
+                        {...register('bchAddress', {
+                          validate: (val) =>
+                            !val ||
+                            isValidAddress(val) ||
+                            'Invalid BCH address',
+                        })}
+                      />
+                      {!!session ? (
+                        <button
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-xs border-[2px] border-green-300 rounded-xl py-1 px-2 text-primary-text"
+                          onClick={async (e) => {
+                            e.preventDefault()
+                            const address = await getUserAddress(session)
+
+                            if (!address) {
+                              alert('Failed to retrieve address.')
+                            } else if (address === getValues('bchAddress')) {
+                              alert('Address has not changed')
+                            } else {
+                              setValue('bchAddress', address)
+                            }
+                          }}
+                        >
+                          Update
+                        </button>
+                      ) : (
+                        <button
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-xs border-[2px] border-green-300 rounded-xl py-1 px-2 text-primary-text"
+                          onClick={async (e) => {
+                            e.preventDefault()
+                            setOpenWalletConnect(true)
+                          }}
+                        >
+                          Connect Wallet
+                        </button>
+                      )}
+                    </div>
                     <ErrorMessage
                       errors={errors}
                       name="bchAddress"

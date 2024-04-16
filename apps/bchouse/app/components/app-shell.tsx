@@ -1,3 +1,4 @@
+import { useWalletConnect } from '@bchouse/cashconnect'
 import {
   BellIcon as BellIconSolid,
   GlobeAltIcon as GlobeAltIconSolid,
@@ -7,6 +8,7 @@ import {
   ShoppingCartIcon as ShoppingCartIconSolid,
   UserGroupIcon as UserGroupIconSolid,
   UserIcon as UserIconSolid,
+  WalletIcon as WalletIconSolid,
 } from '@heroicons/react/20/solid'
 import {
   BellIcon,
@@ -17,6 +19,7 @@ import {
   ShoppingCartIcon,
   UserGroupIcon,
   UserIcon,
+  WalletIcon,
 } from '@heroicons/react/24/outline'
 import { useMemo } from 'react'
 import ReactDOM from 'react-dom'
@@ -31,12 +34,26 @@ import SidebarNavigation, {
 import { classnames } from '~/components/utils/classnames'
 import { usePageDisplay } from '~/utils/appHooks'
 import { logoUrl } from '~/utils/constants'
+import { ConnectWalletModal } from './connect-modal'
 import { useCurrentUser } from './context/current-user-context'
+import { useWalletConnectSession } from './utils/wc2-provider'
+
+const openWalletConnect = () => {}
 
 export const AppShell: React.FC<
   React.PropsWithChildren & { showHeader: boolean }
 > = function ({ children, showHeader }) {
   const currentUser = useCurrentUser()
+  //TODO: Only open WC2 wallets and only allow WC2 connections
+  const { setReferenceElement, close: closeWalletConnect } = useWalletConnect()
+
+  const {
+    session,
+    setSession,
+    open: openWalletConnect,
+    setOpen: setOpenWalletConnect,
+  } = useWalletConnectSession()
+
   const userNavigation = useMemo(
     () =>
       [
@@ -107,8 +124,23 @@ export const AppShell: React.FC<
           activeIcon: UserGroupIconSolid,
           mobile: false,
         },
+        {
+          name: session ? 'Wallet Connected' : 'Connect Wallet',
+          onClick: async () => {
+            setOpenWalletConnect(true)
+          },
+          icon: session
+            ? () => (
+                <span className="text-green-500 w-8 text-3xl animate-pulse">
+                  •
+                </span>
+              )
+            : WalletIcon,
+          activeIcon: WalletIconSolid,
+          mobile: true,
+        },
       ] as NavigationItemProps[],
-    [currentUser]
+    [currentUser, session, setOpenWalletConnect]
   )
 
   const { containerClassName } = usePageDisplay()
@@ -148,6 +180,20 @@ export const AppShell: React.FC<
           <div id="view" className="relative flex-grow">
             <div className="relative flex-grow w-full min-[720px]:w-[600px] min-[990px]:w-[920px] min-[1080px]:w-[990px]">
               {children}
+              {openWalletConnect ? (
+                <ConnectWalletModal
+                  ref={(ref) => setReferenceElement(ref)}
+                  isLoggedIn={!currentUser.isAnonymous}
+                  session={session}
+                  setSession={(context) => {
+                    setSession(context.session || null)
+                  }}
+                  onClose={async () => {
+                    await closeWalletConnect()
+                    setOpenWalletConnect(false)
+                  }}
+                />
+              ) : null}
             </div>
           </div>
         </div>

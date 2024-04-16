@@ -36,6 +36,7 @@ import { appEnv } from '~/.server/appEnv'
 import { AppRouter } from '~/.server/types/router'
 import stylesheet from '~/index.css?url'
 import { ErrorDisplay } from './components/pages/error'
+import { WalletConnectSessionProvider } from './components/utils/wc2-provider'
 import { Document } from './document'
 import { getThemeSession } from './utils/themeCookie.server'
 import { trpc } from './utils/trpc'
@@ -88,6 +89,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
       SENTRY_DSN: appEnv.SENTRY_DSN,
       PAYGATE_URL: appEnv.PAYGATE_URL,
       BCHOUSE_URL: appEnv.BCHOUSE_URL,
+      WALLET_CONNECT_PROJECT_ID: appEnv.WALLET_CONNECT_PROJECT_ID,
       FLIPSTARTER_PLATFORM_ADDRESS: process.env.FLIPSTARTER_PLATFORM_ADDRESS,
       TYPESENSE_PUBLIC_URL: appEnv.TYPESENSE_PUBLIC_URL,
       TYPESENSE_PUBLIC_API_KEY: appEnv.TYPESENSE_PUBLIC_API_KEY,
@@ -249,7 +251,9 @@ const App = function () {
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
           <HydrationBoundary state={dehydratedState}>
-            <Outlet />
+            <WalletConnectSessionProvider>
+              <Outlet />
+            </WalletConnectSessionProvider>
           </HydrationBoundary>
         </QueryClientProvider>
         <script src="//cdn.iframe.ly/embed.js?" />

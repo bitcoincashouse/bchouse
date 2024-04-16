@@ -70,6 +70,7 @@
     "@trpc/react-query": "11.0.0-next-beta.305",
     "@trpc/server": "11.0.0-next-beta.305",
     "@upstash/ratelimit": "^1.0.1",
+    "@walletconnect/sign-client": "^2.12.2",
     "@xstate/react": "^3.2.2",
     "aws-sdk": "^2.1337.0",
     "bchaddrjs": "^0.5.2",

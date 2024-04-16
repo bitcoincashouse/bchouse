@@ -42,6 +42,7 @@ export const appEnv = createEnv({
     FLIPSTARTER_PLATFORM_ADDRESS: z.string(),
     FLIPSTARTER_PLATFORM_PUBKEY: z.string(),
     FLIPSTARTER_PLATFORM_PRIVKEY: z.string(),
+    WALLET_CONNECT_PROJECT_ID: z.string(),
     // NICKNAME: z.string().min(1),
     // LLAMA_COUNT: z.number().int().positive(),
     // COLOR: z.enum(["red", "blue"]),
