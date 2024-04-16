@@ -5,8 +5,9 @@ module.exports = {
   future: {
     hoverOnlyWhenSupported: true,
   },
+  mode: 'jit',
   content: [
-    path.join(__dirname, '/app/**/*.{html,ts,tsx}'),
+    './app/**/*.{html,ts,tsx}',
     path.join(
       path.dirname(require.resolve('tailwind-datepicker-react')),
       '/**/*.js'

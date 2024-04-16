@@ -1,8 +1,8 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
-@import './app/index.css';
-@import './donations/index.css';
+@import './styles/app/index.css';
+@import './styles/donations/index.css';
 @import '@bchouse/cashconnect/styles/index.css';
 
 .dot-separator:before {
