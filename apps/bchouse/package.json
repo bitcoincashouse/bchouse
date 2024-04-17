@@ -124,6 +124,7 @@
     "remark-rehype": "^10.1.0",
     "remix-routes": "^1.7.2",
     "remix-typedjson": "^0.4.1",
+    "superjson": "^2.2.1",
     "svix": "^1.8.1",
     "tailwind-datepicker-react": "^1.2.3",
     "tailwind-merge": "^1.14.0",

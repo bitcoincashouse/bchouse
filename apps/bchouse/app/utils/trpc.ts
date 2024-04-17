@@ -6,6 +6,7 @@ import {
   createTRPCReact,
 } from '@trpc/react-query'
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server'
+import superjson from 'superjson'
 import type { AppRouter } from '~/.server/types/router'
 
 export const trpc: CreateTRPCReact<AppRouter, any> =
@@ -21,6 +22,7 @@ export const createTrpcClientUtils = (dehydratedState: DehydratedState) => {
   const trpcClientUtils = createTRPCQueryUtils<AppRouter>({
     queryClient,
     client: trpc,
+    transformer: superjson,
   })
 
   return trpcClientUtils

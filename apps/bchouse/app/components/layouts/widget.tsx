@@ -85,6 +85,63 @@ export function Widget<T>({
   )
 }
 
+export function SimpleWidget({
+  title,
+  isEmpty,
+  emptyMessage = 'No results',
+  children,
+  isLoading,
+  isLoadingMessage = 'Loading...',
+  className,
+  itemClassName,
+}: {
+  title: string
+  children?: React.ReactNode
+  isEmpty?: boolean
+  emptyMessage?: string
+  isLoading?: boolean
+  isLoadingMessage?: string
+  className?: string
+  itemClassName?: string
+}) {
+  return (
+    <section aria-labelledby="announcements-title">
+      <div
+        className={classnames(
+          className,
+          'overflow-hidden rounded-lg bg-gray-50 bg-secondary'
+        )}
+      >
+        <div className="my-2">
+          <h2
+            className="text-lg font-bold text-primary-text px-4"
+            id="announcements-title"
+          >
+            {title}
+          </h2>
+          <div className="mt-6 flow-root">
+            {isLoading ? (
+              <div>
+                <p className="italic text-center text-secondary-text">
+                  <>{isLoadingMessage}</>
+                </p>
+              </div>
+            ) : isEmpty ? (
+              <div>
+                <p className="italic text-center text-secondary-text">
+                  <>{emptyMessage}</>
+                </p>
+              </div>
+            ) : null}
+
+            {children}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export function BoxWidget({
   title,
   children,

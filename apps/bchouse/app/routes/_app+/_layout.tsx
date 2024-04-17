@@ -106,6 +106,7 @@ export default function Index() {
           fullName: undefined,
           username: undefined,
           notificationCount: 0,
+          bchAddress: undefined,
         }
       : {
           isAnonymous: false,
@@ -115,6 +116,7 @@ export default function Index() {
           id: data.profile.id,
           username: data.profile.username,
           notificationCount: data.profile.notificationCount,
+          bchAddress: data.homeView.bchAddress,
         }
 
   const pageProps = usePageDisplay()

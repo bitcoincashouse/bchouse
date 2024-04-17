@@ -1,5 +1,6 @@
 import { AuthObject } from '@clerk/clerk-sdk-node'
 import { initTRPC } from '@trpc/server'
+import superjson from 'superjson'
 
 export type Context = {
   auth: AuthObject
@@ -9,7 +10,9 @@ export type Context = {
  * Initialization of tRPC backend
  * Should be done only once per backend!
  */
-const t = initTRPC.context<Context>().create()
+const t = initTRPC.context<Context>().create({
+  transformer: superjson,
+})
 
 /**
  * Export reusable router and procedure helpers

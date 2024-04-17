@@ -33,6 +33,7 @@ import { CreateQueryUtils } from '@trpc/react-query/shared'
 import { Buffer } from 'buffer-polyfill'
 import { useEffect, useRef, useState } from 'react'
 import { UseDataFunctionReturn, useTypedLoaderData } from 'remix-typedjson'
+import superjson from 'superjson'
 import { appEnv } from '~/.server/appEnv'
 import { AppRouter } from '~/.server/types/router'
 import stylesheet from '~/index.css?url'
@@ -143,6 +144,7 @@ const App = function () {
     const trpcClient = trpc.createClient({
       links: [
         httpBatchLink({
+          transformer: superjson,
           url: '/trpc',
           // You can pass any HTTP headers you wish here
           async fetch(url, options) {
@@ -165,6 +167,7 @@ const App = function () {
       window.trpcClient = createTRPCClient({
         links: [
           httpBatchLink({
+            transformer: superjson,
             url: '/trpc',
             // You can pass any HTTP headers you wish here
             async fetch(url, options) {

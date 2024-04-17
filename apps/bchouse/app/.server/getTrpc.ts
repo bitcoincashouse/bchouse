@@ -1,5 +1,6 @@
 import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { createServerSideHelpers } from '@trpc/react-query/server'
+import superjson from 'superjson'
 import { getAuthOptional } from '~/utils/auth'
 import { appRouter } from './router/index'
 
@@ -15,6 +16,7 @@ export async function getTrpc(
     ctx: {
       auth,
     },
+    transformer: superjson,
   })
 
   await callback(trpc)

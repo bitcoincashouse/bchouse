@@ -8,6 +8,7 @@ export type CurrentUser = {
   fullName: string
   id: string
   notificationCount: number
+  bchAddress: string
 }
 
 const CurrentUserContext = createContext<CurrentUser | null>(null)

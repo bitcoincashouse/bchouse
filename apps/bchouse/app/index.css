@@ -6,7 +6,12 @@
 @import '@bchouse/cashconnect/styles/index.css';
 
 .dot-separator:before {
-  content: '\2022'
+  content: '\2022';
+}
+
+.dot-separator-xs:before {
+  content: '\2022';
+  padding-right: 2px;
 }
 
 .break-word {

@@ -1,8 +1,10 @@
 import { isApplicationError, isClerkError, logger } from '@bchouse/utils'
 import { TRPCError, TRPCRouterRecord } from '@trpc/server'
 import { z } from 'zod'
+import { getAddressTokens } from '~/components/utils/nfts'
 import {
   authService,
+  electrumService,
   profileService,
   userService,
 } from '../services/getContext'
@@ -54,6 +56,20 @@ const updateProfileInput = z
   .strip()
 
 export const profileRouter = {
+  nfts: publicProcedure
+    .input(z.object({ address: z.string() }))
+    .query(async (opts) => {
+      try {
+        const tokens = await getAddressTokens(
+          electrumService.mainnet.provider,
+          opts.input.address
+        )
+
+        return tokens.displayTokens
+      } catch (err) {
+        console.log(err)
+      }
+    }),
   get: publicProcedure.query(async (opts) => {
     //Applies to entire application
     // await ratelimit.limitByIp(_, 'app', true)

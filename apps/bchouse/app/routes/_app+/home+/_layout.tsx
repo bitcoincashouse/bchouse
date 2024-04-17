@@ -12,6 +12,7 @@ import { redirect } from 'remix-typedjson'
 import { getTrpc } from '~/.server/getTrpc'
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { StandardLayout } from '~/components/layouts/standard-layout'
+import { NFTWidget } from '~/components/nft-widget'
 import { PostForm } from '~/components/post/form/implementations/post-form'
 import { StatsWidget } from '~/components/stats-widget'
 import { getAuthOptional } from '~/utils/auth'
@@ -210,7 +211,7 @@ export default function Index() {
           ) : null}
         </div>
       }
-      widgets={[<StatsWidget />, <ActiveCampaignsWidget />]}
+      widgets={[<StatsWidget />, <ActiveCampaignsWidget />, <NFTWidget />]}
     ></StandardLayout>
   )
 }
