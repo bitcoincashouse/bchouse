@@ -95,6 +95,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
       FLIPSTARTER_PLATFORM_ADDRESS: process.env.FLIPSTARTER_PLATFORM_ADDRESS,
       TYPESENSE_PUBLIC_URL: appEnv.TYPESENSE_PUBLIC_URL,
       TYPESENSE_PUBLIC_API_KEY: appEnv.TYPESENSE_PUBLIC_API_KEY,
+      UMBRACO_URL: appEnv.UMBRACO_URL,
     }
   })
 }

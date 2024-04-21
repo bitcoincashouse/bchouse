@@ -1,11 +1,13 @@
 import { Link, useLocation, useParams } from '@remix-run/react'
-import { useLayoutEffect, useMemo, useRef } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useMemo, useRef } from 'react'
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { Avatar } from '~/components/avatar'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { StatsWidget } from '~/components/stats-widget'
 import { classNames } from '~/utils/classNames'
-import { ecosystem } from '~/utils/ecosystem'
+import { umbracoClient } from '~/utils/umbracoClient'
+import { useBrowserLayoutEffect } from '~/utils/useBrowserLayoutEffect'
 
 const tabs = [
   { name: 'All', href: '' },
@@ -34,14 +36,90 @@ export const handle = {
 
 export default function Index() {
   const currentTab = useParams().tab as string
+  const { data, isLoading } = useQuery({
+    queryKey: ['ecosystem'],
+    queryFn: async () => {
+      return umbracoClient.queryContent({
+        fetch: 'children:218282d1-dac5-4d97-8b08-243b347d1fd4',
+        take: '1000',
+      }) as Promise<{
+        items: Array<{
+          contentType: string
+          createDate: string
+          cultures: string
+          id: string
+          name: string
+          properties: {
+            description: string
+            image: {
+              focalPoint: null
+              crops: {}[]
+              id: string
+              mediaType: string
+              name: string
+              properties: string
+              url: string
+              height: number
+              width: number
+              bytes: number
+              extension: string
+            }[]
+            link: {
+              destinationId: null
+              destinationType: null
+              linkType: 'External'
+              queryString: null
+              route: null
+              target: '_blank'
+              title: string
+              url: string
+            }[]
+            type: string[]
+          }
+          route: {
+            path: string
+            startItem: {
+              id: string
+              path: string
+            }
+          }
+          updateDate: string
+        }>
+      }>
+    },
+  })
 
   const items = useMemo(() => {
-    return ecosystem[currentTab] || Object.values(ecosystem).flat(1)
-  }, [currentTab])
+    if (!data) return []
+
+    if (!currentTab)
+      return data.items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        href: item.properties.link?.[0]?.url,
+        img: umbracoClient.getUrl(item.properties.image?.[0]?.url),
+        description: item.properties.description,
+      }))
+
+    const currentTabName = currentTab.toLowerCase()
+    return data.items
+      .filter((item) =>
+        item.properties.type.find(
+          (type) => type.toLowerCase() == currentTabName
+        )
+      )
+      .map((item) => ({
+        id: item.id,
+        name: item.name,
+        href: item.properties.link?.[0]?.url,
+        img: umbracoClient.getUrl(item.properties.image?.[0]?.url),
+        description: item.properties.description,
+      }))
+  }, [currentTab, data])
 
   const currentTabRef = useRef<HTMLAnchorElement>(null)
 
-  useLayoutEffect(() => {
+  useBrowserLayoutEffect(() => {
     const findOverflowXParent = (element: HTMLElement) => {
       let parent = element.parentNode
 
@@ -116,10 +194,19 @@ export default function Index() {
                     {tabs.map((tab, i) => (
                       <Link
                         key={tab.name}
-                        to={currentTab ? '../' + tab.href : './' + tab.href}
+                        to={
+                          currentTab
+                            ? tab.href
+                              ? '../' + tab.href
+                              : '..'
+                            : tab.href
+                            ? './' + tab.href
+                            : '.'
+                        }
                         relative={'path'}
                         ref={
-                          tab.href === currentTab ||
+                          tab.href.toLowerCase() ===
+                            currentTab?.toLowerCase() ||
                           (!currentTab && tab.name === 'All')
                             ? currentTabRef
                             : null

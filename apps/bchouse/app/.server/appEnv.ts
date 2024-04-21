@@ -15,6 +15,10 @@ export const appEnv = createEnv({
       .string()
       .url()
       .transform((url) => url.replace(/\/$/, '')),
+    UMBRACO_URL: z
+      .string()
+      .url()
+      .transform((url) => url.replace(/\/$/, '')),
     BCHOUSE_DATABASE_URL: z.string().url(),
     BCH_NETWORK: z.enum(['mainnet', 'chipnet']),
     JPP_SIGNING_KEY: z.string(),
