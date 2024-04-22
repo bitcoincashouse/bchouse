@@ -543,3 +543,23 @@ enum Network {
   chipnet
   regtest
 }
+
+model TokenCategory {
+  id         String       @id
+  categoryId String       @unique
+  lastHash   String
+  tokenTypes TokenTypes[]
+  deleted    Boolean      @default(false)
+}
+
+model TokenTypes {
+  commitment  String        @id
+  categoryId  String
+  token       TokenCategory @relation(fields: [categoryId], references: [categoryId])
+  description String?       @db.LongText()
+  attributes  Json?
+  image       String?
+  name        String
+
+  @@index([categoryId])
+}

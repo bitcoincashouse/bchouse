@@ -1,5 +1,8 @@
+import { binToHex, sha256, utf8ToBin } from '@bitauth/libauth'
 import { ElectrumNetworkProvider, Utxo } from 'cashscript'
 import { z } from 'zod'
+import { db } from '~/.server/services/db'
+
 type TokenUtxo = Utxo & { token: NonNullable<Utxo['token']> }
 type NFTUtxo = TokenUtxo & {
   token: TokenUtxo['token'] & { nft: NonNullable<TokenUtxo['token']['nft']> }
@@ -99,9 +102,9 @@ function isFTUtxo(utxo?: Utxo): utxo is FTUtxo {
   return !!utxo?.token && !utxo.token.nft
 }
 
-function getTokenMetadata(utxo: TokenUtxo) {
+export function getTokenMetadata(categoryId: string) {
   for (let i = 0; i < registries.length; i++) {
-    const identity = registries[i]?.identities[utxo.token.category]
+    const identity = registries[i]?.identities[categoryId]
     if (!identity) continue
     const latestKey = Object.keys(identity)[0]
     if (latestKey && identity[latestKey]) {
@@ -115,14 +118,22 @@ function getTokenMetadata(utxo: TokenUtxo) {
 async function importRegistryMetadata(uri: string) {
   try {
     const registryResp = await fetch(uri)
-    const registryJson = bcmrSchema.parse(await registryResp.json())
-    registries.push(registryJson)
+    const registryStr = await registryResp.text()
+    const registry = bcmrSchema.parse(JSON.parse(registryStr))
+    const hash = binToHex(sha256.hash(utf8ToBin(registryStr)))
+    registries.push(registry)
+
+    return {
+      registry,
+      hash,
+    }
   } catch (err) {
     console.log(err)
+    throw err
   }
 }
 
-async function importTokenRegistryMetadata(tokenId: string) {
+export async function importTokenRegistryMetadata(tokenId: string) {
   return importRegistryMetadata(`${bcmrIndexer}/registries/${tokenId}/latest`)
 }
 
@@ -132,20 +143,6 @@ export async function getAddressTokens(
   address: string
 ) {
   try {
-    console.log({ isLoaded })
-
-    if (!isLoaded) {
-      isLoaded = true
-      await Promise.all(
-        validTokens.map((tokenId) =>
-          importTokenRegistryMetadata(tokenId).catch((err) => {
-            console.log('Error loading tokens', tokenId, err)
-            isLoaded = false
-          })
-        )
-      )
-    }
-
     const utxos = await electrum.getUtxos(address)
 
     const tokens: Array<TokenUtxo> = []
@@ -167,34 +164,66 @@ export async function getAddressTokens(
         continue
       }
 
-      const metadata = getTokenMetadata(utxo)
-      if (!metadata) {
-        console.log('not valid token', utxo.token.category)
-        continue
-      }
-
       tokens.push(utxo)
 
       if (isNFTUtxo(utxo)) {
         nfts.push(utxo)
-        const nftMetadata =
-          metadata.token?.nfts?.parse?.types?.[utxo.token.nft.commitment]
-        if (nftMetadata) {
-          const displayToken = {
-            description: nftMetadata.description,
-            attributes: nftMetadata.extensions?.attributes,
-            image: nftMetadata.uris?.icon || nftMetadata.uris?.image,
-            name: nftMetadata.name,
-          }
-
-          if (displayToken.image && displayToken.name)
-            displayTokens.push(displayToken)
-        }
       } else if (isFTUtxo(utxo)) {
         fts.push(utxo)
       }
 
       categories.add(utxo.token.category)
+    }
+
+    const displayCategories = await db
+      .selectFrom('TokenCategory as tc')
+      .where(
+        'categoryId',
+        'in',
+        Array.from(new Set(nfts.map((nft) => nft.token.category)))
+      )
+      .select('tc.categoryId')
+      .execute()
+      .then((categories) =>
+        categories.reduce((allCategories, current) => {
+          allCategories[current.categoryId] = true
+          return allCategories
+        }, {} as Record<string, boolean>)
+      )
+
+    for (let utxo of nfts) {
+      if (displayCategories[utxo.token.category]) {
+        const displayToken = await db
+          .selectFrom('TokenTypes as t')
+          .where((eb) =>
+            eb
+              .eb('t.categoryId', '=', utxo.token.category)
+              .and('t.commitment', '=', utxo.token.nft.commitment)
+          )
+          .select([
+            't.name',
+            't.description',
+            't.image',
+            't.attributes',
+            't.commitment',
+          ])
+          .executeTakeFirst()
+          .then((token) => {
+            return token
+              ? ({
+                  name: token.name,
+                  attributes: token.attributes as Record<string, string>,
+                  description: token.description,
+                  image: token.image,
+                } as (typeof displayTokens)[number])
+              : null
+          })
+
+        if (displayToken) {
+          displayTokens.push(displayToken)
+          break
+        }
+      }
     }
 
     return {

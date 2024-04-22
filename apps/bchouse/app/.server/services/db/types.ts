@@ -254,6 +254,20 @@ export type TipRequest = {
   network: Network
   createdAt: Generated<Timestamp>
 }
+export type TokenCategory = {
+  id: string
+  categoryId: string
+  lastHash: string
+  deleted: Generated<number>
+}
+export type TokenTypes = {
+  commitment: string
+  categoryId: string
+  description: string | null
+  attributes: unknown | null
+  image: string | null
+  name: string
+}
 export type UploadRequest = {
   id: Generated<string>
   type: UploadRequestType
@@ -306,6 +320,8 @@ export type DB = {
   Reposts: Reposts
   TipPayment: TipPayment
   TipRequest: TipRequest
+  TokenCategory: TokenCategory
+  TokenTypes: TokenTypes
   UploadRequest: UploadRequest
   User: User
 }
