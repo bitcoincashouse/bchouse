@@ -1,8 +1,5 @@
-using Umbraco.Cms.Core.Models.PublishedContent;
-using Umbraco.Cms.Core.Notifications;
-using Umbraco.BCHouse.Notifications;
+using BCHouse.Notifications;
 using Our.Umbraco.StorageProviders.AWSS3.DependencyInjection;
-using Our.Umbraco.StorageProviders.AWSS3.IO;
 using dotenv.net;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -21,7 +18,7 @@ builder.CreateUmbracoBuilder()
     .AddWebsite()
     .AddDeliveryApi()
     .AddComposers()
-    // .AddBchouseNotifications()
+    .AddBCHouseNotifications()
     .AddAWSS3MediaFileSystem((options) =>
     {
       var accessKey = Environment.GetEnvironmentVariable("STORAGE_ACCESS_KEY");
