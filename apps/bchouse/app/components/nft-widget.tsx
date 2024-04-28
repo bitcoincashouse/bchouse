@@ -109,7 +109,10 @@ export function NFTWidget() {
                 <ul className="text-xs text-readable truncate">
                   {Object.entries(nft.attributes).map(([name, value]) => (
                     <>
-                      <li className="dot-separator-xs inline-block mr-1">
+                      <li
+                        key={name}
+                        className="dot-separator-xs inline-block mr-1"
+                      >
                         <span>{value}</span>
                       </li>
                     </>
