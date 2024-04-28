@@ -2,7 +2,7 @@ using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Web.Common;
 using Umbraco.Cms.Core.Cache;
-
+using BCHouse.Constants;
 namespace BCHouse.Notifications;
 
 public class EcosystemProjectNotifications : INotificationHandler<ContentPublishingNotification>, INotificationHandler<ContentUnpublishingNotification>, INotificationHandler<ContentDeletedNotification>
@@ -17,9 +17,9 @@ public class EcosystemProjectNotifications : INotificationHandler<ContentPublish
 
   private void HandleEcosystemProjectChange(IEnumerable<Umbraco.Cms.Core.Models.IContent> content)
   {
-    if (content.Any(content => content.ContentType.Alias.Equals("project")))
+    if (content.Any(content => content.ContentType.Alias.Equals(Constants.ContentTypes.ECOSYSTEM_PROJECT)))
     {
-      runtimeCache.ClearByKey(BCHouse.Controller.EcosystemController.ECOSYSTEM_PROJECTS_CACHE_KEY);
+      runtimeCache.ClearByKey(Constants.CacheKeys.GET_ALL_ECOSYSTEM_PROJECTS);
     }
   }
 

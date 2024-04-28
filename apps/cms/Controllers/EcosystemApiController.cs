@@ -2,6 +2,7 @@ using Umbraco.Cms.Web.Common.Controllers;
 using Umbraco.Cms.Web.Common;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Cache;
+using BCHouse.Constants;
 
 public struct Project
 {
@@ -18,7 +19,6 @@ namespace BCHouse.Controller
 {
   public class EcosystemController : UmbracoApiController
   {
-    public static string ECOSYSTEM_PROJECTS_CACHE_KEY = "EcosystemProjects";
 
     private readonly UmbracoHelper umbracoHelper;
     private readonly IAppCache runtimeCache;
@@ -32,14 +32,32 @@ namespace BCHouse.Controller
       this.runtimeCache = appCaches.RuntimeCache;
     }
 
+    private int? _ecosystemProjectsContainerId = null;
+    private int? EcosystemProjectsContainerId
+    {
+      get
+      {
+        if (_ecosystemProjectsContainerId == null)
+        {
+          _ecosystemProjectsContainerId = umbracoHelper.ContentAtRoot().First(content => content.ContentType.Alias.Equals(Constants.ContentTypes.ECOSYSTEM_PROJECTS))?.Id;
+        }
+        return _ecosystemProjectsContainerId;
+      }
+    }
+
+
     public IEnumerable<Project> GetAllProjects()
     {
-      var cachedProjects = runtimeCache.GetCacheItem<IEnumerable<Project>>(EcosystemController.ECOSYSTEM_PROJECTS_CACHE_KEY, () =>
+      var cachedProjects = runtimeCache.GetCacheItem<IEnumerable<Project>>(Constants.CacheKeys.GET_ALL_ECOSYSTEM_PROJECTS, () =>
       {
-        var ecosystemProjectsContainer = umbracoHelper.Content(1059);
+        if (EcosystemProjectsContainerId == null) return new Project[0];
+
+        var ecosystemProjectsContainer = umbracoHelper.Content(EcosystemProjectsContainerId);
+
         if (ecosystemProjectsContainer == null) return new Project[0];
 
         var ecosystemProjects = ecosystemProjectsContainer.Children;
+
         return ecosystemProjects.Select(project =>
         {
           var description = project.Value<string>("description");
