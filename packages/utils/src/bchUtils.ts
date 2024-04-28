@@ -2,9 +2,11 @@ import {
   binToHex,
   cashAddressToLockingBytecode,
   decodeCashAddressFormat,
+  hexToBin,
   isPayToPublicKeyHash,
   isPayToScriptHash20,
   lockingBytecodeToAddressContents,
+  lockingBytecodeToCashAddress,
 } from '@bitauth/libauth'
 import { z } from 'zod'
 import { logger } from './logger'
@@ -65,6 +67,21 @@ export function addressToHash160(address: string) {
     throw new Error('Invalid address bytecode')
   }
   return binToHex(addrContent.payload)
+}
+
+export function lockingBytecodeToAddress(
+  bytecode: Buffer | Uint8Array | string
+) {
+  const address = lockingBytecodeToCashAddress(
+    typeof bytecode === 'string' ? hexToBin(bytecode) : bytecode
+  )
+
+  if (typeof address !== 'string') {
+    console.log('Invalid address locking bytecode', bytecode, address.error)
+    throw address.error
+  }
+
+  return address
 }
 
 export function isStandardCashAddress(bytecode: Buffer | Uint8Array) {

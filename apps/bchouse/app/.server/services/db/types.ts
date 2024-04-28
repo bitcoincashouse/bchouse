@@ -267,6 +267,7 @@ export type TokenTypes = {
   attributes: unknown | null
   image: string | null
   name: string
+  currentOwnerAddress: string | null
 }
 export type UploadRequest = {
   id: Generated<string>

@@ -15,6 +15,7 @@ import { ProfileService } from './services/profile'
 import { ratelimit } from './services/rateLimiter'
 import { getRedis } from './services/redis'
 import { SearchService } from './services/search'
+import { subscribeToTokenUpdates } from './services/tokens/subscriptions'
 import { UserService } from './services/user'
 import { ElectrumNetworkProviderService } from './utils/getElectrumProvider'
 import { Snowflake } from './utils/snowflake'
@@ -86,16 +87,25 @@ const snowflakeId = new Snowflake({
   workerId: Number(appEnv.SNOWFLAKE_WORKER_ID),
 })
 
+const unsubscribeCallback = await subscribeToTokenUpdates()
+
 declare global {
   var destroyContext: () => Promise<void> | undefined
 }
 
 async function destroy() {
   logger.info('Destroying context')
-  await pTimeout(Promise.all([electrumService.stop(), addressWatcher.stop()]), {
-    milliseconds: 5000,
-    message: 'Destroy context timed out',
-  }).catch((err) => logger.error(err))
+  await pTimeout(
+    Promise.all([
+      (async () => electrumService.stop())(),
+      (async () => addressWatcher.stop())(),
+      (async () => unsubscribeCallback())(),
+    ]),
+    {
+      milliseconds: 5000,
+      message: 'Destroy context timed out',
+    }
+  ).catch((err) => logger.error(err))
   logger.info('Destroyed context')
   abortController.abort('Server destroyed')
 }

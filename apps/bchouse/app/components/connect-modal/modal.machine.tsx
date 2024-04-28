@@ -2,7 +2,7 @@ import { CoreUtil, WalletData } from '@bchouse/cashconnect'
 import { SignClient } from '@walletconnect/sign-client/dist/types/client'
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session'
 import { createMachine } from 'xstate'
-import { getSignClient } from '../utils/wc2.client'
+import { getUserAddress } from '../utils/wc2.client'
 
 type Event =
   | {
@@ -29,6 +29,7 @@ type Event =
   | {
       type: 'wallet_connected'
       session: SessionTypes.Struct
+      address: string
     }
   | {
       type: 'wallet_connected_timeout'
@@ -39,9 +40,9 @@ type Context = {
   signClient: SignClient
   wallet?: WalletData
   uri?: string
-  refundAddress?: string
   session: SessionTypes.Struct | null
   approval?: () => Promise<SessionTypes.Struct>
+  address: string | null
 }
 
 export const connectModalMachine = createMachine(
@@ -76,7 +77,19 @@ export const connectModalMachine = createMachine(
           // syntax for expressing services
           src: (context, event) => async (send) => {
             //TODO: use cache if not paid/invalidated and same params
-            const { uri, approval } = await getSignClient()
+            const { uri, approval } = await context.signClient.connect({
+              requiredNamespaces: {
+                bch: {
+                  chains: ['bch:bitcoincash'],
+                  methods: [
+                    'bch_getAddresses',
+                    'bch_signTransaction',
+                    'bch_signMessage',
+                  ],
+                  events: ['addressesChanged'],
+                },
+              },
+            })
 
             if (!uri) {
               //TODO: show error
@@ -140,10 +153,15 @@ export const connectModalMachine = createMachine(
               const config = session.sessionConfig
               session.sessionConfig = { ...config, disableDeepLink: true }
 
-              send({
-                type: 'wallet_connected',
-                session,
-              })
+              const address = await getUserAddress(context.signClient, session)
+
+              if (address) {
+                send({
+                  type: 'wallet_connected',
+                  session,
+                  address,
+                })
+              }
             }
           },
         },
@@ -197,9 +215,11 @@ export const connectModalMachine = createMachine(
       },
       assignSession: (context, event) => {
         context.session = event.session
+        context.address = event.address
       },
       clearSession: (context, event) => {
         context.session = null
+        context.address = null
       },
     },
   }

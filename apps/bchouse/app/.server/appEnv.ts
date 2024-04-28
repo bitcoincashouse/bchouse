@@ -7,6 +7,8 @@ export const appEnv = createEnv({
     SENTRY_DSN: z.string().optional(),
     API_SECRET: z.string().optional(),
     REDIS_URL: z.string().url(),
+    CHAINGRAPH_WS_URL: z.string().url(),
+    CHAINGRAPH_HTTP_URL: z.string().url(),
     PAYGATE_URL: z
       .string()
       .url()

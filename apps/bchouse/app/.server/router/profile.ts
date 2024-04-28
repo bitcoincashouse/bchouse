@@ -1,10 +1,9 @@
 import { isApplicationError, isClerkError, logger } from '@bchouse/utils'
 import { TRPCError, TRPCRouterRecord } from '@trpc/server'
 import { z } from 'zod'
-import { getAddressTokens } from '~/components/utils/nfts'
+import { db } from '../services/db'
 import {
   authService,
-  electrumService,
   profileService,
   userService,
 } from '../services/getContext'
@@ -60,12 +59,36 @@ export const profileRouter = {
     .input(z.object({ address: z.string() }))
     .query(async (opts) => {
       try {
-        const tokens = await getAddressTokens(
-          electrumService.mainnet.provider,
-          opts.input.address
-        )
+        const tokens = await db
+          .selectFrom('TokenTypes as t')
+          .where('currentOwnerAddress', '=', opts.input.address)
+          .select([
+            'categoryId',
+            'name',
+            'description',
+            'image',
+            'attributes',
+            'commitment',
+          ])
+          .limit(5)
+          .execute()
+          .then((rows) =>
+            rows.map((row) => ({
+              name: row.name,
+              description: row.description,
+              image: row.image,
+              attributes:
+                typeof row.attributes === 'string'
+                  ? JSON.parse(row.attributes)
+                  : typeof row.attributes === 'object'
+                  ? row.attributes
+                  : {},
+              categoryId: row.categoryId,
+              commitment: row.commitment,
+            }))
+          )
 
-        return tokens.displayTokens
+        return tokens
       } catch (err) {
         console.log(err)
       }

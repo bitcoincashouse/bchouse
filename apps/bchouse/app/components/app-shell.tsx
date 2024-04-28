@@ -48,6 +48,7 @@ export const AppShell: React.FC<
   const { setReferenceElement, close: closeWalletConnect } = useWalletConnect()
 
   const {
+    signClient,
     session,
     setSession,
     open: openWalletConnect,
@@ -180,13 +181,18 @@ export const AppShell: React.FC<
           <div id="view" className="relative flex-grow">
             <div className="relative flex-grow w-full min-[720px]:w-[600px] min-[990px]:w-[920px] min-[1080px]:w-[990px]">
               {children}
-              {openWalletConnect ? (
+              {signClient && openWalletConnect ? (
                 <ConnectWalletModal
                   ref={(ref) => setReferenceElement(ref)}
                   isLoggedIn={!currentUser.isAnonymous}
+                  signClient={signClient}
                   session={session}
                   setSession={(context) => {
-                    setSession(context.session || null)
+                    setSession(
+                      context.session && context.address
+                        ? { session: context.session, address: context.address }
+                        : null
+                    )
                   }}
                   onClose={async () => {
                     await closeWalletConnect()

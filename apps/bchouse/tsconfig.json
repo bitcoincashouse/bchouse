@@ -66,6 +66,11 @@
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "jsx": "react-jsx",    
     "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json",
+    "plugins": [{ 
+      "name": "@0no-co/graphqlsp", 
+      "schema": "./schema.graphql", 
+      "tadaOutputLocation": "./types/graphql-env.d.ts"
+    }]
   },
   "references": [
     {

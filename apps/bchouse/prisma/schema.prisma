@@ -553,13 +553,14 @@ model TokenCategory {
 }
 
 model TokenTypes {
-  commitment  String        @id
-  categoryId  String
-  token       TokenCategory @relation(fields: [categoryId], references: [categoryId])
-  description String?       @db.LongText()
-  attributes  Json?
-  image       String?
-  name        String
+  commitment          String        @id
+  categoryId          String
+  token               TokenCategory @relation(fields: [categoryId], references: [categoryId])
+  description         String?       @db.LongText()
+  attributes          Json?
+  image               String?
+  name                String
+  currentOwnerAddress String?
 
   @@index([categoryId])
 }

@@ -9,10 +9,10 @@ import {
   WalletProtocol,
   WalletSection,
 } from '@bchouse/cashconnect'
+import { SignClient } from '@walletconnect/sign-client/dist/types/client'
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session'
 import { useMachine } from '@xstate/react'
 import { useMemo } from 'react'
-import { signClient } from '~/components/utils/wc2.client'
 import { bchLogo } from '~/utils/constants'
 import { StepRoute } from '../../StepRoutes/step'
 import { connectModalMachine } from '../modal.machine'
@@ -22,10 +22,15 @@ export function ConnectModalRoutes({
   onClose,
   session,
   setSession,
+  signClient,
 }: {
   isLoggedIn: boolean
+  signClient: SignClient
   session: SessionTypes.Struct | null
-  setSession: (context: { session: SessionTypes.Struct | null }) => void
+  setSession: (context: {
+    session: SessionTypes.Struct | null
+    address: string | null
+  }) => void
   onClose: () => void | Promise<void>
 }) {
   const [state, send] = useMachine(connectModalMachine, {
