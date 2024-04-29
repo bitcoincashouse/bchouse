@@ -1,7 +1,6 @@
-import { schemas, serve } from '@bchouse/inngest'
+import { serve } from '@bchouse/inngest'
 import { moment } from '@bchouse/utils'
 import { createClerkClient } from '@clerk/clerk-sdk-node'
-import { Inngest } from 'inngest'
 import { appEnv } from '~/.server/appEnv'
 import { db } from '~/server/services/db'
 import { savePledgePayment } from '~/server/services/repositories/pledge'
@@ -30,16 +29,10 @@ import {
 } from '../../repositories/redis'
 import { Cursor } from '../../repositories/types'
 import { CampaignService } from '../campaign'
+import { inngest } from '../inngest'
 import { RedisService } from '../redis'
 
 const redisService = new RedisService()
-
-const inngest = new Inngest({
-  id: 'flipstarter',
-  schemas,
-  eventKey: appEnv.INNGEST_EVENT_KEY,
-  env: appEnv.INNGEST_BRANCH,
-})
 
 export class InngestService {
   public readonly handler

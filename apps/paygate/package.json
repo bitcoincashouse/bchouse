@@ -17,7 +17,7 @@
     "docker:build": "docker compose --env-file ../../.env.development build paygate",
     "docker:up": "docker compose --env-file ../../.env.development up paygate --force-recreate",
     "env:dev": "dotenv -e ../../.env.development --",
-    "env:staging": "dotenv -e ../../_staging.env --"
+    "env:staging": "dotenv -e ../../.env.staging --"
   },
   "dependencies": {
     "@bchouse/inngest": "workspace:^",

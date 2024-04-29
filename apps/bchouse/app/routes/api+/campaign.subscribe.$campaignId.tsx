@@ -1,22 +1,28 @@
-import { InngestEvent, inngest } from '@bchouse/inngest'
+import { InngestEvent } from '@bchouse/inngest'
 import { Network, campaignEventSchema, logger } from '@bchouse/utils'
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { useRevalidator } from '@remix-run/react'
 import { useEffect, useMemo, useState } from 'react'
 import { z } from 'zod'
+import {
+  campaignService,
+  pledgeService,
+  ratelimit,
+} from '~/.server/services/getContext'
+import { inngest } from '~/.server/services/services/inngest'
 import { eventStream } from '~/utils/event-stream'
 import { zx } from '~/utils/zodix'
 
 export async function loader(_: LoaderFunctionArgs) {
-  await _.context.ratelimit.limitByIp(_, 'api', true)
+  await ratelimit.limitByIp(_, 'api', true)
 
   const { campaignId } = zx.parseParams(_.params, {
     campaignId: z.string(),
   })
 
   const [campaign, anyonecanpayPledges] = await Promise.all([
-    _.context.campaignService.getCampaignByIdWithPledges(campaignId),
-    _.context.pledgeService.getAnyonecanpayPledges({ campaignId }),
+    campaignService.getCampaignByIdWithPledges(campaignId),
+    pledgeService.getAnyonecanpayPledges({ campaignId }),
   ])
 
   if (campaign.fulfillmentTimestamp) {
@@ -62,15 +68,12 @@ export async function loader(_: LoaderFunctionArgs) {
   })
 
   return eventStream(_.request.signal, function setup(send) {
-    const subscriptionId = _.context.campaignService.subscribe(
-      campaignId,
-      (event) => {
-        send({ event: 'message', data: JSON.stringify(event) })
-      }
-    )
+    const subscriptionId = campaignService.subscribe(campaignId, (event) => {
+      send({ event: 'message', data: JSON.stringify(event) })
+    })
 
     return async function clear() {
-      _.context.campaignService.unsubscribe(campaignId, subscriptionId)
+      campaignService.unsubscribe(campaignId, subscriptionId)
     }
   })
 }
@@ -112,6 +115,7 @@ export function useCampaignData(
 
   return campaignDetails
 }
+
 export type CampaignData = {
   campaignId: string
   amount: number

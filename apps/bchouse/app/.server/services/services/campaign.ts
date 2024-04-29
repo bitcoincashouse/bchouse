@@ -1,4 +1,4 @@
-import { getInngestEvent, inngest } from '@bchouse/inngest'
+import { getInngestEvent } from '@bchouse/inngest'
 import {
   CampaignEventData,
   formatAddress,
@@ -20,6 +20,7 @@ import {
 import { ElectrumNetworkProviderService } from '../utils/getElectrumProvider'
 import { AddressWatcher } from './address-watcher'
 import { getCampaignContract } from './campaign/getCampaignContract'
+import { inngest } from './inngest'
 export type SubscriptionCallback = (event: CampaignEventData) => void
 
 export class CampaignService {

@@ -5,7 +5,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "start": "cross-env NODE_ENV=production node -r dotenv/config ./build/server.js  dotenv_config_path=../../.env.development",
+    "start": "remix-serve ./build/server/index.js",
     "clean": "rimraf build public/build .cache",
     "dev:routes": "remix-routes -w",
     "dev": "dotenv -e ../../.env.development remix vite:dev",
@@ -14,7 +14,7 @@
     "docker:build": "docker compose --env-file ../../.env.development build bchouse",
     "docker:up": "docker compose --env-file ../../.env.development up bchouse --force-recreate",
     "env:dev": "dotenv -e ../../.env.development --",
-    "env:staging": "dotenv -e ../../_staging.env --"
+    "env:staging": "dotenv -e ../../.env.staging --"
   },
   "dependencies": {
     "@algolia/autocomplete-core": "^1.17.0",
@@ -153,7 +153,6 @@
     "@antfu/utils": "^0.7.7",
     "@bchouse/cashconnect": "workspace:^",
     "@bchouse/inngest": "workspace:^",
-    "@bchouse/paygate": "workspace:^",
     "@bchouse/utils": "workspace:^",
     "@remix-run/dev": "^2.8.1",
     "@remix-run/eslint-config": "^2.0.1",

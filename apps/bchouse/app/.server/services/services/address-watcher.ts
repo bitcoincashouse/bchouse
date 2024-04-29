@@ -1,8 +1,9 @@
-import { InngestEvent, inngest } from '@bchouse/inngest'
+import { InngestEvent } from '@bchouse/inngest'
 import { logger } from '@bchouse/utils'
 import { RequestResponse } from 'electrum-cash'
 import { Network } from '../db/types'
 import { ElectrumNetworkProviderService } from '../utils/getElectrumProvider'
+import { inngest } from './inngest'
 
 export class AddressWatcher {
   private readonly electrumSubscriptions = new Map<

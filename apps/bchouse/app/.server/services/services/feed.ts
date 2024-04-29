@@ -1,6 +1,4 @@
-import { inngest } from '@bchouse/inngest'
-import { detectAddressNetwork, moment } from '@bchouse/utils'
-import { Doc } from '@bchouse/utils/src/tiptapSchema'
+import { TipTapSchema, detectAddressNetwork, moment } from '@bchouse/utils'
 import { getUserFeed } from '../repositories/posts/getUserFeed'
 import { getUserHomeFeed } from '../repositories/posts/getUserHomeFeed'
 import { getUserLikes } from '../repositories/posts/getUserLikes'
@@ -9,6 +7,7 @@ import { getUserReplies } from '../repositories/posts/getUserReplies'
 import { Cursor } from '../repositories/types'
 import HttpStatus from '../utils/http-status'
 import { deserializeCursor, serializeCursor } from '../utils/serializeCursor'
+import { inngest } from './inngest'
 import { RedisService } from './redis'
 import { FeedKeys } from './redis/keys'
 import { PostCardModel } from './types'
@@ -179,7 +178,7 @@ export class FeedService {
             likeCount: post._count.likes,
             viewCount: 1,
             avatarUrl: post.publishedBy.avatarUrl,
-            content: post.content as Doc,
+            content: post.content as TipTapSchema.Doc,
             createdAt: post.createdAt,
             date: moment(post.createdAt).fromNow(),
             isThread: post._computed.isThread,

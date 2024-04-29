@@ -27,7 +27,6 @@ export const appEnv = createEnv({
     SESSION_SECRET: z.string(),
     TYPESENSE_PUBLIC_URL: z.string().url(),
     TYPESENSE_PUBLIC_API_KEY: z.string(),
-    TYPESENSE_REBUILD_INDEX: z.string(),
     TYPESENSE_API_KEY: z.string(),
     TYPESENSE_URL: z.string().url(),
     SNOWFLAKE_EPOCH: z.coerce.number(),

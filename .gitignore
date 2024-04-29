@@ -47,3 +47,7 @@ contract.json
 typesense-data
 coverage
 .vercel
+
+# Configuration
+fly.toml
+fly.*.toml

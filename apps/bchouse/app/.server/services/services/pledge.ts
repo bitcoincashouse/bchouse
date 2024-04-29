@@ -1,4 +1,4 @@
-import { PledgeEvent, inngest } from '@bchouse/inngest'
+import { PledgeEvent } from '@bchouse/inngest'
 import { logger, moment } from '@bchouse/utils'
 import { nanoid } from 'nanoid'
 import { db } from '../db'
@@ -7,6 +7,7 @@ import * as pledgeRepository from '../repositories/pledge'
 import { getManyPledges } from '../repositories/pledge'
 import { paygateInvoiceReq } from '../utils/paygateInvoiceReq'
 import { CampaignService } from './campaign'
+import { inngest } from './inngest'
 
 type SubscriptionCallback = (event: 'success' | 'error') => void
 type PledgeEventData = {

@@ -1,15 +1,8 @@
-import {
-  Doc,
-  Hashtag,
-  Media,
-  Mention,
-  Text,
-} from '@bchouse/utils/src/tiptapSchema'
-
-import { TipEvent, inngest } from '@bchouse/inngest'
+import { TipEvent } from '@bchouse/inngest'
 import {
   InternalServerError,
   SATS_PER_BCH,
+  TipTapSchema,
   detectAddressNetwork,
   logger,
   moment,
@@ -34,6 +27,7 @@ import {
   setMediaPublic,
   validateImageUploadRequest,
 } from './images'
+import { inngest } from './inngest'
 import { RedisService } from './redis'
 import { SearchService } from './search'
 import { PostCardModel } from './types'
@@ -232,7 +226,7 @@ export class PostService {
   async addPost(
     currentUserId: string,
     post: {
-      content: Doc
+      content: TipTapSchema.Doc
       audienceType: 'PUBLIC' | 'CIRCLE' | 'CHILD'
       mediaIds: string[]
       //TODO: check access
@@ -465,7 +459,7 @@ export class PostService {
   }
 }
 
-async function validateMentions(mentions: Mention[]) {
+async function validateMentions(mentions: TipTapSchema.Mention[]) {
   await Promise.all(
     mentions.map(async (mention) => {
       const exists = await valiateUser({
@@ -479,7 +473,10 @@ async function validateMentions(mentions: Mention[]) {
   )
 }
 
-async function validateMedia(media: Media[], postMediaIds: string[]) {
+async function validateMedia(
+  media: TipTapSchema.Media[],
+  postMediaIds: string[]
+) {
   const embeddedMediaIds = media.map((media) => media.attrs.id)
   const allMediaIds = [...postMediaIds, ...embeddedMediaIds]
 
@@ -499,12 +496,12 @@ async function validateMedia(media: Media[], postMediaIds: string[]) {
   }
 }
 
-function parseContent(doc: Doc) {
-  const media = [] as Media[]
-  const mentions = [] as Mention[]
-  const hashtags = [] as Hashtag[]
+function parseContent(doc: TipTapSchema.Doc) {
+  const media = [] as TipTapSchema.Media[]
+  const mentions = [] as TipTapSchema.Mention[]
+  const hashtags = [] as TipTapSchema.Hashtag[]
   const links = [] as string[]
-  const text = [] as Text[]
+  const text = [] as TipTapSchema.Text[]
 
   const content = doc.content
   for (let i = 0; i < content.length; i++) {
@@ -609,7 +606,7 @@ function postToViewModel(
               ],
             },
           ],
-        } as Doc,
+        } as TipTapSchema.Doc,
         date: moment(post.createdAt).fromNow(),
         isThread: false,
         monetization: post.monetization
@@ -653,7 +650,7 @@ function postToViewModel(
         repostCount: post._count.reposts,
         quoteCount: post._count.quotePosts,
         avatarUrl: post.publishedBy.avatarUrl,
-        content: post.content as Doc,
+        content: post.content as TipTapSchema.Doc,
         date: moment(post.createdAt).fromNow(),
         isThread: post._computed.isThread,
         monetization: post.monetization

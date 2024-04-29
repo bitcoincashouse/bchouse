@@ -39,6 +39,9 @@ FROM base as inngest-build
 FROM base as cashconnect-build
   WORKDIR /app
   COPY --from=deps /app/node_modules /app/node_modules
+  # CashConnect has nested node_modules
+  COPY --from=deps /app/packages/cashconnect/node_modules ./packages/cashconnect/node_modules
+  COPY --from=utils-build /app/packages/utils ./node_modules/@bchouse/utils
   COPY ./packages/cashconnect/package.json ./packages/cashconnect/package.json
   COPY ./packages/cashconnect /app/packages/cashconnect
   RUN npm run build --workspace ./packages/cashconnect
@@ -77,5 +80,5 @@ FROM base
   COPY --from=inngest-build /app/packages/inngest/ ./apps/bchouse/node_modules/@bchouse/inngest
   COPY --from=build /app/apps/bchouse/build /app/apps/bchouse/build
   COPY --from=build /app/apps/bchouse/public /app/apps/bchouse/public
-  CMD node ./apps/bchouse/build/server.js
+  CMD npm run start --workspace ./apps/bchouse
   # CMD tail -f /dev/null

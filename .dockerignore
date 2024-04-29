@@ -21,3 +21,5 @@ obj/
 out/
 release/
 umbraco/
+fly.toml
+fly.*.toml

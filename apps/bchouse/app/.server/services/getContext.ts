@@ -8,7 +8,7 @@ import { CampaignService } from './services/campaign'
 import { FeedService } from './services/feed'
 import { HealthcheckService } from './services/healthcheck'
 import { ImageService } from './services/image'
-import { InngestService } from './services/inngest'
+import { InngestService } from './services/inngest/index'
 import { PledgeService } from './services/pledge'
 import { PostService } from './services/post'
 import { ProfileService } from './services/profile'
@@ -54,9 +54,6 @@ logger.info('REDIS_URL', appEnv.REDIS_URL)
 logger.info('BCHOUSE_DATABASE_URL', appEnv.BCHOUSE_DATABASE_URL)
 
 const searchService = new SearchService()
-if (appEnv.TYPESENSE_REBUILD_INDEX === 'true') {
-  await searchService.reindex()
-}
 
 const redis = getRedis()
 const abortController = new AbortController()

@@ -6,6 +6,8 @@ import { client } from './client'
 import { getAllTokenCategories, updateTokenOwners } from './db'
 
 export async function subscribeToTokenUpdates() {
+  console.log('Starting token subscriptions')
+
   const categoryRows = await getAllTokenCategories()
 
   const callbacks: Array<() => void> = []
@@ -20,6 +22,7 @@ export async function subscribeToTokenUpdates() {
     }
   }
 
+  console.log('Started token subscriptions')
   return () => callbacks.map((callback) => callback())
 }
 

@@ -8,6 +8,10 @@ primary_region = 'iad'
 
 [build]
 
+[env]
+  BCHOUSE_URL="https://bchouse-staging-site.fly.dev"
+  UMBRACO_URL="https://bchouse-staging-cms.fly.dev"
+
 [http_service]
   internal_port = 8080
   force_https = true

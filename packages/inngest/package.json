@@ -14,7 +14,7 @@
     "compile": "tsup --tsconfig ./tsconfig.build.json ./src/index.ts --format esm,cjs --dts"
   },
   "dependencies": {
-    "@bchouse/utils": "^1.0.0",
+    "@bchouse/utils": "workspace:^",
     "inngest": "3.1.0",
     "zod": "^3.21.4"
   },
