@@ -16,3 +16,8 @@ website
 typesense-data
 flyio
 tsconfig.tsbuildinfo
+bin/
+obj/
+out/
+release/
+umbraco/

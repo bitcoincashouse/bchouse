@@ -23,6 +23,28 @@ services:
       - 'traefik.enable=true'
       - 'traefik.http.routers.bchouse.rule=Host(`bchouse.localhost`)'
 
+  cms:
+    image: sahidmiller/bchouse-cms:development
+    build:
+      context: .
+      dockerfile: ./docker.cms.Dockerfile
+      args:
+        NODE_ENV: ${NODE_ENV:-production}
+    env_file:
+      - .env.development
+    ports:
+      - '45696:8080'
+    volumes:
+      - ./apps/cms/umbraco/:/Umbraco/umbraco
+    expose:
+      - 45696
+    healthcheck:
+      test: netstat -ltn | grep -c ":8080"
+    restart: always
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.bchouse.rule=Host(`bchouse.localhost`)'
+
   paygate:
     image: sahidmiller/paygate:development
     build:

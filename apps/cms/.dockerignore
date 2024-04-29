@@ -1,0 +1,11 @@
+.env
+.env.*
+bin/
+obj/
+out/
+release/
+umbraco/
+appsettings.Development.json
+fly.toml
+Dockerfile
+.dockerignore

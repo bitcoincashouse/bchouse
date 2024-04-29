@@ -4,13 +4,11 @@ using dotenv.net;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-
-if (env == "Development")
+if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.Equals("Development") ?? false)
 {
   DotEnv.Load(options: new DotEnvOptions(envFilePaths: new[] {
-        "../../.env.development"
-    }));
+    "../../.env.development"
+  }));
 }
 
 builder.CreateUmbracoBuilder()
@@ -38,7 +36,7 @@ app.UseUmbraco()
     {
       u.AppBuilder.UseCors(policy =>
       {
-        if (env == "Development")
+        if (app.Environment.IsDevelopment())
         {
           policy
           .AllowAnyOrigin()
