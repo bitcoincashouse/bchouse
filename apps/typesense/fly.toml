@@ -15,7 +15,7 @@ kill_timeout = "5s"
   image = "typesense/typesense:0.24.1"
 
 [env]
-  TYPESENSE_API_KEY = "xyz"
+  #TYPESENSE_API_KEY
   TYPESENSE_DATA_DIR = "/data"
 
 [[mounts]]

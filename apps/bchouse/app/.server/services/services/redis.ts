@@ -1,5 +1,9 @@
-import { detectAddressNetwork, logger, moment } from '@bchouse/utils'
-import { TipTapSchema } from '@bchouse/utils/src/tiptapSchema.js'
+import {
+  TipTapSchema,
+  detectAddressNetwork,
+  logger,
+  moment,
+} from '@bchouse/utils'
 import Redis from 'ioredis'
 import { z } from 'zod'
 import { appEnv } from '~/.server/appEnv.js'

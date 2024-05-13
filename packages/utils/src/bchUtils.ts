@@ -88,9 +88,11 @@ export function isStandardCashAddress(bytecode: Buffer | Uint8Array) {
   return isPayToPublicKeyHash(bytecode) || isPayToScriptHash20(bytecode)
 }
 
-export function addressToBytecode(address: string) {
-  const addressBytecode = cashAddressToLockingBytecode(address)
+export function addressToBytecode(address: string, network: Network) {
+  const prefixedAddress = formatAddress(network, address)
+  const addressBytecode = cashAddressToLockingBytecode(prefixedAddress)
   if (typeof addressBytecode === 'string') {
+    console.log('Error: ', prefixedAddress, addressBytecode)
     throw new Error('Invalid address')
   }
   if (!isStandardCashAddress(addressBytecode.bytecode)) {

@@ -37,7 +37,8 @@ export class MainContract extends ContractExecutor<ContractParams> {
     //TODO: might want to derive a unique address per campaign for segregation
     const platformPkh = addressToHash160(contractParams.platformAddress)
     const payoutAddressBytecode = addressToBytecode(
-      contractParams.payoutAddress
+      contractParams.payoutAddress,
+      contractParams.network
     )
 
     const mainContract = new Contract(

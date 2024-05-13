@@ -17,12 +17,7 @@
     "run-dev-nopay": "pnpm run --filter=!@bchouse/paygate -r --parallel --include-workspace-root dev",
     "dev": "run-p dev:*",
     "dev:inngest": "inngest-cli dev --no-discovery -u http://localhost:3000/api/inngest",
-    "cms": "dotnet watch --project ./apps/cms",
-    "fly:deploy:bchouse": "fly deploy --config ./fly.bchouse.toml --dockerfile ./docker.bchouse.Dockerfile",
-    "fly:deploy:paygate": "fly deploy --config ./fly.paygate.toml --dockerfile ./docker.paygate.Dockerfile",
-    "staging:fly:deploy:bchouse": "fly deploy --config ./fly.staging.bchouse.toml --dockerfile ./docker.bchouse.Dockerfile",
-    "staging:fly:deploy:paygate": "fly deploy --config ./fly.staging.paygate.toml --dockerfile ./docker.paygate.Dockerfile",
-    "staging:fly:deploy:cms": "fly deploy ./apps/cms"
+    "cms": "dotnet watch --project ./apps/cms"
   },
   "devDependencies": {
     "inngest-cli": "^0.18.0",

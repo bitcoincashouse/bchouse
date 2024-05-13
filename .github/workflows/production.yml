@@ -1,0 +1,110 @@
+# Production deployments are handled by:
+# BCHouse - Fly.io
+# Paygate - Fly.io
+# CMS - Fly.io
+# SQL Server - Fly.io
+# Typesense - Fly.io
+
+# Actions after successful deployment:
+# None
+
+name: Production Deploy
+on:
+  push:
+    branches:
+      - main
+jobs:
+  paths-filter:
+    runs-on: ubuntu-latest
+    outputs:
+      bchouse: ${{ steps.filter.outputs.bchouse }}
+      paygate: ${{ steps.filter.outputs.paygate }}
+      cms: ${{ steps.filter.outputs.cms }}
+      sql_server: ${{ steps.filter.outputs.sql_server }}
+      typesense: ${{ steps.filter.outputs.typesense }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            bchouse:
+              - './apps/bchouse/**'
+              - './packages/cashconnect/**'
+              - './packages/inngest/**'
+              - './packages/utils/**'
+            paygate:
+              - './apps/paygate/**'
+              - './packages/inngest/**'
+              - './packages/utils/**'
+            cms:
+              - './apps/cms/**'
+            sql_server:
+              - './apps/sql_server/**'
+            typesense:
+              - './apps/typesense/**'
+
+  bchouse:
+    name: Deploy Site to fly.io
+    needs: paths-filter
+    if: needs.paths-filter.outputs.bchouse == 'true'
+    runs-on: ubuntu-latest
+    concurrency: deploy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: fly deploy --config ./fly.bchouse.toml --dockerfile ./docker.bchouse.Dockerfile
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+  paygate:
+    name: Deploy Paygate to fly.io
+    needs: paths-filter
+    if: needs.paths-filter.outputs.paygate == 'true'
+    runs-on: ubuntu-latest
+    concurrency: deploy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: fly deploy --config ./fly.paygate.toml --dockerfile ./docker.paygate.Dockerfile
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+  cms:
+    name: Deploy CMS to fly.io
+    needs: paths-filter
+    if: needs.paths-filter.outputs.cms == 'true'
+    runs-on: ubuntu-latest
+    concurrency: deploy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: fly deploy ./apps/cms
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+  sql_server:
+    name: Deploy SQL Server to fly.io
+    needs: paths-filter
+    if: needs.paths-filter.outputs.sql_server == 'true'
+    runs-on: ubuntu-latest
+    concurrency: deploy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: fly deploy ./apps/sql_server
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+  typesense:
+    name: Deploy Typesense to fly.io
+    needs: paths-filter
+    if: needs.paths-filter.outputs.typesense == 'true'
+    runs-on: ubuntu-latest
+    concurrency: deploy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: fly deploy ./apps/typesense
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

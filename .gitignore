@@ -47,7 +47,7 @@ contract.json
 typesense-data
 coverage
 .vercel
-
-# Configuration
-fly.toml
-fly.*.toml
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

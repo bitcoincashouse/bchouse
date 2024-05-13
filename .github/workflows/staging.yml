@@ -1,0 +1,112 @@
+# Staging deployments are handled by:
+# BCHouse - Vercel
+# Paygate - Vercel
+# CMS - Fly.io
+# SQL Server - Fly.io
+# Typesense - Fly.io
+
+# Actions after successful deployment of staging environment when changed:
+# 1) E2E Tests
+
+name: Staging Deploy
+on:
+  push:
+    branches:
+      - staging
+jobs:
+  paths-filter:
+    runs-on: ubuntu-latest
+    outputs:
+      bchouse: ${{ steps.filter.outputs.bchouse }}
+      paygate: ${{ steps.filter.outputs.paygate }}
+      cms: ${{ steps.filter.outputs.cms }}
+      sql_server: ${{ steps.filter.outputs.sql_server }}
+      typesense: ${{ steps.filter.outputs.typesense }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            bchouse:
+              - './apps/bchouse/**'
+              - './packages/cashconnect/**'
+              - './packages/inngest/**'
+              - './packages/utils/**'
+            paygate:
+              - './apps/paygate/**'
+              - './packages/inngest/**'
+              - './packages/utils/**'
+            cms:
+              - './apps/cms/**'
+            sql_server:
+              - './apps/sql_server/**'
+            typesense:
+              - './apps/typesense/**'
+
+  bchouse:
+    name: Deploy BCHouse to Vercel
+    needs: paths-filter
+    if: needs.paths-filter.outputs.bchouse == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Link BCHouse to Vercel
+        run: vercel link -p bchouse-site -y --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy BCHouse to Vercel
+        run: vercel deploy --prod -y --token=${{ secrets.VERCEL_TOKEN }}
+
+  paygate:
+    name: Deploy Paygate to Vercel
+    needs: paths-filter
+    if: needs.paths-filter.outputs.paygate == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Link Paygate to Vercel
+        run: vercel link -p bchouse-paygate -y --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy Paygate to Vercel
+        run: vercel deploy --prod  -y --token=${{ secrets.VERCEL_TOKEN }}
+
+  cms:
+    name: Deploy CMS to fly.io
+    needs: paths-filter
+    if: needs.paths-filter.outputs.cms == 'true'
+    runs-on: ubuntu-latest
+    concurrency: deploy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy ./apps/cms -a bchouse-staging-cms -e BCHOUSE_URL="https://bchouse-staging-site.fly.dev" -e UMBRACO_URL="https://bchouse-staging-cms.fly.dev"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+  sql_server:
+    name: Deploy SQL Server to fly.io
+    needs: paths-filter
+    if: needs.paths-filter.outputs.sql_server == 'true'
+    runs-on: ubuntu-latest
+    concurrency: deploy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy ./apps/sql_server -a bchouse-staging-cms-sqlserver
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+  typesense:
+    name: Deploy Typesense to fly.io
+    needs: paths-filter
+    if: needs.paths-filter.outputs.typesense == 'true'
+    runs-on: ubuntu-latest
+    concurrency: deploy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy ./apps/typesense -a bchouse-staging-typesense
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

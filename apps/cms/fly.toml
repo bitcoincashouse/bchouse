@@ -3,14 +3,14 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'bchouse-staging-cms'
+app = 'bchouse-cms'
 primary_region = 'iad'
 
 [build]
 
 [env]
-  BCHOUSE_URL="https://bchouse-staging-site.fly.dev"
-  UMBRACO_URL="https://bchouse-staging-cms.fly.dev"
+  BCHOUSE_URL="https://bchouse-site.fly.dev"
+  UMBRACO_URL="https://bchouse-cms.fly.dev"
 
 [http_service]
   internal_port = 8080

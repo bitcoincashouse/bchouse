@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for paygate on 2024-01-04T13:08:18-05:00
+# fly.toml app configuration file generated for bchouse on 2023-11-01T16:09:55-04:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "paygate"
+app = "bchouse"
 primary_region = "iad"
 kill_signal = "SIGINT"
 kill_timeout = "5s"
@@ -12,15 +12,25 @@ kill_timeout = "5s"
   auto_rollback = true
 
 [build]
-  BCHOUSE_URL="https://bchouse.fly.dev/"
-  PAYGATE_URL="https://paygate.fly.dev/"
+
+[env]
+  BCHOUSE_URL="https://bchouse-site.fly.dev/"
+  PAYGATE_URL="https://bchouse-pay.fly.dev/"
   UMBRACO_URL="https://bchouse-cms.fly.dev/"
+  TYPESENSE_URL="https://bchouse-search.fly.dev"
+  TYPESENSE_PUBLIC_URL="https://bchouse-search.fly.dev"
   CHAINGRAPH_WS_URL="wss://gql.chaingraph.pat.mn/v1/graphql"
   CHAINGRAPH_HTTP_URL="https://gql.chaingraph.pat.mn/v1/graphql"
   BCH_NETWORK="mainnet"
+  SNOWFLAKE_EPOCH="1712438887"
+  SNOWFLAKE_WORKER_ID="0"
   INNGEST_BRANCH="production"
-
-[env]
+  STORAGE_PATH_STYLE="false"
+  STORAGE_API_URL="https://nyc3.digitaloceanspaces.com"
+  STORAGE_PUBLIC_URL="https://nyc3.digitaloceanspaces.com"
+  STORAGE_BUCKET="flipstarters"
+  STORAGE_REGION="us-east-1"
+  WALLET_CONNECT_PROJECT_ID="af5124b50e42ae55ac385eeb207d9a7a"
 
 [[services]]
   protocol = "tcp"
@@ -53,11 +63,6 @@ kill_timeout = "5s"
     path = "/healthcheck"
     protocol = "http"
     tls_skip_verify = false
-
-[[vm]]
-  cpu_kind = "shared"
-  cpus = 1
-  memory_mb = 1024
 
 [[metrics]]
   port = 8081

@@ -1,0 +1,18 @@
+{
+  "name": "@bchouse/e2e",
+  "version": "1.0.0",
+  "private": true,
+  "sideEffects": false,
+  "type": "module",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "dependencies": {
+    "playwright": "^1.43.1",
+    "@bchouse/utils": "workspace:^"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.43.1",
+    "@types/node": "^20.2.5"
+  }
+}
