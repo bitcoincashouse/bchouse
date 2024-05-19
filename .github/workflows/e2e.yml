@@ -6,6 +6,7 @@ on:
       - completed
 jobs:
   e2e:
+    environment: staging
     name: E2E Tests
     timeout-minutes: 60
     runs-on: ubuntu-latest
@@ -25,9 +26,9 @@ jobs:
         run: pnpm --filter @bchouse/e2e exec playwright test
         env:
           NODE_ENV: 'development'
-          BCHOUSE_URL: ${{ secrets.BCHOUSE_STAGING_URL }}
-          PAYGATE_URL: ${{ secrets.PAYGATE_STAGING_URL }}
-          UMBRACO_URL: ${{ secrets.UMBRACO_STAGING_URL }}
-          E2E_TEST_USERNAME: ${{ secrets.E2E_TEST_USERNAME }}
+          BCHOUSE_URL: ${{ vars.BCHOUSE_STAGING_URL }}
+          PAYGATE_URL: ${{ vars.PAYGATE_STAGING_URL }}
+          UMBRACO_URL: ${{ vars.UMBRACO_STAGING_URL }}
+          E2E_TEST_USERNAME: ${{ vars.E2E_TEST_USERNAME }}
+          E2E_TEST_USER_BCH_ADDRESS: ${{ vars.E2E_TEST_USER_BCH_ADDRESS }}
           E2E_TEST_USER_PASSWORD: ${{ secrets.E2E_TEST_USER_PASSWORD }}
-          E2E_TEST_USER_BCH_ADDRESS: ${{ secrets.E2E_TEST_USER_BCH_ADDRESS }}
