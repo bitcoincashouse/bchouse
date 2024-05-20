@@ -1,4 +1,5 @@
 import { moment } from '@bchouse/utils'
+import os from 'node:os'
 import { type Page } from 'playwright/test'
 
 export class PledgeModal {
@@ -26,7 +27,7 @@ export class PledgeModal {
     //Enter address
     await page.getByText('Scan or paste your address').waitFor()
     await page.getByPlaceholder('Recipient address').focus()
-    const isMac = true
+    const isMac = os.platform() === 'darwin'
     const modifier = isMac ? 'Meta' : 'Control'
     await page.keyboard.press(`${modifier}+KeyV`)
 
