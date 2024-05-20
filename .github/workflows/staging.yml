@@ -28,6 +28,7 @@ jobs:
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          base: staging
           filters: |
             bchouse:
               - './apps/bchouse/**'
@@ -85,7 +86,6 @@ jobs:
     needs: paths-filter
     if: needs.paths-filter.outputs.cms == 'true'
     runs-on: ubuntu-latest
-    concurrency: deploy
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
@@ -99,7 +99,6 @@ jobs:
     needs: paths-filter
     if: needs.paths-filter.outputs.sql_server == 'true'
     runs-on: ubuntu-latest
-    concurrency: deploy
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
@@ -113,7 +112,6 @@ jobs:
     needs: paths-filter
     if: needs.paths-filter.outputs.typesense == 'true'
     runs-on: ubuntu-latest
-    concurrency: deploy
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
@@ -127,7 +125,8 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     needs: [paths-filter, bchouse, paygate, cms, sql_server, typesense]
-    if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
+    # Run e2e tests when no failures or cancellations and either one of the deployments succeed or the e2e test suite was updated
+    if: ${{ !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') && (contains(needs.*.result, 'success') || needs.paths-filter.outputs.e2e == 'true') }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
