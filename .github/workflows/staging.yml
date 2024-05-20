@@ -46,6 +46,7 @@ jobs:
 
   bchouse:
     name: Deploy BCHouse to Vercel
+    environment: staging
     needs: paths-filter
     if: needs.paths-filter.outputs.bchouse == 'true'
     runs-on: ubuntu-latest
@@ -60,6 +61,7 @@ jobs:
 
   paygate:
     name: Deploy Paygate to Vercel
+    environment: staging
     needs: paths-filter
     if: needs.paths-filter.outputs.paygate == 'true'
     runs-on: ubuntu-latest
@@ -74,6 +76,7 @@ jobs:
 
   cms:
     name: Deploy CMS to fly.io
+    environment: staging
     needs: paths-filter
     if: needs.paths-filter.outputs.cms == 'true'
     runs-on: ubuntu-latest
@@ -87,6 +90,7 @@ jobs:
 
   sql_server:
     name: Deploy SQL Server to fly.io
+    environment: staging
     needs: paths-filter
     if: needs.paths-filter.outputs.sql_server == 'true'
     runs-on: ubuntu-latest
@@ -100,6 +104,7 @@ jobs:
 
   typesense:
     name: Deploy Typesense to fly.io
+    environment: staging
     needs: paths-filter
     if: needs.paths-filter.outputs.typesense == 'true'
     runs-on: ubuntu-latest
