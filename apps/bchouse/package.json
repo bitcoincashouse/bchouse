@@ -17,6 +17,7 @@
     "env:staging": "dotenv -e ../../.env.staging --"
   },
   "dependencies": {
+    "remix-query": "workspace:*",
     "@algolia/autocomplete-core": "^1.17.0",
     "@algolia/autocomplete-js": "^1.17.0",
     "@algolia/autocomplete-theme-classic": "^1.17.0",

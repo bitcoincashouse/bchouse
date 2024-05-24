@@ -1,6 +1,7 @@
 import { vitePlugin as remix } from '@remix-run/dev'
 import { remixDevTools } from 'remix-development-tools'
 import { flatRoutes } from 'remix-flat-routes'
+import { remixQuery } from 'remix-query/vite'
 import { remixRoutes } from 'remix-routes/vite'
 import { defineConfig } from 'vite'
 import { cjsInterop } from 'vite-plugin-cjs-interop'
@@ -66,6 +67,7 @@ export default defineConfig(({ isSsrBuild }) => ({
     }),
     svgr(),
     remixRoutes(),
+    remixQuery(),
     run([cashscript, xstate]),
   ],
 }))

@@ -47,7 +47,8 @@
     "removeComments": true,
     "composite": true,
     "incremental": true,
-    "disableSourceOfProjectReferenceRedirect": true,
+    //Disable due to trpc slow build
+    // "disableSourceOfProjectReferenceRedirect": true,
     
     //Structure
     "baseUrl": ".",
@@ -81,6 +82,9 @@
     }, 
     {
       "path": "../../packages/inngest"
+    }, 
+    {
+      "path": "../../packages/remix-query"
     }
   ]
 }

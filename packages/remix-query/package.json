@@ -1,0 +1,56 @@
+{
+  "name": "remix-query",
+  "version": "1.7.5",
+  "description": "Typesafe routing for Remix apps.",
+  "main": "lib/index.js",
+  "type": "module",
+  "bin": {
+    "remix-routes": "lib/cli.js"
+  },
+  "files": [
+    "lib",
+    "vite.js",
+    "vite.d.ts",
+    "!lib/__tests__"
+  ],
+  "scripts": {
+    "watch": "tsc --watch",
+    "prebuild": "rm -rf lib tsconfig.tsbuildinfo",
+    "build": "tsc",
+    "prepack": "npm run build",
+    "semantic-release": "semantic-release"
+  },
+  "keywords": [
+    "remix",
+    "routes",
+    "typescript"
+  ],
+  "author": "Wei Zhu",
+  "license": "MIT",
+  "devDependencies": {
+    "@remix-run/dev": "^2.6.0",
+    "@remix-run/dev-1": "npm:@remix-run/dev@1.19.3",
+    "@types/cli-table": "^0.3.0",
+    "@types/ejs": "^3.1.2",
+    "@types/jest": "^27.0.3",
+    "@types/mkdirp": "^1.0.2",
+    "@types/node": "^16.11.12",
+    "@types/pluralize": "^0.0.29",
+    "rimraf": "^4.4.0",
+    "semantic-release": "^19.0.3",
+    "typescript": "^4.5.3",
+    "vite": "^5.1.5"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.24.8",
+    "chokidar": "^3.5.2",
+    "ejs": "^3.1.9",
+    "meow": "9.0.0",
+    "mkdirp": "^1.0.4",
+    "slash": "3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yesmeck/remix-routes.git"
+  }
+}
