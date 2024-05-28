@@ -4,9 +4,9 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid'
 import { useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { useState } from 'react'
+import { $useLoaderQuery } from 'remix-query'
 import { SimpleWidget } from '~/components/layouts/widget'
 import { classNames } from '~/utils/classNames'
-import { trpc } from '~/utils/trpc'
 import { useCurrentUser } from './context/current-user-context'
 import { LoadingIndicator } from './loading'
 import { useWalletConnectSession } from './utils/wc2-provider'
@@ -53,11 +53,12 @@ export function NFTWidget() {
   } = useWalletConnectSession()
   const user = useCurrentUser()
 
-  const { data = [], isLoading } = trpc.profile.nfts.useQuery(
+  const { data = [], isLoading } = $useLoaderQuery(
+    '/api/profile/nfts/:address',
     {
-      address: address || '',
-    },
-    {
+      params: {
+        address: address || '',
+      },
       staleTime: 1000 * 60,
       gcTime: 1000 * 60 * 5,
       enabled: !!(user && !user.isAnonymous && address && session),

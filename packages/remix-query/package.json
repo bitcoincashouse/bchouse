@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.24.8",
+    "@remix-run/node": "^2.6.0",
     "chokidar": "^3.5.2",
     "ejs": "^3.1.9",
     "meow": "9.0.0",

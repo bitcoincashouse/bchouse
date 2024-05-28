@@ -124,6 +124,7 @@ export class ExitContract extends ContractExecutor<ContractParams> {
         pledgedAmount: forwardedUtxo.pledgedAmount,
         categoryId: campaignUtxo.categoryId,
         returnAddress,
+        network: this.electrumProvider.network,
       }),
     }
 
@@ -211,6 +212,7 @@ export class ExitContract extends ContractExecutor<ContractParams> {
         pledgedAmount: forwardedUtxo.pledgedAmount,
         categoryId: campaignUtxo.categoryId,
         returnAddress,
+        network: this.electrumProvider.network,
       }),
     }
 

@@ -2,10 +2,10 @@ import { useLocation, useNavigation } from '@remix-run/react'
 import { atom, useAtom } from 'jotai'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { StateSnapshot, Virtuoso, VirtuosoHandle } from 'react-virtuoso'
+import { $useLoaderInfiniteQuery } from 'remix-query'
+import type { FeedKeys } from '~/.server/services/redis/keys'
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { LoadingIndicator } from '~/components/loading'
-import { trpc } from '~/utils/trpc'
-import type { FeedKeys } from '../../server/services/services/redis/keys'
 import { FeedCard } from '../post/card/implementations/feed-cards'
 import { PostCardModel } from '../post/types'
 import { TimelineMessage } from './timeline-message'
@@ -63,18 +63,17 @@ export const Feed: React.FC<
     isLoading,
     isInitialLoading,
     isError,
-  } = trpc.post.feed.useInfiniteQuery(
-    {
+  } = $useLoaderInfiniteQuery('/api/post/feed/:type/:id/:cursor?', {
+    params: {
       id,
       type: queryKey,
     },
-    {
-      staleTime: 1000 * 60 * 2,
-      gcTime: Infinity,
-      refetchOnWindowFocus: false,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    }
-  )
+    staleTime: 1000 * 60 * 2,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
+    initialPageParam: '',
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+  })
 
   const feedRef = useRef<VirtuosoHandle>()
   const location = useLocation()

@@ -1,4 +1,5 @@
 import { serialize } from 'object-to-formdata'
+import { $mutate } from 'remix-query'
 
 export async function uploadPostMedia(
   postImageUrls: string[],
@@ -8,9 +9,12 @@ export async function uploadPostMedia(
   const totalImageCount = galleryImageUrls.length + postImageUrls.length
 
   const results = totalImageCount
-    ? await window.trpcClient.post.uploadMedia.mutate({
-        type: 'post',
-        count: totalImageCount,
+    ? await $mutate('/api/post/uploadMedia', {
+        body: {
+          type: 'post',
+          count: totalImageCount,
+        },
+        type: 'json',
       })
     : []
 

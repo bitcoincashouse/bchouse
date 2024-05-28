@@ -7,7 +7,9 @@ import * as fs from 'fs'
 import mkdirp from 'mkdirp'
 import * as path from 'path'
 import slash from 'slash'
-import { template } from './template.js'
+import { fileURLToPath } from 'url'
+import { definitionTemplate } from './definition-template.js'
+import { runtimeTemplate } from './runtime-template.js'
 
 interface Options {
   strict?: boolean
@@ -24,7 +26,7 @@ type RoutesInfo = Record<
 
 export const DEFAULT_OUTPUT_DIR_PATH = './node_modules'
 
-async function buildHelpers(
+export async function buildHelpers(
   config: RemixConfig
 ): Promise<[RoutesInfo, string[]]> {
   const routesInfo: RoutesInfo = {}
@@ -98,7 +100,7 @@ export async function build(
   options: Options
 ) {
   const [routesInfo, routeIds] = await buildHelpers(remixConfig)
-  generate(remixRoot, remixConfig, routesInfo, routeIds, options)
+  generateDefinitionFile(remixRoot, remixConfig, routesInfo, routeIds, options)
 }
 
 export async function watch(
@@ -119,7 +121,37 @@ export async function watch(
   console.log('Watching for routes changes...')
 }
 
-function generate(
+export function generateRuntimeFile(
+  remixRoot: string,
+  remixConfig: RemixConfig,
+  routesInfo: RoutesInfo,
+  routeIds: string[],
+  options: Options
+) {
+  const outputPath = path.dirname(fileURLToPath(import.meta.url))
+
+  const relativeAppDirPath = slash(
+    path.relative(outputPath, remixConfig.appDirectory)
+  )
+
+  routeIds.sort((a, b) => a.localeCompare(b))
+  const tsCode = ejs.render(runtimeTemplate, {
+    strictMode: options.strict,
+    relativeAppDirPath,
+    routes: Object.entries(routesInfo)
+      .map(([route, { fileName, params }]) => ({
+        route,
+        params,
+        fileName: slash(fileName.replace(/\.tsx?$/, '')),
+      }))
+      .sort((a, b) => a.route.localeCompare(b.route)),
+    routeIds,
+  })
+
+  return tsCode
+}
+
+function generateDefinitionFile(
   remixRoot: string,
   remixConfig: RemixConfig,
   routesInfo: RoutesInfo,
@@ -131,7 +163,7 @@ function generate(
     path.relative(outputPath, remixConfig.appDirectory)
   )
   routeIds.sort((a, b) => a.localeCompare(b))
-  const tsCode = ejs.render(template, {
+  const tsCode = ejs.render(definitionTemplate, {
     strictMode: options.strict,
     relativeAppDirPath,
     routes: Object.entries(routesInfo)

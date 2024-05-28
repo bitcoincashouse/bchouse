@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
-import { inngestService } from '~/.server/services/getContext'
+import { inngestService } from '~/.server/getContext'
 
 export const loader = (_: LoaderFunctionArgs) => {
   return inngestService.handler(_)

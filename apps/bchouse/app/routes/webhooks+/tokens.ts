@@ -1,11 +1,11 @@
 import { logger } from '@bchouse/utils'
 import { ActionFunctionArgs } from '@remix-run/node'
 import { z } from 'zod'
-import { removeToken } from '~/.server/services/services/tokens/db'
+import { removeToken } from '~/.server/services/tokens/db'
 import {
   initialTokenLoad,
   updateNFTTypes,
-} from '~/.server/services/services/tokens/init'
+} from '~/.server/services/tokens/init'
 
 const linkSchema = z.array(
   z.object({

@@ -1,25 +1,21 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { useNavigate } from '@remix-run/react'
 import { useEffect } from 'react'
-import { getTrpc } from '~/.server/getTrpc'
+import { $preload, $useActionMutation, $useLoaderQuery } from 'remix-query'
 import { ClientOnly } from '~/components/client-only'
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { MentionCard } from '~/components/post/card/implementations/notification-cards'
 import { classnames } from '~/components/utils/classnames'
-import { trpc } from '~/utils/trpc'
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  return getTrpc(_, (trpc) => trpc.profile.getMentionNotifications.prefetch())
+  return $preload(_, '/api/profile/mentions')
 }
 
 export default function Index() {
-  const getMentionNotifications = trpc.profile.getMentionNotifications.useQuery(
-    undefined,
-    {
-      gcTime: 5 * 60 * 1000,
-      staleTime: 1 * 60 * 1000,
-    }
-  )
+  const getMentionNotifications = $useLoaderQuery('/api/profile/mentions', {
+    gcTime: 5 * 60 * 1000,
+    staleTime: 1 * 60 * 1000,
+  })
 
   const notifications = getMentionNotifications.data?.notifications || []
   const currentUser = useCurrentUser()
@@ -50,7 +46,7 @@ export default function Index() {
 }
 
 function UpdateLastViewed() {
-  const mutation = trpc.profile.updateLastViewedNotifications.useMutation()
+  const mutation = $useActionMutation('/api/profile/lastViewedNotifications')
 
   useEffect(() => {
     mutation.mutate()

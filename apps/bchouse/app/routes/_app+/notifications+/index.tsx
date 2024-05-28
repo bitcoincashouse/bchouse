@@ -2,8 +2,9 @@ import { moment, prettyPrintSats } from '@bchouse/utils'
 import { ArrowPathIcon, HeartIcon, UserIcon } from '@heroicons/react/20/solid'
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useNavigate } from '@remix-run/react'
+import { $preload, $useLoaderQuery } from 'remix-query'
 import { $path } from 'remix-routes'
-import { getTrpc } from '~/.server/getTrpc'
+import { Activity } from '~/.server/services/redis/activity'
 import { Avatar } from '~/components/avatar'
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { BitcoinIcon } from '~/components/icons/BitcoinIcon'
@@ -14,15 +15,13 @@ import {
 } from '~/components/post/card/implementations/notification-cards'
 import { classnames } from '~/components/utils/classnames'
 import { classNames } from '~/utils/classNames'
-import { trpc } from '~/utils/trpc'
-import { Activity } from '../../../server/services/services/redis/activity'
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  return getTrpc(_, (trpc) => trpc.profile.getNotifications.prefetch())
+  return $preload(_, '/api/profile/notifications')
 }
 
 export default function Index() {
-  const getNotifications = trpc.profile.getNotifications.useQuery(undefined, {
+  const getNotifications = $useLoaderQuery('/api/profile/notifications', {
     gcTime: 5 * 60 * 1000,
     staleTime: 1 * 60 * 1000,
   })

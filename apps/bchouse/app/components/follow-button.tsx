@@ -1,9 +1,10 @@
 import { UserMinusIcon, UserPlusIcon } from '@heroicons/react/24/outline'
+import {} from '@remix-run/node'
 import { useLocation, useNavigate, useRevalidator } from '@remix-run/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
+import { $useActionMutation, $useLoaderQuery, $useUtils } from 'remix-query'
 import { $path } from 'remix-routes'
-import { trpc } from '~/utils/trpc'
 import { useCurrentUser } from './context/current-user-context'
 import { classnames } from './utils/classnames'
 
@@ -25,14 +26,18 @@ export function FollowButton({
   const queryClient = useQueryClient()
   const currentUser = useCurrentUser()
   const [isHovering, setHover] = useState(false)
-  const trpcClientUtils = trpc.useUtils()
+  const remixQueryUtils = $useUtils()
 
-  const { mutate: update, isPending: isSubmitting } =
-    trpc.profile.updateFollow.useMutation({
+  const { mutate: update, isPending: isSubmitting } = $useActionMutation(
+    '/api/profile/updateFollow',
+    {
       onMutate: (variables) => {
         //TODO: Optimistically update follow/unfollow globally for user
-        trpcClientUtils.profile.getIsFollowing.setData(
-          { profileId: variables.profileId },
+        remixQueryUtils.setData(
+          '/api/profile/isFollowing/:profileId',
+          {
+            profileId: variables.profileId,
+          },
           variables.action === 'follow'
         )
       },
@@ -41,23 +46,22 @@ export function FollowButton({
         //Invalidate user profile card for user
         queryClient.invalidateQueries({ queryKey: ['feed', 'home'] })
       },
-    })
+    }
+  )
 
   //TODO: pass in isFollowing so context can handle optimistic updates
   //TODO: have global onMutate/onSuccess/onFailure for all related queries dealing with follow/unfollow status of particular user
-  const isFollowing = trpc.profile.getIsFollowing.useQuery(
-    {
+  const isFollowing = $useLoaderQuery('/api/profile/isFollowing/:profileId', {
+    params: {
       profileId: user.id,
     },
-    {
-      staleTime: 5 * 60 * 1000,
-      gcTime: 15 * 60 * 1000,
-      //TODO: enable if logged in, otherwise, set initial to false.
-      enabled: true,
-      //TODO: if not logged in, set initial to false, otherwise, set initial to undefined.
-      initialData: false ? false : undefined,
-    }
-  )
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    //TODO: enable if logged in, otherwise, set initial to false.
+    enabled: true,
+    //TODO: if not logged in, set initial to false, otherwise, set initial to undefined.
+    initialData: false ? false : undefined,
+  })
 
   return (
     <>

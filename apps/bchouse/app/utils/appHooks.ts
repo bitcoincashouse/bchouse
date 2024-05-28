@@ -20,12 +20,16 @@ export function useAppRouteMatch<T extends RouteId>({ id }: { id: T }) {
     .find((match) => match.handle.id === id) as any as RouteDescription[T]
 }
 
-export function useAppLoaderData<T extends RouteId>({ id }: { id: T }) {
+export function useAppLoaderData<T extends keyof RouteIdsWithData>({
+  id,
+}: {
+  id: T
+}) {
   const matches = useMatches()
   return matches
     .filter(hasHandle('id', isString))
     .find((match) => match.handle.id === id)?.data as UseDataFunctionReturn<
-    RouteDescription[T]['data']
+    RouteIdsWithData[T]['data']
   >
 }
 

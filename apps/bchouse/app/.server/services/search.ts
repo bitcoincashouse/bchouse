@@ -1,5 +1,4 @@
-import { moment } from '@bchouse/utils'
-import { TipTapSchema } from '@bchouse/utils/src/tiptapSchema'
+import { TipTapSchema, moment } from '@bchouse/utils'
 import { Client } from 'typesense'
 import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections'
 import { z } from 'zod'

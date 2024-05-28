@@ -1,14 +1,12 @@
 import { logger } from '@bchouse/utils'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { JSONContent } from '@tiptap/core'
-import { getQueryKey } from '@trpc/react-query'
+import { $mutate } from 'remix-query'
 import { CreatePostParams } from '~/.server/types/post'
 import { AudienceType } from '~/components/post/form/audience-dropdown'
 import { serializeForServer } from '~/components/post/form/tiptap-extensions'
 import { Monetization } from '~/components/post/types'
 import { uploadPostMedia } from '~/components/utils/uploadPostMedia'
-import { trpc } from '~/utils/trpc'
-
 export type SubmitPostInput = {
   body: JSONContent
   galleryImageUrls: string[]
@@ -76,9 +74,10 @@ export function useSubmitPost(
                 }),
               }
 
-        const result = await window.trpcClient.post.post.mutate(
-          createPostParams
-        )
+        const result = await $mutate('/api/post', {
+          body: createPostParams,
+          type: 'json',
+        })
         if (typeof result === 'string') {
           return result
         } else {
@@ -90,11 +89,11 @@ export function useSubmitPost(
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: getQueryKey(trpc.post.feed) })
-      queryClient.invalidateQueries({ queryKey: getQueryKey(trpc.post.status) })
-      queryClient.invalidateQueries({
-        queryKey: getQueryKey(trpc.post.campaign),
-      })
+      window.remixQueryClientUtils.invalidate(
+        '/api/post/feed/:type/:id/:cursor?'
+      )
+      window.remixQueryClientUtils.invalidate('/api/post/status/:statusId')
+      window.remixQueryClientUtils.invalidate('/api/post/campaign/:campaignId')
       options?.onSubmitted?.()
     },
   })

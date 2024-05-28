@@ -1,9 +1,8 @@
 import { LoaderFunctionArgs, redirect } from '@remix-run/node'
-import { UIMatch } from '@remix-run/react'
+import { UIMatch, useParams } from '@remix-run/react'
+import { $preload, $useLoaderQuery } from 'remix-query'
 import { z } from 'zod'
-import { getTrpc } from '~/.server/getTrpc'
 import { StandardPostCard } from '~/components/post/card/implementations/standard-post-card'
-import { trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
 
 export const handle = {
@@ -19,15 +18,19 @@ export const loader = async (_: LoaderFunctionArgs) => {
 
   if (!hashtag) throw redirect('/explore')
 
-  return getTrpc(_, (trpc) => trpc.search.searchHashtag.prefetch())
+  return $preload(_, '/api/search/hashtag/:hashtag', { hashtag })
 }
 
 export default function Index() {
-  const posts = trpc.search.searchHashtag.useQuery({}, {})
+  const { hashtag } = useParams()
+  const { data: posts } = $useLoaderQuery('/api/search/hashtag/:hashtag', {
+    params: { hashtag: hashtag! },
+    enabled: !!hashtag,
+  })
 
   return (
     <>
-      {posts.length ? (
+      {posts?.length ? (
         posts.map((post) => <StandardPostCard key={post.key} post={post} />)
       ) : (
         <div className="flex flex-col items-center justify-center p-4 pt-8 gap-2">

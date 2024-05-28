@@ -8,7 +8,7 @@ import {
   useSearchParams,
 } from '@remix-run/react'
 import { useMemo } from 'react'
-import { getTrpc } from '~/.server/getTrpc'
+import { $preload, $useLoaderQuery } from 'remix-query'
 import InfoAlert from '~/components/alert'
 import { AppShell } from '~/components/app-shell'
 import { ClientOnly } from '~/components/client-only'
@@ -29,7 +29,6 @@ import { UserPopoverProvider } from '~/components/user-popover'
 import { useDismissUpdateProfileBanner } from '~/routes/api+/dismissUpdateProfileBanner'
 import { usePageDisplay } from '~/utils/appHooks'
 import { classNames } from '~/utils/classNames'
-import { trpc } from '~/utils/trpc'
 import { useCloseCreatePostModal } from '~/utils/useCloseCreatePostModal'
 import { useUpdateLastActive } from '~/utils/useUpdateLastActive'
 import { useWalletConnectConfig } from '~/utils/useWalletConnect'
@@ -50,9 +49,7 @@ export const layoutHandle = handle
 
 //@ts-ignore
 export const loader = async (_: LoaderFunctionArgs) => {
-  return getTrpc(_, async (trpc) => {
-    await trpc.profile.get.prefetch()
-  })
+  return $preload(_, '/api/profile/get')
 }
 
 export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
@@ -60,7 +57,7 @@ export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
 }
 
 export const useLayoutLoaderData = () => {
-  const { data, error } = trpc.profile.get.useQuery(undefined, {
+  const { data, error } = $useLoaderQuery('/api/profile/get', {
     staleTime: 5 * 60 * 1000,
   })
   if (!data) throw new Error('Layout loader data error.')
@@ -68,7 +65,7 @@ export const useLayoutLoaderData = () => {
 }
 
 export const useLoggedInLoaderData = () => {
-  const { data } = trpc.profile.get.useQuery(undefined, {
+  const { data } = $useLoaderQuery('/api/profile/get', {
     staleTime: 5 * 60 * 1000,
   })
   if (data?.anonymousView) throw new Error('User not signed in')
@@ -76,7 +73,7 @@ export const useLoggedInLoaderData = () => {
 }
 
 export const ErrorBoundary = () => {
-  const { isLoading, data } = trpc.profile.get.useQuery(undefined, {
+  const { isLoading, data } = $useLoaderQuery('/api/profile/get', {
     staleTime: 5 * 60 * 1000,
   })
 
@@ -92,7 +89,7 @@ export const ErrorBoundary = () => {
 }
 
 export default function Index() {
-  let { data } = trpc.profile.get.useQuery(undefined, {
+  let { data } = $useLoaderQuery('/api/profile/get', {
     staleTime: 5 * 60 * 1000,
   })
 
@@ -215,9 +212,10 @@ function ShowPostModal() {
     data: applicationData = {
       anonymousView: true,
     },
-  } = trpc.profile.get.useQuery(undefined, {
+  } = $useLoaderQuery('/api/profile/get', {
     staleTime: 5 * 60 * 1000,
   })
+
   const [searchParams] = useSearchParams()
   const modalName = searchParams.get('modal')
   const replyToPost = useLocation().state?.replyToPost as Post
@@ -261,7 +259,7 @@ function ShowEditProfileModal() {
     data: applicationData = {
       anonymousView: true,
     },
-  } = trpc.profile.get.useQuery(undefined, {
+  } = $useLoaderQuery('/api/profile/get', {
     staleTime: 5 * 60 * 1000,
   })
 

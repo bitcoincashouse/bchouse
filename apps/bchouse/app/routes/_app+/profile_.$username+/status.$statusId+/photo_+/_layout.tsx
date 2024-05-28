@@ -15,15 +15,14 @@ import {
 } from '@remix-run/react'
 import { AnimatePresence } from 'framer-motion'
 import { useMemo, useState } from 'react'
+import { $preload, $useLoaderQuery } from 'remix-query'
 import { $path } from 'remix-routes'
 import { useMediaQuery } from 'usehooks-ts'
 import { z } from 'zod'
-import { getTrpc } from '~/.server/getTrpc'
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { PostFooter } from '~/components/post/card/implementations/image-cards'
 import { Thread } from '~/components/threads/thread'
 import { classNames } from '~/utils/classNames'
-import { trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
 
 export const handle: AppRouteHandle = {
@@ -41,15 +40,13 @@ export const usePhotoLoaderData = () => {
     index: string
   }>()
 
-  return trpc.post.status.useQuery(
-    {
+  return $useLoaderQuery('/api/post/status/:statusId', {
+    params: {
       statusId: statusId!,
     },
-    {
-      staleTime: 5 * 60 * 1000,
-      gcTime: 15 * 60 * 1000,
-    }
-  )
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  })
 }
 
 export const loader = async (_: LoaderFunctionArgs) => {
@@ -58,11 +55,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
     statusId: z.string(),
   })
 
-  return getTrpc(_, (trpc) =>
-    trpc.post.status.prefetch({
-      statusId,
-    })
-  )
+  return $preload(_, '/api/post/status/:statusId', { statusId })
 }
 
 export default function Page() {

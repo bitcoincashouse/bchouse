@@ -1,5 +1,5 @@
 import {
-  Doc,
+  TipTapSchema,
   docSchema,
   mediaSchema,
   paragraphContentSchema,
@@ -320,7 +320,7 @@ const clientMediaSchema = mediaSchema.omit({ attrs: true }).merge(
 export function serializeForServer(
   content: JSONContent,
   uploadResults: { url: string; id: string }[]
-): Doc {
+): TipTapSchema.Doc {
   return docSchema
     .omit({ content: true })
     .merge(
@@ -355,7 +355,7 @@ export function serializeForServer(
             content.type === 'paragraph' &&
             typeof content.content !== 'undefined'
           )
-        }) as Doc['content'],
+        }) as TipTapSchema.Doc['content'],
       }
     })
     .parse(content)

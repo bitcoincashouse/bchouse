@@ -1,5 +1,10 @@
 import type * as Vite from 'vite'
-import { DEFAULT_OUTPUT_DIR_PATH, build } from './build.js'
+import {
+  DEFAULT_OUTPUT_DIR_PATH,
+  build,
+  buildHelpers,
+  generateRuntimeFile,
+} from './build.js'
 
 interface PluginConfig {
   strict?: boolean
@@ -7,6 +12,8 @@ interface PluginConfig {
 }
 
 const RemixPluginContextName = '__remixPluginContext'
+const virtualModuleId = 'virtual:remix-query/runtime'
+const resolvedVirtualModuleId = '\0' + virtualModuleId
 
 export function remixQuery(pluginConfig: PluginConfig = {}): Vite.Plugin {
   let remixPlugin: any
@@ -33,6 +40,26 @@ export function remixQuery(pluginConfig: PluginConfig = {}): Vite.Plugin {
   return {
     name: 'remix-query',
     enforce: 'post',
+    resolveId(id) {
+      if (id === virtualModuleId) {
+        return resolvedVirtualModuleId
+      }
+    },
+    async load(id) {
+      if (id === resolvedVirtualModuleId) {
+        const [routesInfo, routeIds] = await buildHelpers(ctx.remixConfig)
+        return generateRuntimeFile(
+          rootDirectory,
+          ctx.remixConfig,
+          routesInfo,
+          routeIds,
+          {
+            strict: pluginConfig.strict,
+            outputDirPath: pluginConfig.outDir || DEFAULT_OUTPUT_DIR_PATH,
+          }
+        )
+      }
+    },
     config(_viteUserConfig, _viteConfigEnv) {
       viteUserConfig = _viteUserConfig
       viteConfigEnv = _viteConfigEnv

@@ -2,7 +2,6 @@ import { ReferenceExpression, SelectQueryBuilder, SqlBool } from 'kysely'
 import { PostAudience, PostPublishState, PostType, db } from '../../db'
 import { Cursor, PaginationCursorStyle } from '../types'
 import { SqlNumber, selectors } from './selectors'
-export type { Nullable } from 'node_modules/kysely/dist/esm/util/type-utils'
 
 export const tables = {
   userPosts: db

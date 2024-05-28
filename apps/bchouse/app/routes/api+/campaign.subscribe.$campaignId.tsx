@@ -4,12 +4,8 @@ import { LoaderFunctionArgs } from '@remix-run/node'
 import { useRevalidator } from '@remix-run/react'
 import { useEffect, useMemo, useState } from 'react'
 import { z } from 'zod'
-import {
-  campaignService,
-  pledgeService,
-  ratelimit,
-} from '~/.server/services/getContext'
-import { inngest } from '~/.server/services/services/inngest'
+import { campaignService, pledgeService, ratelimit } from '~/.server/getContext'
+import { inngest } from '~/.server/services/inngest'
 import { eventStream } from '~/utils/event-stream'
 import { zx } from '~/utils/zodix'
 

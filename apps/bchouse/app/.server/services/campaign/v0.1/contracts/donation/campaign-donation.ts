@@ -40,13 +40,16 @@ export class DonationContract extends ContractExecutor<ContractParams> {
   ): Contract {
     //TODO: payout address doesn't necessarily == initial funding return address
     const initialRefundBytecode = addressToBytecode(
-      contractParams.mainContract.params.payoutAddress
+      contractParams.mainContract.params.payoutAddress,
+      electrumProvider.network
     )
     const mainContractAddressBytecode = addressToBytecode(
-      contractParams.mainContract.contract.address
+      contractParams.mainContract.contract.address,
+      electrumProvider.network
     )
     const exitContractAddressBytecode = addressToBytecode(
-      contractParams.exitContract.contract.address
+      contractParams.exitContract.contract.address,
+      electrumProvider.network
     )
 
     const donationContract = new Contract(
@@ -146,6 +149,7 @@ export class DonationContract extends ContractExecutor<ContractParams> {
           categoryId: pledgeUtxo.txid,
           pledgedAmount: commitAmount,
           returnAddress: this.params.mainContract.params.payoutAddress,
+          network: this.electrumProvider.network,
         }),
       },
     ] as Recipient[]
@@ -252,6 +256,7 @@ export class DonationContract extends ContractExecutor<ContractParams> {
           categoryId: campaignUtxo.categoryId,
           returnAddress: this.params.mainContract.params.payoutAddress,
           pledgedAmount: commitAmount,
+          network: this.electrumProvider.network,
         }),
       },
     ] as Output[]

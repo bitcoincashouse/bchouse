@@ -1,6 +1,5 @@
 import { ReferenceExpression, SelectQueryBuilder } from 'kysely'
 import { Cursor } from './types'
-export type { Nullable } from 'node_modules/kysely/dist/esm/util/type-utils'
 
 export async function paginate<DB, TB extends keyof DB, O>(
   query: SelectQueryBuilder<DB, TB, O>,

@@ -2,9 +2,9 @@ import { CreditCardIcon, EnvelopeIcon } from '@heroicons/react/24/outline'
 import { Link } from '@remix-run/react'
 import { createContext, useContext, useMemo, useState } from 'react'
 import { usePopper } from 'react-popper'
+import { $useLoaderQuery } from 'remix-query'
 import { $path } from 'remix-routes'
 import { Avatar } from '~/components/avatar'
-import { trpc } from '~/utils/trpc'
 import { FollowButton } from './follow-button'
 
 const UserPopoverContext = createContext<{
@@ -65,11 +65,12 @@ export function UserPopoverProvider({
 }
 
 export function UserPopover({ id }: { id: string }) {
-  const { data: user, isLoading } = trpc.profile.getPublicProfile.useQuery(
+  const { data: user, isLoading } = $useLoaderQuery(
+    '/api/profile/getPublicProfileById/:userId',
     {
-      userId: id,
-    },
-    {
+      params: {
+        userId: id,
+      },
       gcTime: 5 * 60 * 1000,
       staleTime: 1 * 60 * 1000,
     }

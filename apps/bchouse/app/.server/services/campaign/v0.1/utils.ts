@@ -1,4 +1,4 @@
-import { addressToBytecode } from '@bchouse/utils'
+import { Network, addressToBytecode } from '@bchouse/utils'
 import { toBufferLE } from 'bigint-buffer'
 import { TokenDetails } from 'cashscript'
 import { CampaignUtxo } from '../types'
@@ -19,13 +19,15 @@ export function getForwardedPledgeToken({
   categoryId,
   pledgedAmount,
   returnAddress,
+  network,
 }: {
   isDonation: boolean
   categoryId: string
   pledgedAmount: bigint
   returnAddress: string
+  network: Network
 }) {
-  const refundBytecode = addressToBytecode(returnAddress)
+  const refundBytecode = addressToBytecode(returnAddress, network)
 
   return {
     amount: BigInt(0),

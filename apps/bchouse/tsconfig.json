@@ -47,8 +47,6 @@
     "removeComments": true,
     "composite": true,
     "incremental": true,
-    //Disable due to trpc slow build
-    // "disableSourceOfProjectReferenceRedirect": true,
     
     //Structure
     "baseUrl": ".",
@@ -71,7 +69,10 @@
       "name": "@0no-co/graphqlsp", 
       "schema": "./schema.graphql", 
       "tadaOutputLocation": "./types/graphql-env.d.ts"
-    }]
+    }],
+    "types": [
+      "@remix-run/react/future/single-fetch.d.ts"
+    ]
   },
   "references": [
     {

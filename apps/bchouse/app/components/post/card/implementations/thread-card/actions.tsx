@@ -9,7 +9,7 @@ import {
 import { Link } from '@remix-run/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { trpc } from '~/utils/trpc'
+import { $useActionMutation, $useUtils } from 'remix-query'
 import { useCurrentUser } from '../../../../context/current-user-context'
 import { BitcoinIcon } from '../../../../icons/BitcoinIcon'
 import { useTipPostModal } from '../../../../tip-modal'
@@ -171,13 +171,14 @@ export function RepostButton({ item }: { item: PostCardModel }) {
   const queryClient = useQueryClient()
   const toggled = item.wasReposted
   const action = toggled ? 'repost:remove' : 'repost:add'
-  const utils = trpc.useUtils()
+  const utils = $useUtils()
   const currentUser = useCurrentUser()
-  const mutation = trpc.post.postAction.useMutation({
+  const mutation = $useActionMutation('/api/post/action', {
     onMutate(variables) {
       const isAddRepost = !toggled
 
-      utils.post.getPost.setData(
+      utils.setData(
+        '/api/post/get/:postId',
         { postId: item.id },
         {
           ...item,
@@ -238,11 +239,12 @@ export function LikeButton({ item }: { item: PostCardModel }) {
   const queryClient = useQueryClient()
   const toggled = item.wasLiked
   const action = toggled ? 'like:remove' : 'like:add'
-  const utils = trpc.useUtils()
-  const mutation = trpc.post.postAction.useMutation({
+  const utils = $useUtils()
+  const mutation = $useActionMutation('/api/post/action', {
     onMutate(variables) {
       const isAddLike = !toggled
-      utils.post.getPost.setData(
+      utils.setData(
+        '/api/post/get/:postId',
         { postId: item.id },
         {
           ...item,

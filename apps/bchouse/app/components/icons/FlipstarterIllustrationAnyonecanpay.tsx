@@ -1,4 +1,3 @@
-import * as React from 'react'
 import type { SVGProps } from 'react'
 const SvgFlipstarterIllustrationAnyonecanpay = (
   props: SVGProps<SVGSVGElement>
@@ -22,7 +21,7 @@ const SvgFlipstarterIllustrationAnyonecanpay = (
         height={514}
         preserveAspectRatio="none"
         style={{
-          imageRendering: 'optimizeQuality',
+          imageRendering: 'optimizeQuality' as any,
         }}
       />
       <path

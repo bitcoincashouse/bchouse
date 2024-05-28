@@ -2,25 +2,24 @@ import { moment, pluralize } from '@bchouse/utils'
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useNavigate, useSearchParams } from '@remix-run/react'
 import { useMemo } from 'react'
-import { getTrpc } from '~/.server/getTrpc'
+import { $preload, $useActionMutation, $useLoaderQuery } from 'remix-query'
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { Message } from '~/components/message'
 import { StatsWidget } from '~/components/stats-widget'
 import { classnames } from '~/components/utils/classnames'
-import { trpc } from '~/utils/trpc'
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  return getTrpc(_, (trpc) => trpc.profile.listInviteCodes.prefetch())
+  return $preload(_, '/api/profile/listInviteCodes')
 }
 
 export default function Index() {
   const [searchParams] = useSearchParams()
-  const inviteMutation = trpc.profile.invite.useMutation()
+  const inviteMutation = $useActionMutation('/api/profile/invite/create')
 
   const result = inviteMutation.data
 
-  const invitationQuery = trpc.profile.listInviteCodes.useQuery(undefined, {
+  const invitationQuery = $useLoaderQuery('/api/profile/listInviteCodes', {
     gcTime: 5 * 60 * 1000,
     staleTime: 15 * 60 * 1000,
   })
@@ -100,7 +99,7 @@ function Grid({
   codes: {
     code: string
     claimedEmailAddress: string | null
-    createdAt: string
+    createdAt: Date
   }[]
 }) {
   return (

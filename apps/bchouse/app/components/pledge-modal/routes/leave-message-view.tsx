@@ -1,5 +1,5 @@
 import { InfoFooter, MessageView, WCText } from '@bchouse/cashconnect'
-import { trpc } from '~/utils/trpc'
+import { $useActionMutation } from 'remix-query'
 
 export function LeaveMessageView({
   campaignId,
@@ -14,7 +14,7 @@ export function LeaveMessageView({
   showName: boolean
   nextStep: () => void
 }) {
-  const commentMutation = trpc.campaign.submitComment.useMutation({
+  const commentMutation = $useActionMutation('/api/campaign/pledge/comment', {
     onSuccess: () => nextStep(),
   })
 

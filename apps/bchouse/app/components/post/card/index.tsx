@@ -1,8 +1,8 @@
 /* eslint-disable react/display-name */
 import { useLocation, useNavigate } from '@remix-run/react'
 import React, { useMemo } from 'react'
+import { $useLoaderQuery } from 'remix-query'
 import { classNames } from '~/utils/classNames'
-import { trpc } from '~/utils/trpc'
 import { PostCardModel } from '../types'
 import { PostCardAvatar } from './avatar'
 import { PostCardContent } from './content'
@@ -28,19 +28,17 @@ export function PostCard({
   const location = useLocation()
 
   //For optimistic updates, get data from queryCache
-  const { data } = trpc.post.getPost.useQuery(
-    {
+  const { data } = $useLoaderQuery('/api/post/get/:postId', {
+    params: {
       postId: post.id,
     },
-    {
-      placeholderData: post,
-      enabled: false,
-      //TODO: stagger stale time, not to fetch all at same time,
-      //TODO: only set while in view
-      staleTime: 5 * 60 * 1000,
-      gcTime: Infinity,
-    }
-  )
+    placeholderData: post,
+    enabled: false,
+    //TODO: stagger stale time, not to fetch all at same time,
+    //TODO: only set while in view
+    staleTime: 5 * 60 * 1000,
+    gcTime: Infinity,
+  })
 
   const item = useMemo(() => {
     //Combine values returned via feed but not found via getPostById (ex. repostedBy)

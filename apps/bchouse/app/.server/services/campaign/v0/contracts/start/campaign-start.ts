@@ -42,13 +42,16 @@ export class StartContract extends ContractExecutor<ContractParams> {
   ) {
     //TODO: payout address doesn't necessarily == initial funding return address
     const initialRefundBytecode = addressToBytecode(
-      contractParams.returnAddress
+      contractParams.returnAddress,
+      electrumProvider.network
     )
     const mainContractAddressBytecode = addressToBytecode(
-      contractParams.mainContract.contract.address
+      contractParams.mainContract.contract.address,
+      electrumProvider.network
     )
     const exitContractAddressBytecode = addressToBytecode(
-      contractParams.exitContract.contract.address
+      contractParams.exitContract.contract.address,
+      electrumProvider.network
     )
 
     const startContract = new Contract(
@@ -101,7 +104,10 @@ export class StartContract extends ContractExecutor<ContractParams> {
       throw new Error('Invalid utxo to create campaign contract')
     }
 
-    const refundBytecode = addressToBytecode(this.params.returnAddress)
+    const refundBytecode = addressToBytecode(
+      this.params.returnAddress,
+      this.electrumProvider.network
+    )
     const commitAmount = BigInt(pledgeUtxo.satoshis) - BigInt(2000)
     const commitmentAmount = toBufferLE(commitAmount, 8)
     const destination = [
@@ -199,6 +205,7 @@ export class StartContract extends ContractExecutor<ContractParams> {
           categoryId: campaignUtxo.categoryId,
           returnAddress: this.params.returnAddress,
           pledgedAmount: commitAmount,
+          network: this.electrumProvider.network,
         }),
       },
     ] as Output[]

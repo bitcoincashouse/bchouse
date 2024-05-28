@@ -53,7 +53,7 @@ function AllContributionListItem({
   campaignExpires,
 }: {
   campaignExpires: number
-  contribution: Contribution & { refundedAt: string | null }
+  contribution: Contribution & { refundedAt: Date | null }
 }) {
   const [amount, denomination] = useMemo(
     () => prettyPrintSats(Number(contribution.satoshis.toString())),

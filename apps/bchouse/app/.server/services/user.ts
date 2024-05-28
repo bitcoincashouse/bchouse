@@ -1,5 +1,9 @@
-import { detectAddressNetwork, moment, prettyPrintSats } from '@bchouse/utils'
-import { TipTapSchema } from '@bchouse/utils/src/tiptapSchema'
+import {
+  TipTapSchema,
+  detectAddressNetwork,
+  moment,
+  prettyPrintSats,
+} from '@bchouse/utils'
 import {
   DeletedObjectJSON,
   UserJSON,

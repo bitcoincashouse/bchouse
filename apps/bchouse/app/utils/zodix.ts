@@ -144,6 +144,55 @@ export function parseQuerySafe<T extends ZodRawShape | ZodTypeAny>(
   return finalSchema.safeParse(params) as SafeParsedData<T>
 }
 
+async function _parseForm<
+  T extends ZodRawShape | ZodTypeAny,
+  Parser extends SearchParamsParser<any>
+>(
+  request: Request | FormData,
+  schema: T,
+  useSafe: true,
+  options?: Options<Parser>
+): Promise<SafeParsedData<T>>
+async function _parseForm<
+  T extends ZodRawShape | ZodTypeAny,
+  Parser extends SearchParamsParser<any>
+>(
+  request: Request | FormData,
+  schema: T,
+  useSafe: false,
+  options?: Options<Parser>
+): Promise<ParsedData<T>>
+async function _parseForm<
+  T extends ZodRawShape | ZodTypeAny,
+  Parser extends SearchParamsParser<any>
+>(
+  request: Request | FormData,
+  schema: T,
+  useSafe: boolean = false,
+  options?: Options<Parser>
+): Promise<ParsedData<T>> {
+  let data
+  try {
+    if (isFormData(request)) {
+      data = parseFormData(request, options?.parser)
+    } else if (request.headers.get('content-type') === 'application/json') {
+      data = await request.clone().json()
+    } else {
+      const formData = await request.clone().formData()
+      data = parseFormData(formData, options?.parser)
+    }
+
+    const finalSchema = isZodType(schema) ? schema : z.object(schema)
+    const parseFn = !useSafe
+      ? finalSchema.parseAsync
+      : finalSchema.safeParseAsync
+    return await parseFn(data)
+  } catch (error) {
+    console.log({ error, data })
+    throw createErrorResponse(options)
+  }
+}
+
 /**
  * Parse and validate FormData from a Request. Throws an error if validation fails.
  * @param request - A Request or FormData
@@ -158,16 +207,7 @@ export async function parseForm<
   schema: T,
   options?: Options<Parser>
 ): Promise<ParsedData<T>> {
-  try {
-    const formData = isFormData(request)
-      ? request
-      : await request.clone().formData()
-    const data = await parseFormData(formData, options?.parser)
-    const finalSchema = isZodType(schema) ? schema : z.object(schema)
-    return await finalSchema.parseAsync(data)
-  } catch (error) {
-    throw createErrorResponse(options)
-  }
+  return _parseForm(request, schema, false, options)
 }
 
 /**
@@ -184,12 +224,7 @@ export async function parseFormSafe<
   schema: T,
   options?: Options<Parser>
 ): Promise<SafeParsedData<T>> {
-  const formData = isFormData(request)
-    ? request
-    : await request.clone().formData()
-  const data = await parseFormData(formData, options?.parser)
-  const finalSchema = isZodType(schema) ? schema : z.object(schema)
-  return finalSchema.safeParseAsync(data) as Promise<SafeParsedData<T>>
+  return _parseForm(request, schema, true, options)
 }
 
 /**

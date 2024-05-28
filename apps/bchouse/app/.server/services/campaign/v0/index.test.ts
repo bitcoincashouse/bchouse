@@ -1,6 +1,6 @@
 import { MockNetworkProvider } from 'cashscript'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fixture } from '~/server/test/fixture'
+import { fixture } from '~/test/fixture'
 import { DonationContract } from './contracts/donation/campaign-donation'
 import { MainContract } from './contracts/main/campaign-main'
 import { PledgeContract } from './contracts/pledge/campaign-pledge'
@@ -45,6 +45,7 @@ describe('v0 campaign contract', () => {
       expires: fixture.campaign.expires,
       network: fixture.campaign.network,
       payoutAddress: fixture.campaign.payoutAddress,
+      version: 0,
     })
 
     expect(
@@ -78,6 +79,7 @@ describe('v0 campaign contract', () => {
       expires: fixture.campaign.expires,
       network: fixture.campaign.network,
       payoutAddress: fixture.campaign.payoutAddress,
+      version: 0,
     })
 
     expect(
@@ -137,6 +139,7 @@ describe('v0 campaign contract', () => {
       expires: fixture.campaign.expires,
       network: fixture.campaign.network,
       payoutAddress: fixture.campaign.payoutAddress,
+      version: 0,
     })
 
     const onForwardPledge = vi.fn().mockResolvedValue({})
@@ -194,6 +197,7 @@ describe('v0 campaign contract', () => {
       expires: fixture.campaign.expires,
       network: fixture.campaign.network,
       payoutAddress: fixture.campaign.payoutAddress,
+      version: 0,
     })
 
     const onForwardPledge = vi.fn().mockResolvedValue({})
@@ -236,6 +240,7 @@ describe('v0 campaign contract', () => {
       expires: fixture.campaign.expires,
       network: fixture.campaign.network,
       payoutAddress: fixture.campaign.payoutAddress,
+      version: 0,
     })
 
     expect(
@@ -295,6 +300,7 @@ describe('v0 campaign contract', () => {
       expires: fixture.campaign.expires,
       network: fixture.campaign.network,
       payoutAddress: fixture.campaign.payoutAddress,
+      version: 0,
     })
 
     const onForwardPledge = vi.fn().mockResolvedValue({})
@@ -352,6 +358,7 @@ describe('v0 campaign contract', () => {
       expires: fixture.campaign.expires,
       network: fixture.campaign.network,
       payoutAddress: fixture.campaign.payoutAddress,
+      version: 0,
     })
 
     const onForwardPledge = vi.fn().mockResolvedValue({})
@@ -395,6 +402,7 @@ describe('v0 campaign contract', () => {
       expires: fixture.campaign.expires,
       network: fixture.campaign.network,
       payoutAddress: fixture.campaign.payoutAddress,
+      version: 0,
     })
 
     expect(

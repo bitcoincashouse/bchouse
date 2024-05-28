@@ -1,28 +1,25 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { useParams } from '@remix-run/react'
+import { $preload, $useLoaderQuery } from 'remix-query'
 import { z } from 'zod'
-import { getTrpc } from '~/.server/getTrpc'
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { UserCard } from '~/components/user-card'
-import { trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
 
 export const loader = async (_: LoaderFunctionArgs) => {
   const { username } = zx.parseParams(_.params, { username: z.string() })
-  return getTrpc(_, (trpc) => trpc.profile.listFollowers.prefetch({ username }))
+  return $preload(_, '/api/profile/followers/:username', { username })
 }
 
 export default function Index() {
   const username = useParams()?.username as string
-  const listFollowers = trpc.profile.listFollowers.useQuery(
-    {
+  const listFollowers = $useLoaderQuery('/api/profile/followers/:username', {
+    params: {
       username,
     },
-    {
-      staleTime: 5 * 60 * 1000,
-      gcTime: 15 * 60 * 1000,
-    }
-  )
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  })
 
   const currentUser = useCurrentUser()
 

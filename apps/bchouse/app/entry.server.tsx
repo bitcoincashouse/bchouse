@@ -1,5 +1,4 @@
-import { PassThrough } from 'stream'
-
+import { logger } from '@bchouse/utils'
 import {
   createReadableStreamFromReadable,
   type AppLoadContext,
@@ -9,7 +8,7 @@ import { RemixServer } from '@remix-run/react'
 import * as Sentry from '@sentry/remix'
 import isbot from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
-import { logger } from '../../../packages/utils/src/logger'
+import { PassThrough } from 'stream'
 import { appEnv } from './.server/appEnv'
 
 const ABORT_DELAY = 5_000

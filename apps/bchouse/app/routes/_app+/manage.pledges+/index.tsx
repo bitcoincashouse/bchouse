@@ -1,7 +1,7 @@
 import { ShouldRevalidateFunctionArgs } from '@remix-run/react'
+import { $useLoaderQuery } from 'remix-query'
 import { Message } from '~/components/message'
 import { Pledge } from '~/components/pledge'
-import { trpc } from '~/utils/trpc'
 
 export function shouldRevalidate({
   currentUrl,
@@ -14,7 +14,7 @@ export function shouldRevalidate({
 }
 
 export default function Index() {
-  const { data: pledges = [] } = trpc.campaign.listPledges.useQuery(undefined, {
+  const { data: pledges = [] } = $useLoaderQuery('/api/campaign/pledge/list', {
     gcTime: 5 * 60 * 1000,
     staleTime: 1 * 60 * 1000,
   })

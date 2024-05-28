@@ -75,7 +75,11 @@ export function EditProfileModal({
     }
   }
 
-  const { session, setOpen: setOpenWalletConnect } = useWalletConnectSession()
+  const {
+    session,
+    setOpen: setOpenWalletConnect,
+    signClient,
+  } = useWalletConnectSession()
 
   return (
     <Modal open={open} onClose={closeModal} title="Edit Profile">
@@ -168,7 +172,9 @@ export function EditProfileModal({
                           className="absolute right-4 top-1/2 -translate-y-1/2 text-xs border-[2px] border-green-300 rounded-xl py-1 px-2 text-primary-text"
                           onClick={async (e) => {
                             e.preventDefault()
-                            const address = await getUserAddress(session)
+                            const address = signClient
+                              ? await getUserAddress(signClient, session)
+                              : null
 
                             if (!address) {
                               alert('Failed to retrieve address.')

@@ -1,4 +1,4 @@
-import { logger } from '../../../../packages/utils/src/logger'
+import { logger } from '@bchouse/utils'
 
 interface SendFunctionArgs {
   /**

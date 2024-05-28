@@ -1,4 +1,5 @@
 import { WalletData } from '@bchouse/cashconnect'
+import { $mutate } from 'remix-query'
 import { createMachine } from 'xstate'
 import {
   clearPaymentRequestQuery,
@@ -137,11 +138,14 @@ export const pledgeModalMachine = createMachine(
           // syntax for expressing services
           src: (context, event) => async (send) => {
             //submit annyonecanpay pledge, show loader until done, then leave message
-            const result =
-              await window.trpcClient.campaign.submitAnyonecanpay.mutate({
+
+            const result = await $mutate('/api/campaign/anyonecanpay/submit', {
+              body: {
                 campaignId: context.campaignId as string,
                 payload: context.anyonecanpayPayload as string,
-              })
+              },
+              type: 'json',
+            })
 
             if (result instanceof Error) {
               send({

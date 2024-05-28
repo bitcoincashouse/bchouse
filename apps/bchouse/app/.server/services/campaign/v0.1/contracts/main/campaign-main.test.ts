@@ -3,7 +3,7 @@ import { cashAddressToLockingBytecode } from '@bitauth/libauth'
 import { MockNetworkProvider } from 'cashscript'
 import { describe, expect, it } from 'vitest'
 import { validateContribution } from '~/.server/utils/anyonecanpay'
-import { fixture } from '~/server/test/fixture'
+import { fixture } from '~/test/fixture'
 import { ExitContract } from '../exit/campaign-exit'
 import { MainContract } from './campaign-main'
 

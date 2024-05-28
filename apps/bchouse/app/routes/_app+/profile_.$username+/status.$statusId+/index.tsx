@@ -1,18 +1,19 @@
 import { logger } from '@bchouse/utils'
-import { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import {
   ClientLoaderFunctionArgs,
+  MetaFunction,
   useLocation,
   useParams,
 } from '@remix-run/react'
+import { DehydratedState } from '@tanstack/react-query'
 import { generateText } from '@tiptap/core'
 import { useMemo } from 'react'
+import { $preload, $useLoaderQuery, createRemixClientUtils } from 'remix-query'
 import { z } from 'zod'
-import { getTrpc } from '~/.server/getTrpc'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { getExtensions } from '~/components/post/form/tiptap-extensions'
 import { Thread } from '~/components/threads/thread'
-import { createTrpcClientUtils, trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
 
 export const handle = {
@@ -28,11 +29,9 @@ export const loader = async (_: LoaderFunctionArgs) => {
     statusId: z.string(),
   })
 
-  return getTrpc(_, (trpc) =>
-    trpc.post.status.prefetch({
-      statusId,
-    })
-  )
+  return $preload(_, '/api/post/status/:statusId', {
+    statusId,
+  })
 }
 
 export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
@@ -46,17 +45,15 @@ export const meta: MetaFunction<typeof loader> = ({
   params,
 }) => {
   try {
-    const trpcClientUtils = data
-      ? createTrpcClientUtils(
-          data?.dehydratedState! as Awaited<
-            ReturnType<typeof loader>
-          >['dehydratedState']
+    const remixQueryClientUtils = data
+      ? createRemixClientUtils(
+          data as any as { dehydratedState: DehydratedState }
         )
-      : window.trpcClientUtils
+      : window.remixQueryClientUtils
 
-    const result = trpcClientUtils.post.status.getData({
+    const result = remixQueryClientUtils.getData('/api/post/status/:statusId', {
       statusId: params.statusId as string,
-    })!
+    })
 
     if (!result) {
       return []
@@ -124,15 +121,13 @@ export default function Index() {
     statusId: string
   }>()
 
-  const status = trpc.post.status.useQuery(
-    {
+  const status = $useLoaderQuery('/api/post/status/:statusId', {
+    params: {
       statusId: statusId!,
     },
-    {
-      staleTime: 5 * 60 * 1000,
-      gcTime: 15 * 60 * 1000,
-    }
-  )
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  })
 
   const {
     posts = [],

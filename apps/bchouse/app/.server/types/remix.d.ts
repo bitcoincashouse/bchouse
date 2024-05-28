@@ -29,4 +29,12 @@ declare global {
     id: T
   }
   type RouteId = keyof RouteDescription
+  type RouteIdsWithData = Pick<
+    RouteDescription,
+    {
+      [K in keyof RouteDescription]: 'data' extends keyof RouteDescription[K]
+        ? K
+        : never
+    }[keyof RouteDescription]
+  >
 }

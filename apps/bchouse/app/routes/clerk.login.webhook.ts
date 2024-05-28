@@ -1,10 +1,9 @@
-import { logger } from '@bchouse/utils'
+import { HttpStatus, logger } from '@bchouse/utils'
 import { WebhookEvent } from '@clerk/clerk-sdk-node'
 import { ActionFunctionArgs } from '@remix-run/node'
-import { TRPCError } from '@trpc/server'
 import { Webhook } from 'svix'
 import { appEnv } from '~/.server/appEnv'
-import { userService } from '~/.server/services/getContext'
+import { userService } from '~/.server/getContext'
 
 export async function action(_: ActionFunctionArgs) {
   // Verify the webhook signature
@@ -23,8 +22,9 @@ export async function action(_: ActionFunctionArgs) {
   } catch (_) {
     logger.warn('Unauthorized access attempt to registration webhook')
 
-    throw new TRPCError({
-      code: 'NOT_FOUND',
+    throw new Response('Not found', {
+      statusText: 'NOT FOUND',
+      status: HttpStatus.NOT_FOUND,
     })
   }
 

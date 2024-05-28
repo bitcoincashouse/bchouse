@@ -42,10 +42,12 @@ export class PledgeContract extends ContractExecutor<ContractParams> {
       .reverse()
       .toString('hex')
     const pledgerRefundBytecode = addressToBytecode(
-      contractParams.contributorRefundAddress
+      contractParams.contributorRefundAddress,
+      electrumProvider.network
     )
     const exitContractAddressBytecode = addressToBytecode(
-      contractParams.exitContract.contract.address
+      contractParams.exitContract.contract.address,
+      electrumProvider.network
     )
     const pledgeContract = new Contract(
       pledgeCampaignContract,
@@ -92,6 +94,7 @@ export class PledgeContract extends ContractExecutor<ContractParams> {
           categoryId: campaignUtxo.categoryId,
           pledgedAmount: commitAmount,
           returnAddress: this.params.contributorRefundAddress,
+          network: this.electrumProvider.network,
         }),
       },
     ] as Output[]

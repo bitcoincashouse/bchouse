@@ -11,13 +11,13 @@ import {
 } from '@heroicons/react/24/outline'
 import { useQueryClient } from '@tanstack/react-query'
 import React, { useState } from 'react'
+import { $useActionMutation, Routes } from 'remix-query'
 import { useCurrentUser } from '~/components/context/current-user-context'
 import { PostCardModel } from '~/components/post/types'
 import { classNames } from '~/utils/classNames'
-import { AppRouterInputs, trpc } from '~/utils/trpc'
 import { usePost } from '../context'
 
-type PostActionType = AppRouterInputs['post']['postAction']['action']
+type PostActionType = Routes['/api/post/action']['form']['action']
 
 export type PostCardMenuItem =
   | {
@@ -201,7 +201,7 @@ const MenuAction = React.forwardRef<
   const [props, setProps] = useState(() =>
     menuItem.type === 'button' ? menuItem : menuItem.props(menuItem.value)
   )
-  const mutation = trpc.post.postAction.useMutation({
+  const mutation = $useActionMutation('/api/post/action', {
     onMutate(variables) {},
     onSuccess(variables) {},
     onError(variables) {},

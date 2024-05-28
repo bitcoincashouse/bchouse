@@ -2,30 +2,29 @@ import { ArrowLeftIcon } from '@heroicons/react/20/solid'
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { useNavigate, useParams } from '@remix-run/react'
 import { useForm } from 'react-hook-form'
+import { $preload, $useActionMutation, $useLoaderQuery } from 'remix-query'
 import { z } from 'zod'
-import { getTrpc } from "~/.server/getTrpc"
-import { trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
 
+export type SearchParams = { t: '' }
 export const loader = async (_: LoaderFunctionArgs) => {
   const { code } = zx.parseParams(_.params, {
     code: z.string().optional(),
   })
 
-  return getTrpc(_, (trpc) => trpc.profile.getInvite.prefetch({ code }))
+  return $preload(_, '/api/profile/invite/get/:code', { code: code! })
 }
 
 export default function Index() {
   const { code } = useParams<{ code: string }>()
-  const { data } = trpc.profile.getInvite.useQuery(
-    { code: code! },
-    {
-      staleTime: 5 * 60 * 1000,
-      gcTime: 15 * 60 * 1000,
-    }
-  )
+  const { data } = $useLoaderQuery('/api/profile/invite/get/:code', {
+    params: { code: code! },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    enabled: !!code,
+  })
 
-  const claimInviteMutation = trpc.profile.claimInvite.useMutation()
+  const claimInviteMutation = $useActionMutation('/api/profile/invite/claim')
   const result = claimInviteMutation.data
 
   const navigate = useNavigate()

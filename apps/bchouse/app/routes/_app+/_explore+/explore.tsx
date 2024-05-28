@@ -1,9 +1,8 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { ClientLoaderFunctionArgs, useSearchParams } from '@remix-run/react'
+import { $preload, $useLoaderQuery } from 'remix-query'
 import { z } from 'zod'
-import { getTrpc } from '~/.server/getTrpc'
 import { StandardPostCard } from '~/components/post/card/implementations/standard-post-card'
-import { trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
 
 export const loader = async (_: LoaderFunctionArgs) => {
@@ -11,7 +10,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
     q: z.string().optional(),
   })
 
-  return getTrpc(_, (trpc) => trpc.search.explore.prefetch({ q }))
+  return $preload(_, '/api/search/explore/:q?', { q })
 }
 
 export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
@@ -19,18 +18,19 @@ export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
     q: z.string().optional(),
   })
 
-  await window.trpcClientUtils.search.explore.prefetch({ q })
+  // await $preloadClient('/api/search/explore/:q?', { q });
 
   return null
 }
 
 export default function Index() {
   const [searchParams] = useSearchParams()
-  const { data: posts, isLoading } = trpc.search.explore.useQuery(
+  const { data: posts, isLoading } = $useLoaderQuery(
+    '/api/search/explore/:q?',
     {
-      q: searchParams.get('q') || undefined,
-    },
-    {
+      params: {
+        q: searchParams.get('q') || undefined,
+      },
       staleTime: 5 * 60 * 1000,
     }
   )

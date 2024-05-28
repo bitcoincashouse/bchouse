@@ -1,12 +1,16 @@
 import { logger } from '@bchouse/utils'
 import { serialize } from 'object-to-formdata'
+import { $mutate } from 'remix-query'
 
 export async function uploadCoverPhoto(coverPhotoFile: File) {
   const errors: Error[] = []
   const formData = new FormData()
 
-  const results = await window.trpcClient.post.uploadMedia.mutate({
-    type: 'coverPhoto',
+  const results = await $mutate('/api/post/uploadMedia', {
+    body: {
+      type: 'coverPhoto',
+    },
+    type: 'json',
   })
 
   const result = results.length && results[0]

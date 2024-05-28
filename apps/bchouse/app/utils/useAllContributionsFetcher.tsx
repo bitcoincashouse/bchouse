@@ -1,13 +1,11 @@
-import { trpc } from './trpc'
+import { $useLoaderQuery } from 'remix-query'
 
 export function useAllContributionsFetcher(campaignId: string) {
-  return trpc.campaign.listContributions.useQuery(
-    {
+  return $useLoaderQuery('/api/campaign/contributions/:campaignId', {
+    params: {
       campaignId,
     },
-    {
-      staleTime: 1 * 60 * 1000,
-      gcTime: 5 * 60 * 1000,
-    }
-  )
+    staleTime: 1 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+  })
 }

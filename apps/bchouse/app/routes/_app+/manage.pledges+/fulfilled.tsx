@@ -1,11 +1,11 @@
 import { useMemo } from 'react'
+import { $useLoaderQuery } from 'remix-query'
 import { Message } from '~/components/message'
 import { Pledge } from '~/components/pledge'
-import { trpc } from '~/utils/trpc'
 
 export default function Index() {
-  const { data: allPledges = [] } = trpc.campaign.listPledges.useQuery(
-    undefined,
+  const { data: allPledges = [] } = $useLoaderQuery(
+    '/api/campaign/pledge/list',
     {
       gcTime: 5 * 60 * 1000,
       staleTime: 1 * 60 * 1000,

@@ -1,5 +1,5 @@
 import React from 'react'
-import { trpc } from '~/utils/trpc'
+import { $useActionMutation } from 'remix-query'
 import { useThrottleCallback } from '~/utils/useThrottle'
 
 export function useUpdateLastActive(isEnabled: boolean) {
@@ -8,7 +8,9 @@ export function useUpdateLastActive(isEnabled: boolean) {
 
   isEnabledRef.current = isEnabled
 
-  const updateActivityMutation = trpc.profile.updateLastActive.useMutation()
+  const updateActivityMutation = $useActionMutation(
+    '/api/profile/updateLastActive'
+  )
 
   const updateLastActiveCallback = useThrottleCallback(() => {
     if (isEnabledRef.current && isVisibleRef.current) {

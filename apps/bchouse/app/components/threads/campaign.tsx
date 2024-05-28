@@ -23,7 +23,7 @@ type DonorPost = {
   avatarUrl: string | null
   comment: string
   pledgeAmount: bigint
-  createdAt: string
+  createdAt: Date
 }
 
 const tabs = [

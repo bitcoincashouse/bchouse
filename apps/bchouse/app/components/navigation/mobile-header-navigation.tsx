@@ -138,53 +138,55 @@ export const MobileHeaderNavigation: React.FC<AdminLayoutProps> = ({
                         <ul role="list" className="-mx-2 space-y-4">
                           {navigation.map((item, i) => (
                             <li key={item.name} className="relative">
-                              <NavLink
-                                to={item.href}
-                                className={({ isActive }) =>
-                                  classNames(
-                                    isActive
-                                      ? 'font-semibold underline underline-offset-4'
-                                      : '',
-                                    'group flex text-base text-primary-text leading-6 font-medium',
-                                    'justify-start items-center text-sm',
-                                    ''
-                                  )
-                                }
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setMenuOpen(false)
-                                }}
-                              >
-                                {({ isActive }) => {
-                                  const Icon = isActive
-                                    ? item.activeIcon || item.icon
-                                    : item.icon
-                                  return (
-                                    <>
-                                      <div className="hover:bg-hover transition-colors ease-in-out duration-300 rounded-full pr-4 flex flex-row gap-x-3 items-center">
-                                        <Icon
-                                          className={classNames(
-                                            isActive ? 'stroke-2' : '',
-                                            'h-6 w-6 shrink-0'
-                                          )}
-                                          aria-hidden="true"
-                                        />
-                                        <span className="inline">
-                                          {item.name}
-                                        </span>
-                                      </div>
-                                      {item.notificationCount ? (
-                                        <span
-                                          className="inline ml-auto w-9 min-w-max whitespace-nowrap rounded-full px-2.5 py-0.5 text-center text-xs font-medium leading-5 ring-1 ring-inset ring-primary-btn-500"
-                                          aria-hidden="true"
-                                        >
-                                          {item.notificationCount}
-                                        </span>
-                                      ) : null}
-                                    </>
-                                  )
-                                }}
-                              </NavLink>
+                              {'href' in item ? (
+                                <NavLink
+                                  to={item.href}
+                                  className={({ isActive }) =>
+                                    classNames(
+                                      isActive
+                                        ? 'font-semibold underline underline-offset-4'
+                                        : '',
+                                      'group flex text-base text-primary-text leading-6 font-medium',
+                                      'justify-start items-center text-sm',
+                                      ''
+                                    )
+                                  }
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setMenuOpen(false)
+                                  }}
+                                >
+                                  {({ isActive }) => {
+                                    const Icon = isActive
+                                      ? item.activeIcon || item.icon
+                                      : item.icon
+                                    return (
+                                      <>
+                                        <div className="hover:bg-hover transition-colors ease-in-out duration-300 rounded-full pr-4 flex flex-row gap-x-3 items-center">
+                                          <Icon
+                                            className={classNames(
+                                              isActive ? 'stroke-2' : '',
+                                              'h-6 w-6 shrink-0'
+                                            )}
+                                            aria-hidden="true"
+                                          />
+                                          <span className="inline">
+                                            {item.name}
+                                          </span>
+                                        </div>
+                                        {item.notificationCount ? (
+                                          <span
+                                            className="inline ml-auto w-9 min-w-max whitespace-nowrap rounded-full px-2.5 py-0.5 text-center text-xs font-medium leading-5 ring-1 ring-inset ring-primary-btn-500"
+                                            aria-hidden="true"
+                                          >
+                                            {item.notificationCount}
+                                          </span>
+                                        ) : null}
+                                      </>
+                                    )
+                                  }}
+                                </NavLink>
+                              ) : null}
                             </li>
                           ))}
                         </ul>

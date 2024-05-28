@@ -69,7 +69,7 @@ export function run(options: Options = []): Plugin {
         return []
       }
 
-      handleReload(resolvedOptions, { file, server })
+      return handleReload(resolvedOptions, { file, server })
     },
   }
 }

@@ -1,11 +1,14 @@
-import { trpc } from '~/utils/trpc'
+import { $useLoaderQuery } from 'remix-query'
 
 export function clearPaymentRequestQuery(params: {
   amount: number
   address: string
   campaignId: string
 }) {
-  return window.trpcClientUtils.campaign.paymentRequestPledge.invalidate(params)
+  return window.remixQueryClientUtils.invalidate(
+    '/api/campaign/pledge/pay/:campaignId/:address/:amount',
+    params
+  )
 }
 
 export function queryPaymentRequest(params: {
@@ -13,10 +16,14 @@ export function queryPaymentRequest(params: {
   address: string
   campaignId: string
 }) {
-  return window.trpcClientUtils.campaign.paymentRequestPledge.fetch(params, {
-    //Match expiration time
-    staleTime: 15 * 60 * 1000,
-  })
+  return window.remixQueryClientUtils.fetch(
+    '/api/campaign/pledge/pay/:campaignId/:address/:amount',
+    params,
+    {
+      //Match expiration time
+      staleTime: 15 * 60 * 1000,
+    }
+  )
 }
 
 export function usePaymentRequest(
@@ -26,9 +33,10 @@ export function usePaymentRequest(
     campaignId: string
   } | null
 ) {
-  return trpc.campaign.paymentRequestPledge.useQuery(
-    params as NonNullable<typeof params>,
+  return $useLoaderQuery(
+    '/api/campaign/pledge/pay/:campaignId/:address/:amount',
     {
+      params: params as NonNullable<typeof params>,
       enabled: !!params,
       //Match expiration time
       staleTime: 15 * 60 * 1000,

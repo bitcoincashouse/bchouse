@@ -2,11 +2,10 @@ import { prettyPrintSats } from '@bchouse/utils'
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useParams } from '@remix-run/react'
 import { useMemo } from 'react'
+import { $preload, $useActionMutation, $useLoaderQuery } from 'remix-query'
 import { z } from 'zod'
-import { getTrpc } from '~/.server/getTrpc'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { classnames } from '~/components/utils/classnames'
-import { trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
 
 export const loader = async (_: LoaderFunctionArgs) => {
@@ -14,7 +13,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
     secret: z.string(),
   })
 
-  return getTrpc(_, (trpc) => trpc.campaign.getPledge.prefetch({ secret }))
+  return $preload(_, '/api/campaign/pledge/get/:secret', { secret })
 }
 
 export const handle = {
@@ -24,13 +23,11 @@ export const handle = {
 export default function Page() {
   const { secret } = useParams<{ secret: string }>()
 
-  const { data: pledge } = trpc.campaign.getPledge.useQuery(
-    { secret: secret! },
-    {
-      staleTime: 5 * 60 * 1000,
-      gcTime: 15 * 60 * 1000,
-    }
-  )
+  const { data: pledge } = $useLoaderQuery('/api/campaign/pledge/get/:secret', {
+    params: { secret: secret! },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  })
 
   const [amount, denomination] = useMemo(() => {
     return pledge
@@ -43,7 +40,7 @@ export default function Page() {
       : [0, 0]
   }, [pledge])
 
-  const refundMutation = trpc.campaign.refundPledge.useMutation()
+  const refundMutation = $useActionMutation('/api/campaign/pledge/refund')
   const refundTxId = pledge?.refundTxId || refundMutation.data?.txid
 
   if (!pledge) return null

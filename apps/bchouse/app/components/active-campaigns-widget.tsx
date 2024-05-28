@@ -1,19 +1,19 @@
 import { moment, prettyPrintSats } from '@bchouse/utils'
 import { Link } from '@remix-run/react'
 import { useMemo } from 'react'
-import { $path } from 'remix-routes'
+import { $path, $useLoaderQuery, Routes } from 'remix-query'
 import { Widget } from '~/components/layouts/widget'
 import { ProgressBar } from '~/components/progress-bar'
 import { pluralize } from '~/components/utils'
 import { classNames } from '~/utils/classNames'
-import { AppRouterOutputs, trpc } from '~/utils/trpc'
 
 export function ActiveCampaignsWidget({ username }: { username?: string }) {
-  const { data, isLoading } = trpc.campaign.listActive.useQuery(
+  const { data, isLoading } = $useLoaderQuery(
+    '/api/campaign/listActive/:username?',
     {
-      username,
-    },
-    {
+      params: {
+        username,
+      },
       staleTime: 1000 * 60,
       gcTime: 1000 * 60 * 5,
     }
@@ -46,7 +46,7 @@ function CampaignItem({
   title,
   username,
   statusId,
-}: AppRouterOutputs['campaign']['activeCampaigns'][number]) {
+}: Routes['/api/campaign/listActive/:username?']['loaderResult'][number]) {
   const [requestedAmountText, requestedDenominationText] =
     prettyPrintSats(requestedAmount)
   const [amountRaisedText, amountRaisedDenominationText] =

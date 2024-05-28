@@ -22,46 +22,48 @@ export function MobileNavigation({
               (item, i) =>
                 item.mobile && (
                   <li key={item.name} className="relative">
-                    <NavLink
-                      to={item.href}
-                      className={({ isActive }) =>
-                        classNames(
-                          isActive ? 'font-semibold' : '',
-                          'group flex gap-x-3 rounded-md p-1 text-sm leading-6 font-semibold',
-                          'justify-center'
-                        )
-                      }
-                    >
-                      {({ isActive }) => {
-                        const Icon = isActive
-                          ? item.activeIcon || item.icon
-                          : item.icon
-                        return (
-                          <>
-                            <Icon
-                              className={classNames(
-                                isActive
-                                  ? 'stroke-2'
-                                  : 'text-primary-btn-200 group-hover:text-primary-text',
-                                'h-7 w-7 shrink-0'
-                              )}
-                              aria-hidden="true"
-                            />
-                            <span className="hidden xl:inline">
-                              {item.name}
-                            </span>
-                            {item.notificationCount ? (
-                              <span
-                                className="flex items-center justify-center w-5 h-5 absolute -right-2 -top-1 whitespace-nowrap rounded-full bg-primary-btn-600 text-center text-xs font-medium text-gray-50"
+                    {'href' in item ? (
+                      <NavLink
+                        to={item.href}
+                        className={({ isActive }) =>
+                          classNames(
+                            isActive ? 'font-semibold' : '',
+                            'group flex gap-x-3 rounded-md p-1 text-sm leading-6 font-semibold',
+                            'justify-center'
+                          )
+                        }
+                      >
+                        {({ isActive }) => {
+                          const Icon = isActive
+                            ? item.activeIcon || item.icon
+                            : item.icon
+                          return (
+                            <>
+                              <Icon
+                                className={classNames(
+                                  isActive
+                                    ? 'stroke-2'
+                                    : 'text-primary-btn-200 group-hover:text-primary-text',
+                                  'h-7 w-7 shrink-0'
+                                )}
                                 aria-hidden="true"
-                              >
-                                {item.notificationCount}
+                              />
+                              <span className="hidden xl:inline">
+                                {item.name}
                               </span>
-                            ) : null}
-                          </>
-                        )
-                      }}
-                    </NavLink>
+                              {item.notificationCount ? (
+                                <span
+                                  className="flex items-center justify-center w-5 h-5 absolute -right-2 -top-1 whitespace-nowrap rounded-full bg-primary-btn-600 text-center text-xs font-medium text-gray-50"
+                                  aria-hidden="true"
+                                >
+                                  {item.notificationCount}
+                                </span>
+                              ) : null}
+                            </>
+                          )
+                        }}
+                      </NavLink>
+                    ) : null}
                   </li>
                 )
             )}

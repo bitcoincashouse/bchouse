@@ -7,9 +7,9 @@ import {
   useLocation,
 } from '@remix-run/react'
 import { useMemo } from 'react'
+import { $preload, $useLoaderQuery } from 'remix-query'
 import { $path } from 'remix-routes'
 import { redirect } from 'remix-typedjson'
-import { getTrpc } from '~/.server/getTrpc'
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { NFTWidget } from '~/components/nft-widget'
@@ -17,7 +17,6 @@ import { PostForm } from '~/components/post/form/implementations/post-form'
 import { StatsWidget } from '~/components/stats-widget'
 import { getAuthOptional } from '~/utils/auth'
 import { classNames } from '~/utils/classNames'
-import { trpc } from '~/utils/trpc'
 
 export const handle = {
   title: 'Home',
@@ -35,9 +34,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
     }
   }
 
-  return getTrpc(_, async (trpc) => {
-    await trpc.metrics.stats.prefetch()
-  })
+  return $preload(_, '/api/metrics/stats')
 }
 
 export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
@@ -49,7 +46,7 @@ export default function Index() {
     data: applicationData = {
       anonymousView: true,
     },
-  } = trpc.profile.get.useQuery(undefined, {
+  } = $useLoaderQuery('/api/profile/get', {
     staleTime: 5 * 60 * 1000,
   })
   const location = useLocation()
@@ -57,7 +54,7 @@ export default function Index() {
   const {
     data: { userCount = 0, dailyActiveUserCount = 0 } = {},
     isLoading: isLoadingStats,
-  } = trpc.metrics.stats.useQuery(undefined, {
+  } = $useLoaderQuery('/api/metrics/stats', {
     staleTime: 5 * 60 * 1000,
   })
 

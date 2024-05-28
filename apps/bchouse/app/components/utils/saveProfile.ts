@@ -1,3 +1,4 @@
+import { $mutate } from 'remix-query'
 import { uploadCoverPhoto } from './uploadCoverPhoto'
 
 export type EditUserFields = {
@@ -33,12 +34,15 @@ export async function saveProfile(data: EditUserFields) {
     lastName: data.lastName || '',
   })
 
-  await window.trpcClient.profile.updateProfile.mutate({
-    about: data.about,
-    bchAddress: data.bchAddress,
-    company: data.company,
-    title: data.title,
-    website: data.website,
-    coverPhotoMediaId,
+  await $mutate('/api/profile/update', {
+    body: {
+      about: data.about,
+      bchAddress: data.bchAddress,
+      company: data.company,
+      title: data.title,
+      website: data.website,
+      coverPhotoMediaId,
+    },
+    type: 'json',
   })
 }

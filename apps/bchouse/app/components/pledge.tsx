@@ -1,10 +1,10 @@
 import { prettyPrintSats } from '@bchouse/utils'
 import { Link } from '@remix-run/react'
 import { useMemo } from 'react'
+import { $useActionMutation, Routes } from 'remix-query'
 import { classnames } from '~/components/utils/classnames'
-import { AppRouterOutputs, trpc } from '~/utils/trpc'
 
-type Pledge = AppRouterOutputs['campaign']['listPledges'][number]
+type Pledge = Routes['/api/campaign/pledge/list']['loaderResult'][number]
 export function Pledge({ pledge }: { pledge: Pledge }) {
   const [amount, denomination] = useMemo(() => {
     return prettyPrintSats(
@@ -19,7 +19,7 @@ export function Pledge({ pledge }: { pledge: Pledge }) {
     error,
     isPending,
     data,
-  } = trpc.campaign.refundPledge.useMutation({})
+  } = $useActionMutation('/api/campaign/pledge/refund')
 
   if (error) {
     //TODO: Show a modal

@@ -1,3 +1,4 @@
+import { getQueryKey } from 'remix-query'
 import { z } from 'zod'
 import { PostCardModel } from '../post/types'
 
@@ -162,18 +163,21 @@ export async function updatePosts(params: z.infer<typeof postActionSchema>) {
 
   const queryClient = window.queryClient
 
-  queryClient.setQueriesData<FeedData>(['feed', 'home'], updater('home'))
-  queryClient.setQueriesData<FeedData>(['feed', 'user'], updater('user'))
-  queryClient.setQueriesData<FeedData>(
-    ['feed', 'all_posts'],
-    updater('all_posts')
-  )
-  queryClient.setQueriesData<FeedData>(
-    ['feed', 'all_campaigns'],
-    updater('all_campaigns')
-  )
+  const setData = (type: string) =>
+    queryClient.setQueriesData<FeedData>(
+      {
+        queryKey: getQueryKey('/api/post/feed/:type/:id/:cursor?', { type }),
+      },
+      updater(type)
+    )
 
-  const result = await _.serverAction()
+  setData('home')
+  setData('user')
+  setData('all_posts')
+  setData('all_campaigns')
+
+  //TODO: Move to clientAction for feeds?
+  // const result = await _.serverAction()
 
   if (
     [
@@ -187,14 +191,16 @@ export async function updatePosts(params: z.infer<typeof postActionSchema>) {
   ) {
     await Promise.all([
       queryClient.invalidateQueries({
-        queryKey: ['feed', 'home'],
+        queryKey: getQueryKey('/api/post/feed/:type/:id/:cursor?', {
+          type: 'home',
+        }),
         refetchType: 'all',
       }),
       queryClient.invalidateQueries({
-        queryKey: ['feed'],
+        queryKey: getQueryKey('/api/post/feed/:type/:id/:cursor?'),
       }),
     ])
   }
 
-  return result
+  // return result
 }

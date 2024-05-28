@@ -1,8 +1,8 @@
 /* eslint-disable react/display-name */
 import { ArrowPathRoundedSquareIcon } from '@heroicons/react/24/outline'
 import { useQueryClient } from '@tanstack/react-query'
-import { trpc } from '~/utils/trpc'
 // import { HtmlPortalNode, OutPortal } from 'react-reverse-portal'
+import { $useActionMutation, $useUtils } from 'remix-query'
 import { PostCardModel } from '~/components/post/types'
 import { useAuthGuardCheck } from '~/components/utils/useAuthGuardCheck'
 import { classNames } from '~/utils/classNames'
@@ -14,12 +14,13 @@ export function RepostButton({ item }: { item: PostCardModel }) {
   const toggled = item.wasReposted
   const count = item.repostCount
   const action = toggled ? 'repost:remove' : 'repost:add'
-  const utils = trpc.useUtils()
-  const mutation = trpc.post.postAction.useMutation({
+  const utils = $useUtils()
+  const mutation = $useActionMutation('/api/post/action', {
     onMutate(variables) {
       const isAddRepost = variables.action == 'repost:add'
 
-      utils.post.getPost.setData(
+      utils.setData(
+        '/api/post/get/:postId',
         { postId: item.id },
         {
           ...item,

@@ -11,6 +11,7 @@ function getInstance() {
     expires: moment().unix(),
     network: 'mainnet',
     payoutAddress: 'bitcoincash:qzqw4nskjvwlcdj7u9t0lp08c0eyp0hxsyldlhg2nq',
+    version: 0,
   })
 
   return {

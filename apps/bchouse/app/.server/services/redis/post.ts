@@ -1,4 +1,4 @@
-import { Doc, moment } from '@bchouse/utils'
+import { TipTapSchema, moment } from '@bchouse/utils'
 import type Redis from 'ioredis'
 import type { ChainableCommander } from 'ioredis'
 import { Network } from '~/.server/db/types.js'
@@ -434,7 +434,7 @@ export function addToMediaTimeline(post: {
   id: string
   publishedById: string
   createdAt: Date
-  content: Doc
+  content: TipTapSchema.Doc
   mediaUrls?: { url: string; height: number; width: number }[]
 }) {
   const { mediaKey } = getKeys(post.publishedById)

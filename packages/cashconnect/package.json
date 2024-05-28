@@ -9,6 +9,7 @@
   "scripts": {
     "build": "npm run clean && npm run compile",
     "clean": "rm -rf ./dist",
+    "dev": "npm run compile -- --watch",
     "prepare": "is-docker && echo 'Skipping prepare' || npm run build",
     "compile": "tsup --tsconfig ./tsconfig.build.json ./src/index.ts --format esm --dts"
   },

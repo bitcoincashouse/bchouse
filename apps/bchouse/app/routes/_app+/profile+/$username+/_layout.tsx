@@ -19,14 +19,13 @@ import {
 } from '@heroicons/react/24/outline'
 import { Link } from '@remix-run/react'
 // import QRCode from 'qrcode-svg'
-import { getTrpc } from '~/.server/getTrpc'
+import { $preload, $useLoaderQuery } from 'remix-query'
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { Avatar } from '~/components/avatar'
 import { FollowButton } from '~/components/follow-button'
 import { ImageGridWidget } from '~/components/image-grid-widget'
 import { ImageProxy } from '~/components/image-proxy'
 import { PostForm } from '~/components/post/form/implementations/post-form'
-import { trpc } from '~/utils/trpc'
 
 declare global {
   interface RouteDescription {
@@ -39,11 +38,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
     username: z.string().nonempty(),
   })
 
-  return getTrpc(_, (trpc) =>
-    trpc.profile.getPublicProfile.prefetch({
-      username,
-    })
-  )
+  return $preload(_, '/api/profile/getPublicProfile/:username', { username })
 }
 
 export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
@@ -51,9 +46,12 @@ export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
     username: z.string(),
   })
 
-  await window.trpcClientUtils.profile.getPublicProfile.prefetch({
-    username,
-  })
+  await window.remixQueryClientUtils.prefetch(
+    '/api/profile/getPublicProfile/:username',
+    {
+      username,
+    }
+  )
 
   return null
 }
@@ -104,11 +102,12 @@ export type User = Extract<
 export const useProfileLoader = () => {
   const username = useParams()?.username as string
 
-  const { data: user } = trpc.profile.getPublicProfile.useQuery(
+  const { data: user } = $useLoaderQuery(
+    '/api/profile/getPublicProfile/:username',
     {
-      username,
-    },
-    {
+      params: {
+        username,
+      },
       staleTime: 5 * 60 * 1000,
       gcTime: 15 * 60 * 1000,
     }

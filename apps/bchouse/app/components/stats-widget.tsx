@@ -1,11 +1,11 @@
 import { Link } from '@remix-run/react'
+import { $useLoaderQuery } from 'remix-query'
 import { $path } from 'remix-routes'
 import { Widget } from '~/components/layouts/widget'
 import { classNames } from '~/utils/classNames'
-import { trpc } from '~/utils/trpc'
 
 export function StatsWidget() {
-  const { data, isLoading } = trpc.metrics.stats.useQuery(undefined, {
+  const { data, isLoading } = $useLoaderQuery('/api/metrics/stats', {
     staleTime: 1000 * 60,
     gcTime: 1000 * 60 * 5,
   })

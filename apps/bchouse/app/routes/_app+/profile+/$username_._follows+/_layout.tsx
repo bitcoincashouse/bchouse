@@ -1,11 +1,10 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { NavLink, Outlet, useParams } from '@remix-run/react'
+import { $preload, $useLoaderQuery } from 'remix-query'
 import { z } from 'zod'
-import { getTrpc } from '~/.server/getTrpc'
 import { ActionsPanel } from '~/components/actions'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { classNames } from '~/utils/classNames'
-import { trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
 
 export const loader = async (_: LoaderFunctionArgs) => {
@@ -13,11 +12,7 @@ export const loader = async (_: LoaderFunctionArgs) => {
     username: z.string().nonempty(),
   })
 
-  return getTrpc(_, (trpc) =>
-    trpc.profile.getPublicProfile.prefetch({
-      username,
-    })
-  )
+  return $preload(_, '/api/profile/getPublicProfile/:username', { username })
 }
 
 const tabs = [
@@ -27,11 +22,12 @@ const tabs = [
 
 export default function Index() {
   const username = useParams()?.username as string
-  const getPublicProfile = trpc.profile.getPublicProfile.useQuery(
+  const getPublicProfile = $useLoaderQuery(
+    '/api/profile/getPublicProfile/:username',
     {
-      username,
-    },
-    {
+      params: {
+        username,
+      },
       staleTime: 5 * 60 * 1000,
       gcTime: 15 * 60 * 1000,
     }

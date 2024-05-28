@@ -1,8 +1,9 @@
 import { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { useLocation, useParams } from '@remix-run/react'
+import { DehydratedState } from '@tanstack/react-query'
 import { generateText } from '@tiptap/core'
+import { $preload, $useLoaderQuery, createRemixClientUtils } from 'remix-query'
 import { z } from 'zod'
-import { getTrpc } from '~/.server/getTrpc'
 import { ClientOnly } from '~/components/client-only'
 import { DonationWidget } from '~/components/donation-widget'
 import { StandardLayout } from '~/components/layouts/standard-layout'
@@ -10,7 +11,6 @@ import { usePledgeModal } from '~/components/pledge-modal'
 import { getExtensions } from '~/components/post/form/tiptap-extensions'
 import { CampaignThread } from '~/components/threads/campaign'
 import { CampaignSubscription } from '~/routes/api+/campaign.subscribe.$campaignId'
-import { createTrpcClientUtils, trpc } from '~/utils/trpc'
 import { zx } from '~/utils/zodix'
 
 export const handle = {
@@ -26,11 +26,9 @@ export const loader = async (_: LoaderFunctionArgs) => {
     statusId: z.string(),
   })
 
-  return getTrpc(_, (trpc) =>
-    trpc.post.campaign.prefetch({
-      statusId,
-    })
-  )
+  return $preload(_, '/api/post/campaign/:campaignId', {
+    campaignId: statusId,
+  })
 }
 
 export const meta: MetaFunction<typeof loader> = ({
@@ -39,17 +37,18 @@ export const meta: MetaFunction<typeof loader> = ({
   matches,
   params,
 }) => {
-  const trpcClientUtils = data
-    ? createTrpcClientUtils(
-        data?.dehydratedState! as Awaited<
-          ReturnType<typeof loader>
-        >['dehydratedState']
+  const remixQueryClientUtils = data
+    ? createRemixClientUtils(
+        data as any as { dehydratedState: DehydratedState }
       )
-    : window.trpcClientUtils
+    : window.remixQueryClientUtils
 
-  const { mainPost } = trpcClientUtils.post.campaign.getData({
-    statusId: params.statusId as string,
-  })!
+  const { mainPost } = remixQueryClientUtils.getData(
+    '/api/post/campaign/:campaignId',
+    {
+      campaignId: params.statusId as string,
+    }
+  )!
 
   const author = mainPost.person.name || mainPost.person.handle
   let content = 'A post on BCHouse by ' + author
@@ -105,15 +104,13 @@ export default function Index() {
     statusId: string
   }>()
 
-  const campaign = trpc.post.campaign.useQuery(
-    {
-      statusId: statusId!,
+  const campaign = $useLoaderQuery('/api/post/campaign/:campaignId', {
+    params: {
+      campaignId: statusId!,
     },
-    {
-      staleTime: 5 * 60 * 1000,
-      gcTime: 15 * 60 * 1000,
-    }
-  )
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  })
 
   const {
     previousCursor = undefined,

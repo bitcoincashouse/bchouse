@@ -8,8 +8,8 @@ import {
   WCText,
 } from '@bchouse/cashconnect'
 import { useCallback, useRef } from 'react'
+import { $useActionMutation } from 'remix-query'
 import { classnames } from '~/components/utils/classnames'
-import { trpc } from '~/utils/trpc'
 import useCopy from '~/utils/useCopy'
 import { useExternalWalletPayload } from '~/utils/useValidateAnyonecanpayPledgeFetcher'
 
@@ -52,7 +52,9 @@ export function AnyonecanpayView({
     comment,
   })
 
-  const validateFetcher = trpc.campaign.validateAnyonecanpay.useMutation()
+  const validateFetcher = $useActionMutation(
+    '/api/campaign/anyonecanpay/validate'
+  )
 
   const onCommitmentResultChange = (payload: string) => {
     validateFetcher.reset()
