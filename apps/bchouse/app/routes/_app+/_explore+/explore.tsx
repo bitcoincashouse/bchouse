@@ -23,17 +23,20 @@ export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
   return null
 }
 
+function useSearchQuery(q?: string) {
+  return $useLoaderQuery('/api/search/explore/:q?', {
+    params: {
+      q: q!,
+    },
+    staleTime: 5 * 60 * 1000,
+    enabled: !!q,
+  })
+}
+
 export default function Index() {
   const [searchParams] = useSearchParams()
-  const { data: posts, isLoading } = $useLoaderQuery(
-    '/api/search/explore/:q?',
-    {
-      params: {
-        q: searchParams.get('q') || undefined,
-      },
-      staleTime: 5 * 60 * 1000,
-    }
-  )
+  const searchQuery = searchParams.get('q') || undefined
+  const { data: posts, isLoading } = useSearchQuery(searchQuery)
 
   return (
     <>

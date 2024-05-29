@@ -1,14 +1,11 @@
 import { Link } from '@remix-run/react'
-import { $useLoaderQuery } from 'remix-query'
 import { $path } from 'remix-routes'
 import { Widget } from '~/components/layouts/widget'
+import { useStatsQuery } from '~/hooks/useStatsQuery'
 import { classNames } from '~/utils/classNames'
 
 export function StatsWidget() {
-  const { data, isLoading } = $useLoaderQuery('/api/metrics/stats', {
-    staleTime: 1000 * 60,
-    gcTime: 1000 * 60 * 5,
-  })
+  const { data, isLoading } = useStatsQuery()
 
   const items = data
     ? [

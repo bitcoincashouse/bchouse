@@ -21,12 +21,16 @@ export const loader = async (_: LoaderFunctionArgs) => {
   return $preload(_, '/api/search/hashtag/:hashtag', { hashtag })
 }
 
-export default function Index() {
-  const { hashtag } = useParams()
-  const { data: posts } = $useLoaderQuery('/api/search/hashtag/:hashtag', {
+function useSearchHashtagQuery(hashtag?: string) {
+  return $useLoaderQuery('/api/search/hashtag/:hashtag', {
     params: { hashtag: hashtag! },
     enabled: !!hashtag,
   })
+}
+
+export default function Index() {
+  const { hashtag } = useParams()
+  const { data: posts } = useSearchHashtagQuery()
 
   return (
     <>
