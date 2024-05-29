@@ -1,25 +1,18 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
-import { useNavigate } from '@remix-run/react'
-import { useEffect } from 'react'
-import { $preload, $useActionMutation, $useLoaderQuery } from 'remix-query'
-import { ClientOnly } from '~/components/client-only'
-import { useCurrentUser } from '~/components/context/current-user-context'
 import { MentionCard } from '~/components/post/card/implementations/notification-cards'
 import { classnames } from '~/components/utils/classnames'
+import { UpdateLastViewed } from './_layout/components/update-last-viewed'
+import {
+  preloadMentionsQuery,
+  useMentionsQuery,
+} from './_layout/hooks/useMentionsQuery'
 
 export const loader = async (_: LoaderFunctionArgs) => {
-  return $preload(_, '/api/profile/mentions')
+  return preloadMentionsQuery(_)
 }
 
 export default function Index() {
-  const getMentionNotifications = $useLoaderQuery('/api/profile/mentions', {
-    gcTime: 5 * 60 * 1000,
-    staleTime: 1 * 60 * 1000,
-  })
-
-  const notifications = getMentionNotifications.data?.notifications || []
-  const currentUser = useCurrentUser()
-  const navigate = useNavigate()
+  const { data: { notifications = [] } = {} } = useMentionsQuery()
 
   return (
     <div className="flex flex-col">
@@ -39,18 +32,8 @@ export default function Index() {
             </li>
           )
         })}
-        <ClientOnly>{() => <UpdateLastViewed />}</ClientOnly>
+        <UpdateLastViewed />
       </ul>
     </div>
   )
-}
-
-function UpdateLastViewed() {
-  const mutation = $useActionMutation('/api/profile/lastViewedNotifications')
-
-  useEffect(() => {
-    mutation.mutate()
-  }, [])
-
-  return null
 }

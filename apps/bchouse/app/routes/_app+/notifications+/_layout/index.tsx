@@ -1,9 +1,8 @@
-import { NavLink, Outlet } from '@remix-run/react'
+import { Outlet } from '@remix-run/react'
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { StatsWidget } from '~/components/stats-widget'
-import { useAppLoaderData } from '~/utils/appHooks'
-import { classNames } from '~/utils/classNames'
+import { Header } from './header'
 
 declare global {
   interface RouteDescription {
@@ -17,19 +16,10 @@ interface NotificationsHandle
   extends AppRouteHandle,
     RouteHandler<'notifications'> {}
 
-const tabs = [
-  { name: 'All', href: '' },
-  { name: 'Mentions', href: 'mentions' },
-]
-
 export const handle: NotificationsHandle = {
   id: 'notifications',
   title: 'Notifications',
   showFooter: false,
-}
-
-export function useNotificationsLoaderData() {
-  return useAppLoaderData(handle)
 }
 
 export default function Index() {
@@ -37,47 +27,7 @@ export default function Index() {
     <StandardLayout
       title="Notifications"
       hideBackButton={true}
-      header={
-        <>
-          {/* Description list*/}
-          <section
-            aria-labelledby="applicant-information-title"
-            className="border-b border-gray-100 dark:border-gray-600 "
-          >
-            <div className="px-4 sm:px-6">
-              <div className="overflow-x-auto h-full overflow-y-hidden">
-                <div className="flex mx-auto max-w-5xl">
-                  <nav
-                    className={classNames(
-                      '-mb-px flex space-x-8',
-                      'flex-1 justify-around '
-                    )}
-                    aria-label="Tabs"
-                  >
-                    {tabs.map((tab, i) => (
-                      <NavLink
-                        key={tab.name}
-                        to={tab.href}
-                        end={true}
-                        className={({ isActive }) =>
-                          classNames(
-                            isActive
-                              ? 'border-pink-500 text-primary-text'
-                              : 'border-transparent text-secondary-text hover:border-gray-300 hover:dark:text-secondary-text',
-                            'whitespace-nowrap border-b-2 py-4 px-1 font-semibold'
-                          )
-                        }
-                      >
-                        {tab.name}
-                      </NavLink>
-                    ))}
-                  </nav>
-                </div>
-              </div>
-            </div>
-          </section>
-        </>
-      }
+      header={<Header />}
       main={
         <div>
           <div>
