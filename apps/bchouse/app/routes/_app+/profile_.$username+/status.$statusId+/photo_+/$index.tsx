@@ -1,8 +1,7 @@
 import { useLocation, useParams } from '@remix-run/react'
 import { motion } from 'framer-motion'
-import { useMemo } from 'react'
 import { ImageProxy } from '~/components/image-proxy'
-import { usePhotoLoaderData } from './_layout'
+import { usePostQuery } from './_layout/hooks/usePostQuery'
 
 const variants = {
   enter: (direction: number) => {
@@ -31,25 +30,18 @@ const variants = {
 const MotionComponent = motion(ImageProxy)
 
 export default function Page() {
-  const data = usePhotoLoaderData()?.data
+  const { data } = usePostQuery()
   const params = useParams()
   const imageIndex = Number(params.index as string) - 1
   const direction = useLocation().state?.direction as -1 | 1 | undefined
 
-  const mainPost = useMemo(
-    () => data?.posts.find((post) => post.id === params.statusId),
-    [data?.posts]
-  )
+  const { mainPost } = data || {}
 
-  if (!mainPost) return null
-
-  const image = mainPost.mediaUrls[imageIndex] as NonNullable<
-    (typeof mainPost.mediaUrls)[number]
+  const image = mainPost?.mediaUrls[imageIndex] as NonNullable<
+    NonNullable<typeof mainPost>['mediaUrls'][number]
   >
 
-  if (!image) {
-    return <></>
-  }
+  if (!image) return null
 
   return (
     <MotionComponent

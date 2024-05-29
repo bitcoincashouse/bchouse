@@ -6,15 +6,12 @@ import {
   useLocation,
   useParams,
 } from '@remix-run/react'
-import { DehydratedState } from '@tanstack/react-query'
-import { generateText } from '@tiptap/core'
-import { useMemo } from 'react'
 import { $preload, $useLoaderQuery, createRemixClientUtils } from 'remix-query'
 import { z } from 'zod'
 import { StandardLayout } from '~/components/layouts/standard-layout'
-import { getExtensions } from '~/components/post/form/tiptap-extensions'
 import { Thread } from '~/components/threads/thread'
 import { zx } from '~/utils/zodix'
+import { createMetaTags } from './createMetaTags'
 
 export const handle = {
   title: 'Post',
@@ -45,101 +42,56 @@ export const meta: MetaFunction<typeof loader> = ({
   params,
 }) => {
   try {
-    const remixQueryClientUtils = data
-      ? createRemixClientUtils(
-          data as any as { dehydratedState: DehydratedState }
-        )
+    const queryClient = data
+      ? createRemixClientUtils(data)
       : window.remixQueryClientUtils
 
-    const result = remixQueryClientUtils.getData('/api/post/status/:statusId', {
+    const result = queryClient.getData('/api/post/status/:statusId', {
       statusId: params.statusId as string,
     })
 
-    if (!result) {
-      return []
+    const mainPost = result?.posts.find((p) => p.id === params.statusId)
+    if (mainPost) {
+      return createMetaTags(mainPost, params)
     }
-
-    const posts = result.posts
-
-    const mainPost = posts.find((p) => p.id === params.statusId)
-
-    if (!mainPost) return []
-
-    const author = mainPost.person.name || mainPost.person.handle
-    let content = 'A post on BCHouse by ' + author
-
-    try {
-      content = generateText(
-        mainPost.content,
-        getExtensions('Placeholder', () => {})
-      ).substring(0, 200)
-    } catch (err) {}
-
-    const title =
-      (mainPost.person.name
-        ? `${mainPost.person.name} (@${mainPost.person.handle})`
-        : mainPost.person.handle) + ' on BCHouse'
-
-    const logoUrl = 'https://bchouse.fly.dev/assets/images/bchouse.png'
-    const url = `https://bchouse.fly.dev/profile/${params.username}/status/${params.statusId}`
-    const author_url = `https://bchouse.fly.dev/profile/${params.username}`
-
-    return [
-      { title },
-      { name: 'description', content: content },
-      { name: 'lang', content: 'en' },
-      { name: 'author', content: author },
-      { name: 'author_url', content: author_url },
-      { name: 'site', content: 'BCHouse' },
-      { name: 'canonical', content: url },
-
-      { name: 'og:title', content: title },
-      { name: 'og:description', content: content },
-      { name: 'og:site_name', content: 'BCHouse' },
-      { name: 'og:url', content: url },
-      { name: 'og:image:url', content: logoUrl },
-      { name: 'og:image:type', content: 'image/png' },
-      { name: 'og:image:width', content: 534 },
-      { name: 'og:image:height', content: 94 },
-      { name: 'og:image:alt', content: 'BCHouse Logo' },
-
-      { name: 'twitter:card', content: content },
-      { name: 'twitter:site', content: 'BCHouse' },
-      { name: 'twitter:title', content: title },
-      { name: 'twitter:description', content: content },
-      { name: 'twitter:image', content: logoUrl },
-    ]
   } catch (err) {
     logger.error(err)
-    return []
   }
+
+  return []
 }
 
-export default function Index() {
+function useThreadQuery() {
   const { username, statusId } = useParams<{
     username: string
     statusId: string
   }>()
 
-  const status = $useLoaderQuery('/api/post/status/:statusId', {
+  return $useLoaderQuery('/api/post/status/:statusId', {
     params: {
       statusId: statusId!,
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
+    select(data) {
+      return {
+        ...data,
+        mainPost: data.posts.find((post) => post.id === statusId),
+      }
+    },
   })
+}
+
+export default function Index() {
+  const status = useThreadQuery()
+  const location = useLocation()
 
   const {
+    mainPost,
     posts = [],
     previousCursor = undefined,
     nextCursor = undefined,
   } = status.data || {}
-
-  const location = useLocation()
-  const mainPost = useMemo(
-    () => posts.find((post) => post.id === statusId),
-    [posts]
-  )
 
   if (!mainPost) {
     logger.error('Error, main post not found!')

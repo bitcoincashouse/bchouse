@@ -6,24 +6,18 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/solid'
 import { LoaderFunctionArgs } from '@remix-run/node'
-import {
-  Link,
-  Outlet,
-  useLocation,
-  useNavigate,
-  useParams,
-} from '@remix-run/react'
+import { Link, Outlet, useNavigate, useParams } from '@remix-run/react'
 import { AnimatePresence } from 'framer-motion'
-import { useMemo, useState } from 'react'
-import { $preload, $useLoaderQuery } from 'remix-query'
+import { useState } from 'react'
 import { $path } from 'remix-routes'
 import { useMediaQuery } from 'usehooks-ts'
 import { z } from 'zod'
-import { useCurrentUser } from '~/components/context/current-user-context'
 import { PostFooter } from '~/components/post/card/implementations/image-cards'
-import { Thread } from '~/components/threads/thread'
 import { classNames } from '~/utils/classNames'
 import { zx } from '~/utils/zodix'
+import { usePaginate } from './hooks/usePaginate'
+import { preloadPostQuery, usePostQuery } from './hooks/usePostQuery'
+import { PostSidebar } from './post-sidebar'
 
 export const handle: AppRouteHandle = {
   title: 'Post',
@@ -33,84 +27,31 @@ export const handle: AppRouteHandle = {
   containerClassName: 'z-[50]',
 }
 
-export const usePhotoLoaderData = () => {
-  const { statusId } = useParams<{
-    username: string
-    statusId: string
-    index: string
-  }>()
-
-  return $useLoaderQuery('/api/post/status/:statusId', {
-    params: {
-      statusId: statusId!,
-    },
-    staleTime: 5 * 60 * 1000,
-    gcTime: 15 * 60 * 1000,
-  })
-}
-
 export const loader = async (_: LoaderFunctionArgs) => {
   const { username, statusId } = zx.parseParams(_.params, {
     username: z.string(),
     statusId: z.string(),
   })
 
-  return $preload(_, '/api/post/status/:statusId', { statusId })
+  return preloadPostQuery(_, statusId)
 }
 
 export default function Page() {
+  const navigate = useNavigate()
+  const isMobile = useMediaQuery('(max-width: 690px)')
+  const { data } = usePostQuery()
+  const [collapsePosts, setCollapsePosts] = useState<boolean>(false)
+  const { delta, direction, paginate, hasNext, hasPrevious } = usePaginate(
+    data?.mainPost?.mediaUrls || []
+  )
   const { username, statusId, index } = useParams<{
     username: string
     statusId: string
     index: string
   }>()
-
-  const {
-    posts = [],
-    previousCursor = undefined,
-    nextCursor = undefined,
-  } = usePhotoLoaderData()?.data || {}
-
-  const photoNum = Number(index!)
-  const imageIndex = photoNum - 1
-
-  const [collapsePosts, setCollapsePosts] = useState<boolean>(false)
-  const navigate = useNavigate()
-  const currentUser = useCurrentUser()
-  const location = useLocation()
-
-  const mainPost = useMemo(
-    () => posts.find((post) => post.id === statusId),
-    [posts]
-  )
+  const { mainPost } = data || {}
 
   if (!mainPost) return null
-
-  const delta = location.state?.delta as number | undefined
-  const direction = location.state?.direction as -1 | 1 | undefined
-  const hasPrevious = !!mainPost.mediaUrls[imageIndex - 1]
-  const hasNext = !!mainPost.mediaUrls[imageIndex + 1]
-
-  const paginate = (direction: -1 | 1) => {
-    if ((direction === -1 && hasPrevious) || (direction === 1 && hasNext)) {
-      navigate(
-        $path('/profile/:username/status/:statusId/photo/:index', {
-          statusId: statusId!,
-          username: username!,
-          index: photoNum + direction,
-        }),
-        {
-          state: {
-            delta: typeof delta !== 'undefined' ? delta + 1 : undefined,
-            direction,
-          },
-        }
-      )
-    }
-  }
-
-  const isMobile = useMediaQuery('(max-width: 690px)')
-
   return (
     <div className="fixed w-full h-full inset-0">
       <div>
@@ -119,22 +60,7 @@ export default function Page() {
             'flex mx-auto non-mobile:mx-0 flex-row min-h-screen items-start w-screen non-mobile:w-auto'
           )}
         >
-          {!collapsePosts && !isMobile ? (
-            <div className="hidden lg:block pt-2 min-[690px]:block w-[290px] min-[1080px]:w-[350px] relative order-last">
-              <div className="divide-y divide-gray-200 dark:divide-gray-800 pb-[80vh]">
-                <div className="">
-                  <Thread
-                    showImagesMainPost={false}
-                    mainPost={mainPost}
-                    key={mainPost.id}
-                    previousCursor={previousCursor}
-                    nextCursor={nextCursor}
-                    initialPosts={posts}
-                  />
-                </div>
-              </div>
-            </div>
-          ) : null}
+          {!collapsePosts && !isMobile ? <PostSidebar /> : null}
           <div
             className={classNames(
               'relative w-full non-mobile:border !border-t-0 border-gray-100 dark:border-gray-600 dark:border-gray-600'
