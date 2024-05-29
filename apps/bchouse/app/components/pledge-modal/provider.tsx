@@ -11,7 +11,7 @@ import React, {
 import { pledgeModalMachine } from '../machines/pledge-modal.machine'
 import { useHydrated } from '../utils/use-hydrated'
 
-type PledgeData = {
+export type PledgeData = {
   campaign: {
     id: string
     raised: number

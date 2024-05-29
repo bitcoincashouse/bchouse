@@ -295,7 +295,7 @@ export const definitionTemplate = `declare module "remix-query" {
   export function createRemixClientUtils(opts: {
     queryClient: QueryClient
   } | {
-    dehydratedState: ReactQuery.DehydratedState
+    dehydratedState: ReactQuery.DehydratedState | SerializeFrom<{ dehydratedState: DehydratedState }>
   }): RemixQueryClientUtils
 
   export function getQueryKey<
