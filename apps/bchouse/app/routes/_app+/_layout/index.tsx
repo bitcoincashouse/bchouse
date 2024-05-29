@@ -1,37 +1,28 @@
 import { WalletConnectProvider } from '@bchouse/cashconnect'
 import { LoaderFunctionArgs } from '@remix-run/node'
-import {
-  ClientLoaderFunctionArgs,
-  Link,
-  Outlet,
-  useLocation,
-  useSearchParams,
-} from '@remix-run/react'
-import { useMemo } from 'react'
-import { $preload, $useLoaderQuery } from 'remix-query'
+import { ClientLoaderFunctionArgs, Link, Outlet } from '@remix-run/react'
+import { $preload } from 'remix-query'
 import InfoAlert from '~/components/alert'
 import { AppShell } from '~/components/app-shell'
 import { ClientOnly } from '~/components/client-only'
-import {
-  CurrentUser,
-  CurrentUserProvider,
-} from '~/components/context/current-user-context'
-import { EditProfileModal } from '~/components/edit-profile-modal'
+import { CurrentUserProvider } from '~/components/context/current-user-context'
 import { ErrorDisplay } from '~/components/pages/error'
 import {
   PledgeFundraiserModal,
   PledgeModalProvider,
 } from '~/components/pledge-modal'
-import { PostModal } from '~/components/post/form/implementations/post-modal'
-import { Post } from '~/components/post/types'
 import { TipPostModal, TipPostModalProvider } from '~/components/tip-modal'
 import { UserPopoverProvider } from '~/components/user-popover'
 import { useDismissUpdateProfileBanner } from '~/routes/api+/dismissUpdateProfileBanner'
 import { usePageDisplay } from '~/utils/appHooks'
 import { classNames } from '~/utils/classNames'
-import { useCloseCreatePostModal } from '~/utils/useCloseCreatePostModal'
 import { useUpdateLastActive } from '~/utils/useUpdateLastActive'
 import { useWalletConnectConfig } from '~/utils/useWalletConnect'
+import { Footer } from './footer'
+import { Header } from './header'
+import { useProfileQuery } from './hooks/useProfileQuery'
+import { ShowPostModal } from './modals/post-modal'
+import { ShowEditProfileModal } from './modals/show-edit-profile-modal'
 
 declare global {
   interface RouteDescription {
@@ -47,43 +38,12 @@ export const handle: RouteHandler<'layout'> = {
 
 export const layoutHandle = handle
 
-//@ts-ignore
 export const loader = async (_: LoaderFunctionArgs) => {
   return $preload(_, '/api/profile/get')
 }
 
 export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
   return null
-}
-
-const anonymousUser: CurrentUser = {
-  isAnonymous: true,
-}
-
-function useProfileQuery(): CurrentUser {
-  const { data } = $useLoaderQuery('/api/profile/get', {
-    staleTime: 5 * 60 * 1000,
-    placeholderData: {
-      anonymousView: true,
-    },
-    select(data): CurrentUser {
-      return !data || !!data.anonymousView
-        ? anonymousUser
-        : {
-            isAnonymous: false,
-            isAdmin: data.profile.isAdmin,
-            avatarUrl: data.profile.avatarUrl,
-            fullName: data.profile.fullName,
-            id: data.profile.id,
-            username: data.profile.username,
-            notificationCount: data.profile.notificationCount,
-            bchAddress: data.homeView.bchAddress,
-            showUpdateProfile: data.showUpdateProfile,
-          }
-    },
-  })
-
-  return data || anonymousUser
 }
 
 export const ErrorBoundary = () => {
@@ -144,7 +104,7 @@ export default function Index() {
               <section className={classNames('relative admin-outlet')}>
                 <div>
                   <div>
-                    <HeaderSection />
+                    <Header />
                     {/* Body */}
                     <div>
                       <UserPopoverProvider>
@@ -153,8 +113,9 @@ export default function Index() {
                     </div>
                   </div>
 
-                  <FooterSection />
-                  <ModalSection />
+                  <Footer />
+                  <ShowPostModal />
+                  <ShowEditProfileModal />
                 </div>
               </section>
             </AppShell>
@@ -162,132 +123,5 @@ export default function Index() {
         </TipPostModalProvider>
       </WalletConnectProvider>
     </CurrentUserProvider>
-  )
-}
-
-function HeaderSection() {
-  const pageProps = usePageDisplay()
-
-  return (
-    <>
-      {/* Header */}
-      {pageProps.header && pageProps.title && (
-        <header className="pt-16 pb-12 w-full">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold tracking-tight">
-              {pageProps.title}
-            </h1>
-          </div>
-        </header>
-      )}
-    </>
-  )
-}
-
-function ModalSection() {
-  return (
-    <>
-      <ShowPostModal />
-      <ShowEditProfileModal />
-    </>
-  )
-}
-
-function ShowPostModal() {
-  let {
-    data: applicationData = {
-      anonymousView: true,
-    },
-  } = $useLoaderQuery('/api/profile/get', {
-    staleTime: 5 * 60 * 1000,
-  })
-
-  const [searchParams] = useSearchParams()
-  const modalName = searchParams.get('modal')
-  const replyToPost = useLocation().state?.replyToPost as Post
-  const closePostModal = useCloseCreatePostModal()
-
-  const showCreatePost = useMemo(() => {
-    if (['create-post', 'reply'].indexOf(modalName as string) === -1) {
-      return false
-    }
-
-    if (modalName === 'reply' && !replyToPost) {
-      closePostModal()
-      return false
-    }
-
-    return true
-  }, [modalName, replyToPost])
-
-  if (applicationData.anonymousView || !showCreatePost) {
-    return null
-  }
-
-  const profile = applicationData.profile
-
-  return (
-    <ClientOnly>
-      {() => (
-        <PostModal
-          isOpen={true}
-          onClose={() => closePostModal()}
-          user={profile}
-          parentPost={replyToPost}
-        />
-      )}
-    </ClientOnly>
-  )
-}
-
-function ShowEditProfileModal() {
-  let {
-    data: applicationData = {
-      anonymousView: true,
-    },
-  } = $useLoaderQuery('/api/profile/get', {
-    staleTime: 5 * 60 * 1000,
-  })
-
-  const closeEditProfileModal = useCloseCreatePostModal()
-  const [searchParams] = useSearchParams()
-  const modalName = searchParams.get('modal')
-
-  if (
-    applicationData.anonymousView ||
-    (!applicationData.showOnBoarding && modalName !== 'edit-profile')
-  ) {
-    return null
-  }
-
-  return (
-    <EditProfileModal
-      open={true}
-      closeModal={closeEditProfileModal}
-      user={applicationData.homeView}
-    />
-  )
-}
-
-function FooterSection() {
-  const pageProps = usePageDisplay()
-
-  return (
-    <>
-      {pageProps.showFooter && (
-        <footer className="flex items-center min-h-[110px] justify-center pt-[33vh] pb-10 center grass">
-          <p>
-            Powered by{' '}
-            <a
-              className="text-blue-600"
-              href="https://cashscript.org"
-              target="_blank"
-            >
-              CashScript
-            </a>
-          </p>
-        </footer>
-      )}
-    </>
   )
 }
