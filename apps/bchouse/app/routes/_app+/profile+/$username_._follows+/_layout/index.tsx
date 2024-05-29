@@ -1,11 +1,11 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
-import { NavLink, Outlet, useParams } from '@remix-run/react'
+import { Outlet, useParams } from '@remix-run/react'
 import { $preload, $useLoaderQuery } from 'remix-query'
 import { z } from 'zod'
 import { ActionsPanel } from '~/components/actions'
 import { StandardLayout } from '~/components/layouts/standard-layout'
-import { classNames } from '~/utils/classNames'
 import { zx } from '~/utils/zodix'
+import { Header } from './header'
 
 export const loader = async (_: LoaderFunctionArgs) => {
   const { username } = zx.parseParams(_.params, {
@@ -15,30 +15,22 @@ export const loader = async (_: LoaderFunctionArgs) => {
   return $preload(_, '/api/profile/getPublicProfile/:username', { username })
 }
 
-const tabs = [
-  { name: 'Following', href: 'following' },
-  { name: 'Followers', href: 'followers' },
-]
-
 export default function Index() {
-  const username = useParams()?.username as string
-  const getPublicProfile = $useLoaderQuery(
+  const { username } = useParams<{ username: string }>()
+  const { data: profile } = $useLoaderQuery(
     '/api/profile/getPublicProfile/:username',
     {
       params: {
-        username,
+        username: username!,
       },
+      enabled: !!username,
       staleTime: 5 * 60 * 1000,
       gcTime: 15 * 60 * 1000,
     }
   )
 
-  const profile = getPublicProfile.data
-
-  if (!profile) {
-    //TODO: Handle no profile data
-    return null
-  }
+  //TODO: Handle no profile data
+  if (!profile) return null
 
   return (
     <StandardLayout
@@ -46,48 +38,7 @@ export default function Index() {
       subtitle={'@' + profile.username}
       hideBackButton={false}
       headroom={true}
-      header={
-        <>
-          {' '}
-          {/* Description list*/}
-          <section
-            aria-labelledby="applicant-information-title"
-            className="border-b border-gray-100 dark:border-gray-600 "
-          >
-            <div className="px-4 sm:px-6">
-              <div className="overflow-x-auto h-full overflow-y-hidden">
-                <div className="flex mx-auto max-w-5xl">
-                  <nav
-                    className={classNames(
-                      '-mb-px flex space-x-8',
-                      'flex-1 justify-around '
-                    )}
-                    aria-label="Tabs"
-                  >
-                    {tabs.map((tab, i) => (
-                      <NavLink
-                        key={tab.name}
-                        to={tab.href}
-                        end={true}
-                        className={({ isActive }) =>
-                          classNames(
-                            isActive
-                              ? 'border-pink-500 text-primary-text'
-                              : 'border-transparent text-secondary-text hover:border-gray-300 hover:text-gray-700 hover:dark:text-secondary-text',
-                            'whitespace-nowrap border-b-2 py-4 px-1 font-semibold'
-                          )
-                        }
-                      >
-                        {tab.name}
-                      </NavLink>
-                    ))}
-                  </nav>
-                </div>
-              </div>
-            </div>
-          </section>
-        </>
-      }
+      header={<Header />}
       main={
         <div>
           <div>
@@ -112,7 +63,6 @@ export default function Index() {
               </div>
             </article>
           </div>
-          {/* Actions panel */}
           <ActionsPanel actions={[]} />
         </div>
       }

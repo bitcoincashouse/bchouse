@@ -16,6 +16,8 @@ export function ImageGridWidget({
 }) {
   const navigate = useNavigate()
 
+  if (images.length === 0) return null
+
   return (
     <section aria-labelledby="media-list">
       <div className="overflow-hidden rounded-lg bg-gray-50">

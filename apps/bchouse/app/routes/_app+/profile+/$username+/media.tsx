@@ -1,8 +1,8 @@
 import { Feed } from '~/components/threads/feed'
-import { useProfileLoader } from './_layout'
+import { useProfileQuery } from './_layout/hooks/useProfileQuery'
 
 export default function Index() {
-  const profileData = useProfileLoader()
+  const { data: profileData } = useProfileQuery()
 
   if (!profileData) return null
 

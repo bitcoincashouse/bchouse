@@ -12,22 +12,19 @@ export const loader = async (_: LoaderFunctionArgs) => {
 }
 
 export default function Index() {
-  const username = useParams()?.username as string
-  const listFollowers = $useLoaderQuery('/api/profile/followers/:username', {
+  const { username } = useParams<{ username: string }>()
+  const { data } = $useLoaderQuery('/api/profile/followers/:username', {
     params: {
-      username,
+      username: username!,
     },
+    enabled: !!username,
     staleTime: 5 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
   })
-
   const currentUser = useCurrentUser()
-
-  const isCurrentUser = currentUser.isAnonymous
-    ? false
-    : currentUser.username === username
-
-  const { followers = [] } = listFollowers.data || {}
+  const isCurrentUser =
+    !currentUser.isAnonymous && currentUser.username === username
+  const { followers = [] } = data || {}
 
   return (
     <>

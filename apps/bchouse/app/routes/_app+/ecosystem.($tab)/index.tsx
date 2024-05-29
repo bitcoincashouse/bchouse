@@ -1,43 +1,11 @@
-import { Link, useLocation, useParams } from '@remix-run/react'
-import { useQuery } from '@tanstack/react-query'
-import { useMemo, useRef } from 'react'
-import { z } from 'zod'
+import { useLocation } from '@remix-run/react'
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { Avatar } from '~/components/avatar'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { StatsWidget } from '~/components/stats-widget'
 import { classNames } from '~/utils/classNames'
-import { useBrowserLayoutEffect } from '~/utils/useBrowserLayoutEffect'
-
-const tabs = [
-  { name: 'All', href: '' },
-  { name: 'Apps', href: 'apps' },
-  { name: 'CashTokens', href: 'cashtokens' },
-  { name: 'Content Creators', href: 'content' },
-  { name: 'Development', href: 'development' },
-  { name: 'Developer Tools', href: 'tools' },
-  { name: 'Exchanges', href: 'exchanges' },
-  { name: 'Explorers', href: 'explorers' },
-  { name: 'Games', href: 'games' },
-  { name: 'Info', href: 'info' },
-  { name: 'Libraries', href: 'libraries' },
-  { name: 'Nodes', href: 'nodes' },
-  { name: 'NFTs', href: 'nfts' },
-  { name: 'Stores', href: 'stores' },
-  { name: 'Socials', href: 'socials' },
-  { name: 'Wallets', href: 'wallets' },
-]
-
-const projectSchema = z.array(
-  z.object({
-    id: z.string(),
-    name: z.string(),
-    description: z.string().optional(),
-    href: z.string().optional(),
-    img: z.string().optional(),
-    type: z.array(z.string()),
-  })
-)
+import { Header } from './header'
+import { useEcosystemQuery } from './hooks/useEcosystemQuery'
 
 export const handle = {
   preventScrollRestoration: true,
@@ -46,82 +14,7 @@ export const handle = {
 }
 
 export default function Index() {
-  const currentTab = useParams().tab as string
-  const { data, isLoading } = useQuery({
-    queryKey: ['ecosystem'],
-    queryFn: async () => {
-      return fetch(
-        window.env.UMBRACO_URL + '/umbraco/api/ecosystem/getallprojects'
-      )
-        .then((res) => res.json())
-        .then((projects) => projectSchema.parse(projects))
-    },
-    staleTime: Infinity,
-    gcTime: Infinity,
-  })
-
-  const items = useMemo(() => {
-    if (!data) return []
-
-    if (!currentTab)
-      return data.map((item) => ({
-        id: item.id,
-        name: item.name,
-        href: item.href,
-        img: item.img,
-        description: item.description,
-      }))
-
-    const currentTabName = currentTab.toLowerCase()
-    return data
-      .filter((item) => item.type.find((type) => type == currentTabName))
-      .map((item) => ({
-        id: item.id,
-        name: item.name,
-        href: item.href,
-        img: item.img,
-        description: item.description,
-      }))
-  }, [currentTab, data])
-
-  const currentTabRef = useRef<HTMLAnchorElement>(null)
-
-  useBrowserLayoutEffect(() => {
-    const findOverflowXParent = (element: HTMLElement) => {
-      let parent = element.parentNode
-
-      while (parent) {
-        const styles = window.getComputedStyle(parent as HTMLElement)
-        const overflowX = styles.overflowX
-
-        if (overflowX === 'auto' || overflowX === 'scroll') {
-          return parent
-        }
-
-        parent = parent.parentNode
-      }
-
-      return null
-    }
-
-    if (currentTabRef.current) {
-      const element = currentTabRef.current
-      const parent = findOverflowXParent(element) as HTMLElement | null
-
-      if (!parent) return
-
-      // Calculate the scrollLeft to bring the element into view
-      const scrollLeft =
-        element.offsetLeft - parent.offsetWidth / 2 + element.offsetWidth / 2
-
-      // Scroll horizontally
-      parent.scrollTo({
-        left: scrollLeft,
-        behavior: 'instant',
-      })
-    }
-  }, [])
-
+  const items = useEcosystemQuery()
   const location = useLocation()
 
   return (
@@ -141,61 +34,7 @@ export default function Index() {
         </>
       }
       hideBackButton={true}
-      header={
-        <>
-          {/* Description list*/}
-          <section
-            aria-labelledby="applicant-information-title"
-            className="border-b border-gray-100 dark:border-gray-600 "
-          >
-            <div className="px-4 sm:px-6">
-              <div className="overflow-x-auto h-full overflow-y-hidden">
-                <div className="flex mx-auto max-w-5xl">
-                  <nav
-                    className={classNames(
-                      '-mb-px flex space-x-8',
-                      'flex-1 justify-around '
-                    )}
-                    aria-label="Tabs"
-                  >
-                    {tabs.map((tab, i) => (
-                      <Link
-                        key={tab.name}
-                        to={
-                          currentTab
-                            ? tab.href
-                              ? '../' + tab.href
-                              : '..'
-                            : tab.href
-                            ? './' + tab.href
-                            : '.'
-                        }
-                        relative={'path'}
-                        ref={
-                          tab.href.toLowerCase() ===
-                            currentTab?.toLowerCase() ||
-                          (!currentTab && tab.name === 'All')
-                            ? currentTabRef
-                            : null
-                        }
-                        className={classNames(
-                          tab.href === currentTab ||
-                            (!currentTab && tab.name === 'All')
-                            ? 'border-pink-500 text-primary-text'
-                            : 'border-transparent text-secondary-text hover:border-gray-300 hover:dark:text-secondary-text',
-                          'whitespace-nowrap border-b-2 py-4 px-1 font-semibold'
-                        )}
-                      >
-                        {tab.name}
-                      </Link>
-                    ))}
-                  </nav>
-                </div>
-              </div>
-            </div>
-          </section>
-        </>
-      }
+      header={<Header />}
       main={
         <div>
           <div>
