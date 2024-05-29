@@ -1,46 +1,9 @@
-import {
-  Outlet,
-  useLocation,
-  useNavigation,
-  useSearchParams,
-} from '@remix-run/react'
-import { AnyFunction, isFunction, isString } from 'is-what'
-import { useMemo } from 'react'
+import { Outlet, useLocation } from '@remix-run/react'
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { Search } from '~/components/search/autocomplete-search'
 import { StatsWidget } from '~/components/stats-widget'
-import { useFindMatchHandle } from '~/utils/appHooks'
-
-function isStringOrMatchFunction(val: unknown): val is string | AnyFunction {
-  return isString(val) || isFunction(val)
-}
-
-function useSearchQuery() {
-  const result = useFindMatchHandle('query', isStringOrMatchFunction)
-  const [searchParams] = useSearchParams()
-
-  const navigation = useNavigation()
-  const defaultQuery =
-    new URLSearchParams(navigation.location?.search).get('q') ||
-    searchParams.get('q') ||
-    undefined
-
-  const queryOrFn = result?.handle?.query
-  const query = useMemo(() => {
-    if (!queryOrFn) return undefined
-    if (isString(queryOrFn)) return queryOrFn
-
-    try {
-      const query = queryOrFn(result)
-      return isString(query) ? query : undefined
-    } catch (err) {
-      return undefined
-    }
-  }, [queryOrFn])
-
-  return query || defaultQuery
-}
+import { useSearchQuery } from './useSearchQuery'
 
 export default function Index() {
   const query = useSearchQuery()

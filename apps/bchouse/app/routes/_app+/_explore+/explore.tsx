@@ -14,12 +14,6 @@ export const loader = async (_: LoaderFunctionArgs) => {
 }
 
 export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
-  const { q } = zx.parseQuery(_.request, {
-    q: z.string().optional(),
-  })
-
-  // await $preloadClient('/api/search/explore/:q?', { q });
-
   return null
 }
 
