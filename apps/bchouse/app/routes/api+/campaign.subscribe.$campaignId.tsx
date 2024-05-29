@@ -4,13 +4,13 @@ import { LoaderFunctionArgs } from '@remix-run/node'
 import { useRevalidator } from '@remix-run/react'
 import { useEffect, useMemo, useState } from 'react'
 import { z } from 'zod'
-import { campaignService, pledgeService, ratelimit } from '~/.server/getContext'
+import { campaignService, pledgeService } from '~/.server/getContext'
 import { inngest } from '~/.server/services/inngest'
 import { eventStream } from '~/utils/event-stream'
 import { zx } from '~/utils/zodix'
 
 export async function loader(_: LoaderFunctionArgs) {
-  await ratelimit.limitByIp(_, 'api', true)
+  // await ratelimit.limitByIp(_, 'api', true)
 
   const { campaignId } = zx.parseParams(_.params, {
     campaignId: z.string(),
