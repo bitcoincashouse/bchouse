@@ -1,9 +1,10 @@
 import { LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { UIMatch, useParams } from '@remix-run/react'
-import { $preload, $useLoaderQuery } from 'remix-query'
+import { $preload } from 'remix-query'
 import { z } from 'zod'
 import { StandardPostCard } from '~/components/post/card/implementations/standard-post-card'
 import { zx } from '~/utils/zodix'
+import { useSearchHashtagQuery } from './_layout/hooks/useSearchHashtagQuery'
 
 export const handle = {
   query: (match: UIMatch) => {
@@ -19,13 +20,6 @@ export const loader = async (_: LoaderFunctionArgs) => {
   if (!hashtag) throw redirect('/explore')
 
   return $preload(_, '/api/search/hashtag/:hashtag', { hashtag })
-}
-
-function useSearchHashtagQuery(hashtag?: string) {
-  return $useLoaderQuery('/api/search/hashtag/:hashtag', {
-    params: { hashtag: hashtag! },
-    enabled: !!hashtag,
-  })
 }
 
 export default function Index() {

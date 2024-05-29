@@ -3,10 +3,10 @@ import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { Search } from '~/components/search/autocomplete-search'
 import { StatsWidget } from '~/components/stats-widget'
-import { useSearchQuery } from './useSearchQuery'
+import { useSearchTerm } from './hooks/useSearchTerm'
 
 export default function Index() {
-  const query = useSearchQuery()
+  const searchTerm = useSearchTerm()
   const location = useLocation()
 
   return (
@@ -15,7 +15,7 @@ export default function Index() {
       hideBackButton
       header={
         <div className="hidden non-mobile:block px-6 py-2 lg:py-4 w-full">
-          <Search key={location.key} query={query} />
+          <Search key={location.key} query={searchTerm} />
         </div>
       }
       main={<Outlet />}

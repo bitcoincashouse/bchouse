@@ -7,7 +7,7 @@ function isStringOrMatchFunction(val: unknown): val is string | AnyFunction {
   return isString(val) || isFunction(val)
 }
 
-export function useSearchQuery() {
+export function useSearchTerm() {
   const result = useFindMatchHandle('query', isStringOrMatchFunction)
   const [searchParams] = useSearchParams()
 

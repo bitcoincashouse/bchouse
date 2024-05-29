@@ -1,9 +1,10 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { ClientLoaderFunctionArgs, useSearchParams } from '@remix-run/react'
-import { $preload, $useLoaderQuery } from 'remix-query'
+import { $preload } from 'remix-query'
 import { z } from 'zod'
 import { StandardPostCard } from '~/components/post/card/implementations/standard-post-card'
 import { zx } from '~/utils/zodix'
+import { useSearchQuery } from './_layout/hooks/useSearchQuery'
 
 export const loader = async (_: LoaderFunctionArgs) => {
   const { q } = zx.parseQuery(_.request, {
@@ -15,16 +16,6 @@ export const loader = async (_: LoaderFunctionArgs) => {
 
 export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
   return null
-}
-
-function useSearchQuery(q?: string) {
-  return $useLoaderQuery('/api/search/explore/:q?', {
-    params: {
-      q: q!,
-    },
-    staleTime: 5 * 60 * 1000,
-    enabled: !!q,
-  })
 }
 
 export default function Index() {
