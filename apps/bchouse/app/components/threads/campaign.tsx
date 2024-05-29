@@ -4,7 +4,10 @@ import { Link, useLocation } from '@remix-run/react'
 import React, { useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 import { $path } from 'remix-routes'
-import { useCurrentUser } from '~/components/context/current-user-context'
+import {
+  CurrentUser,
+  useCurrentUser,
+} from '~/components/context/current-user-context'
 import { useBrowserLayoutEffect } from '~/utils/useBrowserLayoutEffect'
 import { Avatar } from '../avatar'
 import { ThreadPost } from '../post/card/implementations/thread-card'
@@ -176,7 +179,7 @@ export const CampaignThread: React.FC<{
                         </div>
                       </section>
 
-                      {!mainPost.deleted && currentUser ? (
+                      {!mainPost.deleted && !currentUser.isAnonymous ? (
                         <div
                           className={classnames(
                             'px-4 py-6 sm:px-6 border-b border-gray-100 dark:border-gray-600',
@@ -184,7 +187,6 @@ export const CampaignThread: React.FC<{
                           )}
                         >
                           <PostForm
-                            user={currentUser}
                             placeholder="Post a reply!"
                             parentPost={{
                               id: mainPost.id,
@@ -342,10 +344,7 @@ function AllComments({
   currentUser,
 }: {
   childPosts: PostCardModel[]
-  currentUser?: {
-    username: string
-    avatarUrl: string | undefined
-  }
+  currentUser: CurrentUser
 }) {
   const childFeedState = useFeedState({
     key: 'all_comments',

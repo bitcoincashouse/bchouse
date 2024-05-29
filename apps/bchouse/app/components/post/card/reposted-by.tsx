@@ -1,6 +1,7 @@
 import { ArrowPathIcon } from '@heroicons/react/20/solid'
 import { Link } from '@remix-run/react'
 import { $path } from 'remix-routes'
+import { CurrentUser } from '~/components/context/current-user-context'
 import { PostCardModel } from '../types'
 
 export function RepostedBy({
@@ -8,9 +9,7 @@ export function RepostedBy({
   currentUser,
 }: {
   item: PostCardModel
-  currentUser?: {
-    username: string
-  }
+  currentUser: CurrentUser
 }) {
   return (
     <>
@@ -24,7 +23,8 @@ export function RepostedBy({
         >
           <ArrowPathIcon className="absolute -left-5 w-5 h-5" />{' '}
           <span className="ml-1">
-            {item.repostedBy === currentUser?.username
+            {!currentUser.isAnonymous &&
+            item.repostedBy === currentUser.username
               ? 'You'
               : item.repostedBy}{' '}
             <span className="">Retweeted</span>

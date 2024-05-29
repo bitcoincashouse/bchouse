@@ -18,9 +18,9 @@ export async function getUserIsFollowing({
         userId
       )
     )
-    .select((eb) => eb.exists('Follows.id').as('isFollowing'))
+    .select(['id'])
     .executeTakeFirst()
-    .then((row) => row?.isFollowing)
+    .then((row) => !!row?.id)
 }
 
 export async function getUserFollows(

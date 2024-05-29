@@ -212,7 +212,23 @@ export async function $preload(
         params,
       })
 
-      return result
+      if (result instanceof Error) {
+        throw result
+      } else if (result instanceof Response) {
+        const isJson = result.headers
+          .get('Content-Type')
+          ?.includes('application/json')
+
+        if (isJson && result.body !== null) {
+          return await result.json()
+        } else if (!isJson) {
+          return await result.text()
+        } else {
+          return null
+        }
+      } else {
+        return result
+      }
     },
   })
 

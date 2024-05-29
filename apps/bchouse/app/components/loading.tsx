@@ -3,7 +3,7 @@ import { cn } from '~/utils/cn'
 
 export const LoadingIndicator = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<'div'> & { loadingClassName: string }
+  React.ComponentProps<'div'> & { loadingClassName?: string }
 >(({ className, loadingClassName }, ref) => {
   return (
     <div ref={ref} role="status" className={className}>

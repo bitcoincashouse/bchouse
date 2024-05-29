@@ -22,6 +22,7 @@ import { Link } from '@remix-run/react'
 import { $preload, $useLoaderQuery } from 'remix-query'
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
 import { Avatar } from '~/components/avatar'
+import { useCurrentUser } from '~/components/context/current-user-context'
 import { FollowButton } from '~/components/follow-button'
 import { ImageGridWidget } from '~/components/image-grid-widget'
 import { ImageProxy } from '~/components/image-proxy'
@@ -46,14 +47,8 @@ export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
     username: z.string(),
   })
 
-  await window.remixQueryClientUtils.prefetch(
-    '/api/profile/getPublicProfile/:username',
-    {
-      username,
-    }
-  )
-
-  return null
+  debugger
+  return await _.serverLoader()
 }
 
 interface ProfileHandle extends AppRouteHandle, RouteHandler<'profile'> {}
@@ -130,9 +125,9 @@ const tabs = [
 
 export default function Index() {
   const user = useProfileLoader()
+  const currentUser = useCurrentUser()
 
   if (!user) {
-    //TODO: If user not found, that's an issue;
     return null
   }
 
@@ -360,12 +355,11 @@ export default function Index() {
                   ></svg>
                 ) : null}
               </> */}
-              {user.isCurrentUser ? (
+              {!currentUser.isAnonymous && user.id === currentUser.id ? (
                 <div className="hidden sm:block border-b border-gray-100 dark:border-gray-600 px-4 py-6 sm:px-6">
                   <PostForm
                     showAudience
                     key={user.id}
-                    user={user}
                     placeholder="What's building?"
                     formClassName="flex !flex-col"
                   />

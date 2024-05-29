@@ -14,6 +14,7 @@ import { PostType, PostTypeDropdown } from '../post-type'
 import { useFileActions } from '../useFileActions'
 // import { EmojiPickerButton } from './emoji-picker-button'
 import { z } from 'zod'
+import { useCurrentUser } from '~/components/context/current-user-context'
 import { ClientOnly } from '../../../client-only'
 import Iframely from '../../../iframely'
 import { useClientTheme } from '../../../theme-provider'
@@ -62,10 +63,6 @@ function fetchEmbed(url: string) {
 }
 
 type PostFormProps = {
-  user: {
-    avatarUrl: string | undefined
-    username: string
-  }
   placeholder?: string
   formClassName?: string
   heading?: React.ReactNode
@@ -93,13 +90,13 @@ const ClientOnlyPostForm: React.FC<PostFormProps> = (props) => {
 }
 
 const PostForm: React.FC<PostFormProps> = ({
-  user,
   placeholder = 'Post a reply!',
   formClassName = '',
   heading = null,
   parentPost,
   showAudience = false,
 }) => {
+  const currentUser = useCurrentUser()
   const location = useLocation()
   const [hasContent, setHasContent] = React.useState(false)
   const [title, setTitle] = React.useState('')
@@ -239,13 +236,19 @@ const PostForm: React.FC<PostFormProps> = ({
       : 'Sorry, something went wrong publishing your post.'
   }, [postError])
 
+  if (currentUser.isAnonymous) {
+    return null
+  }
+
   return (
     <div className="flex space-x-3">
       <div className={classNames('flex-shrink-0', visited && 'pt-2')}>
-        <Link to={$path('/profile/:username', { username: user.username })}>
+        <Link
+          to={$path('/profile/:username', { username: currentUser.username })}
+        >
           <Avatar
             className="h-10 w-10 rounded-full"
-            src={user.avatarUrl}
+            src={currentUser.avatarUrl}
             alt=""
           />
         </Link>

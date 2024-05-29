@@ -56,83 +56,69 @@ export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
   return null
 }
 
-export const useLayoutLoaderData = () => {
-  const { data, error } = $useLoaderQuery('/api/profile/get', {
-    staleTime: 5 * 60 * 1000,
-  })
-  if (!data) throw new Error('Layout loader data error.')
-  return data
+const anonymousUser: CurrentUser = {
+  isAnonymous: true,
 }
 
-export const useLoggedInLoaderData = () => {
+function useProfileQuery(): CurrentUser {
   const { data } = $useLoaderQuery('/api/profile/get', {
     staleTime: 5 * 60 * 1000,
+    placeholderData: {
+      anonymousView: true,
+    },
+    select(data): CurrentUser {
+      return !data || !!data.anonymousView
+        ? anonymousUser
+        : {
+            isAnonymous: false,
+            isAdmin: data.profile.isAdmin,
+            avatarUrl: data.profile.avatarUrl,
+            fullName: data.profile.fullName,
+            id: data.profile.id,
+            username: data.profile.username,
+            notificationCount: data.profile.notificationCount,
+            bchAddress: data.homeView.bchAddress,
+            showUpdateProfile: data.showUpdateProfile,
+          }
+    },
   })
-  if (data?.anonymousView) throw new Error('User not signed in')
-  return data
+
+  return data || anonymousUser
 }
 
 export const ErrorBoundary = () => {
-  const { isLoading, data } = $useLoaderQuery('/api/profile/get', {
-    staleTime: 5 * 60 * 1000,
-  })
+  const currentUser = useProfileQuery()
+  const config = useWalletConnectConfig()
 
-  return !data ? (
-    <div>Sorry, something went wrong</div>
-  ) : (
-    <AppShell showHeader={false} {...data}>
-      <div>
-        <ErrorDisplay page="__index" />
-      </div>
-    </AppShell>
+  return (
+    <CurrentUserProvider user={currentUser}>
+      <WalletConnectProvider config={config}>
+        <AppShell showHeader={false}>
+          <div>
+            <ErrorDisplay page="__index" />
+          </div>
+        </AppShell>
+      </WalletConnectProvider>
+    </CurrentUserProvider>
   )
 }
 
 export default function Index() {
-  let { data } = $useLoaderQuery('/api/profile/get', {
-    staleTime: 5 * 60 * 1000,
-  })
-
-  const applicationData: CurrentUser =
-    !data || data.anonymousView
-      ? {
-          isAnonymous: true,
-          isAdmin: false,
-          id: undefined,
-          avatarUrl: undefined,
-          fullName: undefined,
-          username: undefined,
-          notificationCount: 0,
-          bchAddress: undefined,
-        }
-      : {
-          isAnonymous: false,
-          isAdmin: data.profile.isAdmin,
-          avatarUrl: data.profile.avatarUrl,
-          fullName: data.profile.fullName,
-          id: data.profile.id,
-          username: data.profile.username,
-          notificationCount: data.profile.notificationCount,
-          bchAddress: data.homeView.bchAddress,
-        }
-
+  const currentUser = useProfileQuery()
   const pageProps = usePageDisplay()
-
   const config = useWalletConnectConfig()
-
   const updateProfileFetcher = useDismissUpdateProfileBanner()
 
-  useUpdateLastActive(!applicationData.isAnonymous)
+  useUpdateLastActive(!currentUser.isAnonymous)
 
   return (
-    <CurrentUserProvider user={applicationData}>
+    <CurrentUserProvider user={currentUser}>
       <WalletConnectProvider config={config}>
         <TipPostModalProvider>
           <PledgeModalProvider>
             <ClientOnly>
               {() =>
-                !applicationData.isAnonymous &&
-                applicationData.showUpdateProfile ? (
+                !currentUser.isAnonymous && currentUser.showUpdateProfile ? (
                   <InfoAlert
                     target="_blank"
                     onDismiss={updateProfileFetcher.submit}
@@ -151,10 +137,10 @@ export default function Index() {
                 ) : null
               }
             </ClientOnly>
-            <TipPostModal isLoggedIn={!applicationData.isAnonymous} />
-            <PledgeFundraiserModal isLoggedIn={!applicationData.isAnonymous} />
+            <TipPostModal isLoggedIn={!currentUser.isAnonymous} />
+            <PledgeFundraiserModal isLoggedIn={!currentUser.isAnonymous} />
 
-            <AppShell {...applicationData} showHeader={pageProps.header}>
+            <AppShell showHeader={pageProps.header}>
               <section className={classNames('relative admin-outlet')}>
                 <div>
                   <div>

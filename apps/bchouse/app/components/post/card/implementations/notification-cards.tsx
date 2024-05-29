@@ -2,7 +2,7 @@ import { Link } from '@remix-run/react'
 import { $path } from 'remix-routes'
 import { PostCard } from '~/components/post/card'
 import { PostProvider } from '~/components/post/card/context'
-import { useCurrentUser } from '../../../context/current-user-context'
+import { useLoggedInUser } from '../../../context/current-user-context'
 import { PostCardModel } from '../../types'
 
 export function NotificationCard({ post }: { post: PostCardModel }) {
@@ -18,7 +18,8 @@ export function NotificationCard({ post }: { post: PostCardModel }) {
 }
 
 export function ReplyCard({ post }: { post: PostCardModel }) {
-  const currentUser = useCurrentUser()
+  const currentUser = useLoggedInUser()
+
   return (
     <PostCard item={post} className="w-full">
       <div>

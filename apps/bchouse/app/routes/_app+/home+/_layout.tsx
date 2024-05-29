@@ -11,6 +11,7 @@ import { $preload, $useLoaderQuery } from 'remix-query'
 import { $path } from 'remix-routes'
 import { redirect } from 'remix-typedjson'
 import { ActiveCampaignsWidget } from '~/components/active-campaigns-widget'
+import { useCurrentUser } from '~/components/context/current-user-context'
 import { StandardLayout } from '~/components/layouts/standard-layout'
 import { NFTWidget } from '~/components/nft-widget'
 import { PostForm } from '~/components/post/form/implementations/post-form'
@@ -42,13 +43,7 @@ export const clientLoader = async (_: ClientLoaderFunctionArgs) => {
 }
 
 export default function Index() {
-  let {
-    data: applicationData = {
-      anonymousView: true,
-    },
-  } = $useLoaderQuery('/api/profile/get', {
-    staleTime: 5 * 60 * 1000,
-  })
+  const currentUser = useCurrentUser()
   const location = useLocation()
 
   const {
@@ -59,7 +54,7 @@ export default function Index() {
   })
 
   const tabs = useMemo(() => {
-    return applicationData.anonymousView
+    return currentUser.isAnonymous
       ? [{ name: 'All', href: 'all' }]
       : [
           { name: 'All', href: 'all' },
@@ -69,7 +64,7 @@ export default function Index() {
 
   const pathParts = location.pathname.split('/')
   const hidePostButton =
-    applicationData.anonymousView ||
+    currentUser.isAnonymous ||
     (pathParts.indexOf('profile') !== -1 && pathParts.indexOf('status') !== -1)
 
   return (
@@ -134,12 +129,11 @@ export default function Index() {
                   <div>
                     <div className="">
                       <div className="">
-                        {!applicationData.anonymousView ? (
+                        {!currentUser.isAnonymous ? (
                           <>
                             <div className="hidden sm:block border-b dark:border-gray-600 px-4 py-6 sm:px-6">
                               <PostForm
                                 showAudience
-                                user={applicationData.profile}
                                 placeholder="What's building?"
                                 formClassName="flex !flex-col"
                               />

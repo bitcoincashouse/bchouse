@@ -1,15 +1,20 @@
 import { createContext, useContext } from 'react'
 
-export type CurrentUser = {
-  isAnonymous: boolean
-  isAdmin: boolean
-  username: string
-  avatarUrl: string
-  fullName: string
-  id: string
-  notificationCount: number
-  bchAddress: string
-}
+export type CurrentUser =
+  | {
+      isAnonymous: true
+    }
+  | {
+      isAnonymous: false
+      isAdmin: boolean
+      username: string
+      avatarUrl: string
+      fullName: string
+      id: string
+      notificationCount: number
+      bchAddress: string | null
+      showUpdateProfile: boolean
+    }
 
 const CurrentUserContext = createContext<CurrentUser | null>(null)
 
@@ -34,4 +39,15 @@ export const useCurrentUser = () => {
   }
 
   return ctx
+}
+
+export const useLoggedInUser = () => {
+  const currentUser = useCurrentUser()
+
+  //Home view should have a user (so return null if anonymous)
+  if (currentUser.isAnonymous) {
+    throw new Error('Unexpected anonymous user.')
+  }
+
+  return currentUser
 }

@@ -331,18 +331,27 @@ export const definitionTemplate = `declare module "remix-query" {
     ...args: OptionsUnion<DistributiveOmit<QueryOptions, 'queryKey'>, Rest["params"], Rest["query"]>
   ): UseInfiniteQueryResult<ReactQuery.InfiniteData<Result, PageParam>>;
 
+  type RemixQueryObserverOptions<LoaderResult, Params, Query, TError, TData> = OptionsUnion<
+    DistributiveOmit<QueryObserverOptions<LoaderResult, TError, TData>, "queryKey">,
+    Params, 
+    Query
+  >
+  
   export function $useLoaderQuery<
     Route extends keyof RoutesWithLoader,
-    Rest extends {
-      params: RoutesWithLoader[Route]["params"];
-      query?: RoutesWithLoader[Route]["query"];
-    },
-    Result extends RoutesWithLoader[Route]["loaderResult"],
-    QueryOptions extends QueryObserverOptions<Result>
+    RouteDefinition extends RoutesWithLoader[Route],
+    TData = RouteDefinition["loaderResult"],
+    TError = DefaultError,
   >(
     route: Route,
-    ...args: OptionsUnion<DistributiveOmit<QueryOptions, 'queryKey'>, Rest["params"], Rest["query"]>
-  ): UseQueryResult<Result>;
+    ...args: RemixQueryObserverOptions<
+      RouteDefinition["loaderResult"],
+      RouteDefinition["params"], 
+      RouteDefinition["query"],
+      TError,
+      TData
+    >
+  ): UseQueryResult<TData, TError>;
 
   export function $mutate<
     Route extends keyof RoutesWithAction, 

@@ -92,14 +92,19 @@ function SetupFundraiserModalRoutes({
       <ChooseAmountView
         showBackBtn={false}
         minimum={8000}
-        maximum={!currentUser.isAdmin ? 0.1 * SATS_PER_BCH : undefined}
+        maximum={
+          !currentUser.isAnonymous && !currentUser.isAdmin
+            ? 0.1 * SATS_PER_BCH
+            : undefined
+        }
         onAmountSelected={(amount) => stepTo(2, { amount })}
       />
     )
   } else if (step.step === 2) {
-    const allowedNetworks = !currentUser.isAdmin
-      ? (['chipnet'] as const)
-      : (['chipnet', 'mainnet'] as const)
+    const allowedNetworks =
+      !currentUser.isAnonymous && !currentUser.isAdmin
+        ? (['chipnet'] as const)
+        : (['chipnet', 'mainnet'] as const)
 
     route = (
       <ManualAddressView

@@ -169,7 +169,8 @@ export const Feed: React.FC<
                           When{' '}
                           {!feedOwner
                             ? 'someone posts'
-                            : feedOwner.username === currentUser?.username
+                            : !currentUser.isAnonymous &&
+                              feedOwner.username === currentUser.username
                             ? 'you post'
                             : `@${feedOwner.username} posts`}
                           , you’ll see it here.

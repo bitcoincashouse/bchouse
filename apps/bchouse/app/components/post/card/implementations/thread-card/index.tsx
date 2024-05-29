@@ -2,7 +2,10 @@ import { Link } from '@remix-run/react'
 import React from 'react'
 import { $path } from 'remix-routes'
 import { PostCard } from '../..'
-import { useCurrentUser } from '../../../../context/current-user-context'
+import {
+  CurrentUser,
+  useCurrentUser,
+} from '../../../../context/current-user-context'
 import { PostCardModel } from '../../../types'
 import { Actions } from './actions'
 
@@ -17,10 +20,7 @@ export const ThreadPost = React.memo(
     mainPostId: string
     post: PostCardModel
     showImagesMainPost?: boolean
-    currentUser?: {
-      username: string
-      avatarUrl: string | undefined
-    }
+    currentUser: CurrentUser
     actionButton?: React.ReactNode
   }) => {
     return post.id !== mainPostId ? (
