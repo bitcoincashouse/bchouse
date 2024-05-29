@@ -1,23 +1,9 @@
-import { ShouldRevalidateFunctionArgs } from '@remix-run/react'
-import { $useLoaderQuery } from 'remix-query'
 import { Message } from '~/components/message'
 import { Pledge } from '~/components/pledge'
-
-export function shouldRevalidate({
-  currentUrl,
-  nextUrl,
-  defaultShouldRevalidate,
-}: ShouldRevalidateFunctionArgs) {
-  return currentUrl.pathname == nextUrl.pathname
-    ? false
-    : defaultShouldRevalidate
-}
+import { useAllPledges } from './_layout/hooks/useAllPledges'
 
 export default function Index() {
-  const { data: pledges = [] } = $useLoaderQuery('/api/campaign/pledge/list', {
-    gcTime: 5 * 60 * 1000,
-    staleTime: 1 * 60 * 1000,
-  })
+  const { data: pledges = [], isLoading } = useAllPledges()
 
   return (
     <div className="flex flex-col">

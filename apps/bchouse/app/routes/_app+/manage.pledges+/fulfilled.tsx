@@ -1,20 +1,9 @@
-import { useMemo } from 'react'
-import { $useLoaderQuery } from 'remix-query'
 import { Message } from '~/components/message'
 import { Pledge } from '~/components/pledge'
+import { useFulfilledPledges } from './_layout/hooks/useFulfilledPledges'
 
 export default function Index() {
-  const { data: allPledges = [] } = $useLoaderQuery(
-    '/api/campaign/pledge/list',
-    {
-      gcTime: 5 * 60 * 1000,
-      staleTime: 1 * 60 * 1000,
-    }
-  )
-
-  const pledges = useMemo(() => {
-    return allPledges.filter((p) => !!p.fulfillmentTxId)
-  }, [allPledges])
+  const { data: pledges = [], isLoading } = useFulfilledPledges()
 
   return (
     <div className="flex flex-col">
