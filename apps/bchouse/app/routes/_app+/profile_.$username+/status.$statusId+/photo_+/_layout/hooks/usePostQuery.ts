@@ -20,11 +20,5 @@ export const usePostQuery = () => {
     staleTime: 5 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
     enabled: !!statusId,
-    select(data) {
-      return {
-        ...data,
-        mainPost: data.posts.find((post) => post.id === statusId),
-      }
-    },
   })
 }

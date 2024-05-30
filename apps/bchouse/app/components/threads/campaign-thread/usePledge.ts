@@ -1,10 +1,11 @@
-import { PostCardModel } from '~/.server/services/types'
 import { usePledgeModal as usePledgeModalInternal } from '~/components/pledge-modal'
+import { useCampaignThread } from '../../thread-provider'
 
-export function usePledgeModal(post: PostCardModel) {
+export function usePledgeModal() {
+  const { main: post } = useCampaignThread()
   const { pledge, setPledge } = usePledgeModalInternal()
   const openPledgeModal = () =>
-    post.monetization &&
+    post?.monetization &&
     setPledge({
       campaign: {
         id: post.monetization.campaignId,

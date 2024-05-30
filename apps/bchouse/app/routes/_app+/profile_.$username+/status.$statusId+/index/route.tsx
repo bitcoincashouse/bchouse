@@ -9,6 +9,7 @@ import {
 import { $preload, $useLoaderQuery, createRemixClientUtils } from 'remix-query'
 import { z } from 'zod'
 import { StandardLayout } from '~/components/layouts/standard-layout'
+import { ThreadProvider } from '~/components/thread-provider'
 import { Thread } from '~/components/threads/thread'
 import { zx } from '~/utils/zodix'
 import { createMetaTags } from './createMetaTags'
@@ -50,9 +51,8 @@ export const meta: MetaFunction<typeof loader> = ({
       statusId: params.statusId as string,
     })
 
-    const mainPost = result?.posts.find((p) => p.id === params.statusId)
-    if (mainPost) {
-      return createMetaTags(mainPost, params)
+    if (result?.mainPost) {
+      return createMetaTags(result.mainPost, params)
     }
   } catch (err) {
     logger.error(err)
@@ -61,6 +61,11 @@ export const meta: MetaFunction<typeof loader> = ({
   return []
 }
 
+//TODO: use the '/api/post/get/:postId' endpoint for the main post
+// fetch ancestors and replies separately but allow rendering
+// First, ensure that loading ancestors and replies after main post allows scrolling
+// Then, ensure that /api/post/status/:statusId mainPost field returns same information as /api/post/get/:postId
+// If not, at least a supertype of /api/post/get/:postId (or transformed)
 function useThreadQuery() {
   const { username, statusId } = useParams<{
     username: string
@@ -73,12 +78,7 @@ function useThreadQuery() {
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
-    select(data) {
-      return {
-        ...data,
-        mainPost: data.posts.find((post) => post.id === statusId),
-      }
-    },
+    enabled: !!statusId,
   })
 }
 
@@ -87,39 +87,31 @@ export default function Index() {
   const location = useLocation()
 
   const {
-    mainPost,
-    posts = [],
-    previousCursor = undefined,
-    nextCursor = undefined,
+    mainPost = undefined,
+    ancestors = [],
+    children = [],
   } = status.data || {}
 
-  if (!mainPost) {
-    logger.error('Error, main post not found!')
-    return null
-  }
+  if (!mainPost) return null
 
   return (
-    <StandardLayout
-      title={'Post'}
-      main={
-        <>
-          <div>
+    <ThreadProvider ancestors={ancestors} main={mainPost} replies={children}>
+      <StandardLayout
+        title={'Post'}
+        main={
+          <>
             <div>
-              <div className="divide-y divide-gray-200 dark:divide-gray-800 pb-[80vh]">
-                <div className="">
-                  <Thread
-                    mainPost={mainPost}
-                    key={location.pathname}
-                    previousCursor={previousCursor}
-                    nextCursor={nextCursor}
-                    initialPosts={posts}
-                  />
+              <div>
+                <div className="divide-y divide-gray-200 dark:divide-gray-800 pb-[80vh]">
+                  <div className="">
+                    <Thread key={location.pathname} />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </>
-      }
-    ></StandardLayout>
+          </>
+        }
+      ></StandardLayout>
+    </ThreadProvider>
   )
 }

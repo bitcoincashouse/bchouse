@@ -1,18 +1,12 @@
 import { PostCardModel } from '~/.server/services/types'
 import { ClientOnly } from '~/components/client-only'
 import { DonationWidget } from '~/components/donation-widget'
-import { PledgeData } from '~/components/pledge-modal/provider'
 import { CampaignSubscription } from '~/routes/api+/campaign.subscribe.$campaignId'
+import { usePledgeModal } from './hooks/usePledge'
 
-export function CampaignDonationWidget({
-  post,
-  pledge,
-  openPledgeModal,
-}: {
-  post: PostCardModel
-  pledge: PledgeData | null
-  openPledgeModal: () => void | undefined
-}) {
+export function CampaignDonationWidget({ post }: { post: PostCardModel }) {
+  const { pledge, openPledgeModal } = usePledgeModal(post)
+
   return (
     <ClientOnly>
       {() =>

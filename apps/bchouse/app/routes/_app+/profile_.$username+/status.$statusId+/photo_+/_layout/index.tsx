@@ -13,11 +13,12 @@ import { $path } from 'remix-routes'
 import { useMediaQuery } from 'usehooks-ts'
 import { z } from 'zod'
 import { PostFooter } from '~/components/post/card/implementations/image-cards'
+import { ThreadProvider } from '~/components/thread-provider'
+import { Thread } from '~/components/threads/thread'
 import { classNames } from '~/utils/classNames'
 import { zx } from '~/utils/zodix'
 import { usePaginate } from './hooks/usePaginate'
 import { preloadPostQuery, usePostQuery } from './hooks/usePostQuery'
-import { PostSidebar } from './post-sidebar'
 
 export const handle: AppRouteHandle = {
   title: 'Post',
@@ -41,15 +42,15 @@ export default function Page() {
   const isMobile = useMediaQuery('(max-width: 690px)')
   const { data } = usePostQuery()
   const [collapsePosts, setCollapsePosts] = useState<boolean>(false)
-  const { delta, direction, paginate, hasNext, hasPrevious } = usePaginate(
-    data?.mainPost?.mediaUrls || []
-  )
   const { username, statusId, index } = useParams<{
     username: string
     statusId: string
     index: string
   }>()
-  const { mainPost } = data || {}
+  const { mainPost, ancestors = [], children = [] } = data || {}
+  const { delta, direction, paginate, hasNext, hasPrevious } = usePaginate(
+    mainPost?.mediaUrls || []
+  )
 
   if (!mainPost) return null
   return (
@@ -60,7 +61,21 @@ export default function Page() {
             'flex mx-auto non-mobile:mx-0 flex-row min-h-screen items-start w-screen non-mobile:w-auto'
           )}
         >
-          {!collapsePosts && !isMobile ? <PostSidebar /> : null}
+          <ThreadProvider
+            ancestors={ancestors}
+            main={mainPost}
+            replies={children}
+          >
+            {!collapsePosts && !isMobile ? (
+              <div className="hidden lg:block pt-2 min-[690px]:block w-[290px] min-[1080px]:w-[350px] relative order-last">
+                <div className="divide-y divide-gray-200 dark:divide-gray-800 pb-[80vh]">
+                  <div className="">
+                    <Thread showImagesMainPost={false} key={mainPost.id} />
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </ThreadProvider>
           <div
             className={classNames(
               'relative w-full non-mobile:border !border-t-0 border-gray-100 dark:border-gray-600 dark:border-gray-600'

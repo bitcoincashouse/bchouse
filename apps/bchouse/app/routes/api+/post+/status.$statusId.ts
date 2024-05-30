@@ -15,11 +15,9 @@ export const loader = async (_: LoaderFunctionArgs) => {
 
   //TODO: Fetch parents dynamically
   return {
-    posts: [
-      ...ancestors.map((a) => ({ ...a, isThread: true })),
-      mainPost,
-      ...children,
-    ],
+    ancestors: ancestors.map((a) => ({ ...a, isThread: true })),
+    mainPost,
+    children,
     nextCursor: nextCursor,
     previousCursor,
   }

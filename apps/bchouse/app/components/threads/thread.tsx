@@ -1,45 +1,16 @@
-import React, { useRef, useState } from 'react'
+import React from 'react'
 import { useCurrentUser } from '~/components/context/current-user-context'
-import { useBrowserLayoutEffect } from '~/utils/useBrowserLayoutEffect'
 import { ThreadPost } from '../post/card/implementations/thread-card'
-import { PostCardModel } from '../post/types'
+import { useStatusThread } from '../thread-provider'
 import { classnames } from '../utils/classnames'
-import { useScrollRestore } from './useScrollRestore'
+import { useCommentScroll } from './useCommentScroll'
 
 export const Thread: React.FC<{
-  mainPost: PostCardModel
   showImagesMainPost?: boolean
-  initialPosts: PostCardModel[]
-  nextCursor?: string | undefined
-  previousCursor?: string | undefined
 }> = (props) => {
-  const { mainPost, initialPosts } = props
+  const posts = useStatusThread()
   const currentUser = useCurrentUser()
-
-  const mainPostId = mainPost.id
-  const listRef = useRef<HTMLUListElement | null>(null)
-
-  const scrollState = useScrollRestore()
-  const [wasRendered, setWasRendered] = useState(false)
-  useBrowserLayoutEffect(() => {
-    if (typeof window === 'undefined') return
-
-    if (scrollState) {
-      window.scrollTo({ top: scrollState })
-    } else {
-      const mainPost = listRef.current?.querySelector(
-        '#currentPost'
-      ) as HTMLDivElement
-
-      if (mainPost) {
-        const targetOffset =
-          mainPost.offsetTop + (window.innerWidth >= 640 ? -60 : 0)
-
-        window.scrollTo({ top: targetOffset, behavior: 'instant' })
-      }
-    }
-    setWasRendered(true)
-  }, [])
+  const { feedRef, shouldRender } = useCommentScroll()
 
   return (
     <div>
@@ -51,16 +22,16 @@ export const Thread: React.FC<{
               <div className="flow-root">
                 <ul
                   role="list"
-                  ref={listRef}
+                  ref={feedRef}
                   className={classnames(
                     'border-gray-100 dark:border-gray-600 min-h-screen',
-                    !wasRendered && 'invisible'
+                    !shouldRender && 'invisible'
                   )}
                 >
-                  {initialPosts.map((post) => (
+                  {posts.all.map((post) => (
                     <ThreadPost
                       key={post.key}
-                      mainPostId={mainPostId}
+                      mainPostId={posts.main.id}
                       showImagesMainPost={props.showImagesMainPost}
                       post={post}
                       currentUser={currentUser}

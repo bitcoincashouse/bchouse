@@ -3,11 +3,11 @@ import { useLocation, useParams } from '@remix-run/react'
 import { $preload, $useLoaderQuery, createRemixClientUtils } from 'remix-query'
 import { z } from 'zod'
 import { StandardLayout } from '~/components/layouts/standard-layout'
-import { CampaignThread } from '~/components/threads/campaign'
+import { ThreadProvider } from '~/components/thread-provider'
+import { CampaignThread } from '~/components/threads/campaign-thread/campaign'
 import { zx } from '~/utils/zodix'
 import { CampaignDonationWidget } from './campaign-donation-widget'
 import { createMetaTags } from './createMetaTags'
-import { usePledgeModal } from './hooks/usePledge'
 
 export const handle = {
   title: 'Post',
@@ -62,55 +62,35 @@ function useCampaignQuery() {
 export default function Index() {
   const campaignQuery = useCampaignQuery()
   const location = useLocation()
-  const { pledge, openPledgeModal } = usePledgeModal(
-    campaignQuery.data?.mainPost
-  )
 
   const {
-    previousCursor = undefined,
-    nextCursor = undefined,
     mainPost = undefined,
     ancestors = [],
     children = [],
-    donorPosts = [],
   } = campaignQuery.data || {}
 
   //TODO: handle if undefined
   if (!mainPost) return null
 
   return (
-    <StandardLayout
-      title={'Campaign'}
-      main={
-        <>
-          <div>
+    <ThreadProvider main={mainPost} ancestors={ancestors} replies={children}>
+      <StandardLayout
+        title={'Campaign'}
+        main={
+          <>
             <div>
-              <div className="divide-y divide-gray-200 dark:divide-gray-800 pb-[80vh]">
-                <div className="">
-                  <CampaignThread
-                    key={location.pathname}
-                    ancestorPosts={ancestors}
-                    previousCursor={previousCursor}
-                    mainPost={mainPost}
-                    nextCursor={nextCursor}
-                    donorPosts={donorPosts}
-                    childPosts={children}
-                    isPledgeModalOpen={!!pledge}
-                    openPledgeModal={openPledgeModal}
-                  />
+              <div>
+                <div className="divide-y divide-gray-200 dark:divide-gray-800 pb-[80vh]">
+                  <div className="">
+                    <CampaignThread key={location.pathname} />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </>
-      }
-      widgets={[
-        <CampaignDonationWidget
-          post={mainPost}
-          pledge={pledge}
-          openPledgeModal={openPledgeModal}
-        />,
-      ]}
-    ></StandardLayout>
+          </>
+        }
+        widgets={[<CampaignDonationWidget post={mainPost} />]}
+      ></StandardLayout>
+    </ThreadProvider>
   )
 }
