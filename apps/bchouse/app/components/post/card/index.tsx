@@ -1,7 +1,5 @@
 /* eslint-disable react/display-name */
-import { useLocation, useNavigate } from '@remix-run/react'
-import React, { useMemo } from 'react'
-import { $useLoaderQuery } from 'remix-query'
+import React from 'react'
 import { classNames } from '~/utils/classNames'
 import { PostCardModel } from '../types'
 import { PostCardAvatar } from './avatar'
@@ -12,9 +10,11 @@ import { PostCardHeader } from './header'
 import { PostCardMedia } from './media'
 import { PostCardMenu } from './menu'
 import { RepostedBy } from './reposted-by'
+import { useOptimisticPost } from './useOptimisticPost'
+import { usePostClickHandler } from './usePostClickHandler'
 
 export function PostCard({
-  item: post,
+  item: rawPost,
   children,
   footer,
   className,
@@ -24,59 +24,27 @@ export function PostCard({
   footer?: React.ReactNode
   className?: string
 }) {
-  const navigate = useNavigate()
-  const location = useLocation()
-
-  //For optimistic updates, get data from queryCache
-  const { data } = $useLoaderQuery('/api/post/get/:postId', {
-    params: {
-      postId: post.id,
-    },
-    placeholderData: post,
-    enabled: false,
-    //TODO: stagger stale time, not to fetch all at same time,
-    //TODO: only set while in view
-    staleTime: 5 * 60 * 1000,
-    gcTime: Infinity,
-  })
-
-  const item = useMemo(() => {
-    //Combine values returned via feed but not found via getPostById (ex. repostedBy)
-    return { ...data!, repostedBy: post.repostedBy }
-  }, [data, post.repostedBy])
-
-  const handleClick: React.MouseEventHandler<HTMLDivElement> = (e) => {
-    if (e.target instanceof HTMLAnchorElement) return
-
-    //TODO:
-    if (
-      !item.person.handle ||
-      !item.id ||
-      item.deleted ||
-      `/profile/${item.person.handle}/status/${item.id}` === location.pathname
-    )
-      return
-    navigate(`/profile/${item.person.handle}/status/${item.id}`)
-  }
+  const post = useOptimisticPost(rawPost)
+  const handleClick = usePostClickHandler(post)
 
   return (
-    <PostContext.Provider value={item}>
+    <PostContext.Provider value={post}>
       <div className={classNames(className, '')} onClick={handleClick}>
         <div
           className={classNames(
             'relative py-4 px-4',
-            item.repostedBy ? 'pt-8' : ''
+            post.repostedBy ? 'pt-8' : ''
           )}
         >
           <div className="relative">
-            {item.isThread ? (
+            {post.isThread ? (
               <span
                 className="absolute top-8 left-5 -ml-px h-full w-0.5 bg-gray-200 dark:bg-gray-700"
                 aria-hidden="true"
               />
             ) : null}
             <div className="relative flex items-start">
-              <PostCardAvatar item={item} />
+              <PostCardAvatar item={post} />
               <div className="min-w-0 flex-1 relative">{children}</div>
             </div>
           </div>
